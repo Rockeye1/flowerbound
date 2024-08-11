@@ -2,7 +2,7 @@ module Frontend exposing (app)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Element, alignTop, centerX, el, fill, text, width)
+import Element exposing (Element, alignRight, centerX, el, fill, height, shrink, text, width)
 import Element.Border as Border
 import Element.Input as Input
 import Lamdera
@@ -47,12 +47,12 @@ init _ key =
 edmundDantes : Persona
 edmundDantes =
     { name = "Edmund Dantes"
-    , fitness = 1
-    , grace = 1
-    , ardor = 1
-    , sanity = 1
-    , prowess = 1
-    , moxie = 1
+    , fitness = 2
+    , grace = 2
+    , ardor = 2
+    , sanity = 2
+    , prowess = 2
+    , moxie = 2
 
     --
     , stamina = 1
@@ -112,21 +112,19 @@ view model =
 innerView : FrontendModel -> Element FrontendMsg
 innerView { personas } =
     personas
-        |> List.indexedMap viewPersona
+        |> List.indexedMap (\index persona -> Element.map (ChangePersona index) (viewPersona persona))
         |> Theme.column [ Theme.padding ]
 
 
-viewPersona : Int -> Persona -> Element FrontendMsg
-viewPersona index persona =
+viewPersona : Persona -> Element Persona
+viewPersona persona =
     let
-        nameRow : Element FrontendMsg
+        nameRow : Element Persona
         nameRow =
             Input.text [ width fill ]
                 { label = Input.labelHidden "Name"
                 , text = persona.name
-                , onChange =
-                    \newValue ->
-                        ChangePersona index { persona | name = newValue }
+                , onChange = \newValue -> { persona | name = newValue }
                 , placeholder =
                     Just <|
                         Input.placeholder [] <|
@@ -155,19 +153,60 @@ viewPersona index persona =
                 ]
 
         abilitiesView =
-            Theme.column [ alignTop ]
+            let
+                floatingPoints =
+                    18 - persona.fitness - persona.grace - persona.ardor - persona.sanity - persona.prowess - persona.moxie
+            in
+            Theme.column [ height fill ]
                 [ text "Ability Scores"
-                , el [] <| text <| "Fitness (FIT) " ++ String.fromInt persona.fitness
-                , el [] <| text <| "Grace (GRC) " ++ String.fromInt persona.grace
-                , el [] <| text <| "Sanity (SAN) " ++ String.fromInt persona.sanity
-                , el [] <| text <| "Prowess (PRW) " ++ String.fromInt persona.prowess
-                , el [] <| text <| "Moxie (MOX) " ++ String.fromInt persona.moxie
+                , Element.table [ Theme.spacing ]
+                    { data =
+                        [ ( "Fitness (FIT) ", persona.fitness, \newValue -> { persona | fitness = newValue } )
+                        , ( "Grace (GRC) ", persona.grace, \newValue -> { persona | grace = newValue } )
+                        , ( "Ardor (ARD) ", persona.ardor, \newValue -> { persona | ardor = newValue } )
+                        , ( "Sanity (SAN) ", persona.sanity, \newValue -> { persona | sanity = newValue } )
+                        , ( "Prowess (PRW) ", persona.prowess, \newValue -> { persona | prowess = newValue } )
+                        , ( "Moxie (MOX) ", persona.moxie, \newValue -> { persona | moxie = newValue } )
+                        ]
+                    , columns =
+                        [ { width = fill
+                          , header = Element.none
+                          , view = \( label, _, _ ) -> text label
+                          }
+                        , { width = shrink
+                          , header = Element.none
+                          , view =
+                                \( _, value, setter ) ->
+                                    Theme.row
+                                        [ alignRight ]
+                                        [ text (String.fromInt value)
+                                        , Theme.button []
+                                            { label = text "-"
+                                            , onPress =
+                                                if value > 2 then
+                                                    Just (setter (value - 1))
+
+                                                else
+                                                    Nothing
+                                            }
+                                        , Theme.button []
+                                            { label = text "+"
+                                            , onPress =
+                                                if floatingPoints > 0 then
+                                                    Just (setter (value + 1))
+
+                                                else
+                                                    Nothing
+                                            }
+                                        ]
+                          }
+                        ]
+                    }
                 ]
 
         statusView =
             Theme.column
-                [ alignTop
-                , Border.widthEach
+                [ Border.widthEach
                     { left = 1
                     , top = 0
                     , bottom = 0
@@ -179,6 +218,7 @@ viewPersona index persona =
                     , bottom = 0
                     , right = 0
                     }
+                , height fill
                 ]
                 [ text "Status meters"
                 , text "Stamina"
