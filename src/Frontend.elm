@@ -2,7 +2,7 @@ module Frontend exposing (app)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Element, alignTop, el, fill, text, width)
+import Element exposing (Element, alignTop, centerX, el, fill, text, width)
 import Element.Border as Border
 import Element.Input as Input
 import Lamdera
@@ -204,11 +204,11 @@ viewPersona index persona =
                     }
                 , width fill
                 ]
-                [ text "Progression Tally"
-                , Theme.row []
-                    [ el [] <| text "EP"
-                    , el [] <| text "IP"
-                    , el [] <| text "NP"
+                [ el [ centerX ] <| text "Progression Tally"
+                , Theme.row [ width fill ]
+                    [ el [ width fill ] <| text "EP"
+                    , el [ width fill ] <| text "IP"
+                    , el [ width fill ] <| text "NP"
                     ]
                 ]
     in
