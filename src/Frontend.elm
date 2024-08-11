@@ -154,8 +154,15 @@ viewPersona persona =
 
         abilitiesView =
             let
-                floatingPoints =
-                    18 - persona.fitness - persona.grace - persona.ardor - persona.sanity - persona.prowess - persona.moxie
+                availablePoints : Int
+                availablePoints =
+                    18
+                        - persona.fitness
+                        - persona.grace
+                        - persona.ardor
+                        - persona.sanity
+                        - persona.prowess
+                        - persona.moxie
             in
             Theme.column [ height fill ]
                 [ text "Ability Scores"
@@ -192,7 +199,7 @@ viewPersona persona =
                                         , Theme.button []
                                             { label = text "+"
                                             , onPress =
-                                                if floatingPoints > 0 then
+                                                if availablePoints > 0 then
                                                     Just (setter (value + 1))
 
                                                 else
