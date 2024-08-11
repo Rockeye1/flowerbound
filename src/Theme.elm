@@ -1,4 +1,4 @@
-module Theme exposing (button, column, padding, rhythm, row, spacing)
+module Theme exposing (button, column, el, padding, purple, rhythm, row, spacing)
 
 import Element exposing (Attribute, Element, el, shrink, width)
 import Element.Background as Background
@@ -17,7 +17,7 @@ column :
     -> List (Element msg)
     -> Element msg
 column attrs children =
-    Element.column (spacing :: attrs) children
+    Element.column (spacing :: Border.color purple :: attrs) children
 
 
 row :
@@ -25,7 +25,12 @@ row :
     -> List (Element msg)
     -> Element msg
 row attrs children =
-    Element.row (spacing :: attrs) children
+    Element.row (spacing :: Border.color purple :: attrs) children
+
+
+el : List (Attribute msg) -> Element msg -> Element msg
+el attrs child =
+    Element.el (spacing :: Border.color purple :: attrs) child
 
 
 spacing : Attribute msg
@@ -51,7 +56,9 @@ button attrs config =
             Input.button
                 (Border.width 1
                     :: padding
-                    :: Background.color (Element.rgb 0.9 0.6 0.9)
+                    :: Background.color purple
+                    :: Font.color (Element.rgb 1 1 1)
+                    :: Border.color (Element.rgb 0 0 0)
                     :: width (Element.minimum 38 shrink)
                     :: Font.center
                     :: attrs
@@ -68,3 +75,8 @@ button attrs config =
                     :: attrs
                 )
                 config.label
+
+
+purple : Element.Color
+purple =
+    Element.rgb255 0x80 0 0x80

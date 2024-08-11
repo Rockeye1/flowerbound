@@ -2,8 +2,9 @@ module Frontend exposing (app)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Element, alignRight, centerX, el, fill, height, shrink, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, shrink, text, width)
 import Element.Border as Border
+import Element.Font as Font
 import Element.Input as Input
 import Lamdera
 import List.Extra
@@ -121,7 +122,10 @@ viewPersona persona =
     let
         nameRow : Element Persona
         nameRow =
-            Input.text [ width fill ]
+            Input.text
+                [ width fill
+                , Font.color Theme.purple
+                ]
                 { label = Input.labelHidden "Name"
                 , text = persona.name
                 , onChange = \newValue -> { persona | name = newValue }
@@ -130,7 +134,7 @@ viewPersona persona =
                         Input.placeholder [] <|
                             text "Name"
                 }
-                |> el
+                |> Theme.el
                     [ Element.paddingEach
                         { top = 0
                         , bottom = Theme.rhythm
@@ -180,7 +184,7 @@ viewPersona persona =
                     , columns =
                         [ { width = fill
                           , header = Element.none
-                          , view = \( label, _, _ ) -> text label
+                          , view = \( label, _, _ ) -> el [ centerY ] <| text label
                           }
                         , { width = shrink
                           , header = Element.none
@@ -230,8 +234,7 @@ viewPersona persona =
                     }
                 , height fill
                 ]
-                [ text "Status meters"
-                , text "Stamina"
+                [ text "Stamina"
                 , text "Satiation"
                 , text "Craving"
                 , text "Arousal"
