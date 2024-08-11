@@ -146,12 +146,14 @@ viewPersona persona =
                     , width fill
                     ]
 
+        splitView : Element Persona
         splitView =
             Theme.row []
                 [ abilitiesView
                 , statusView
                 ]
 
+        abilitiesView : Element Persona
         abilitiesView =
             let
                 availablePoints : Int
@@ -211,6 +213,7 @@ viewPersona persona =
                     }
                 ]
 
+        statusView : Element Persona
         statusView =
             Theme.column
                 [ Border.widthEach
@@ -235,6 +238,7 @@ viewPersona persona =
                 , text "Sensitivity"
                 ]
 
+        progressionView : Element msg
         progressionView =
             Theme.column
                 [ Border.widthEach
