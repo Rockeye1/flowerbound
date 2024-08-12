@@ -1,4 +1,4 @@
-module Theme exposing (button, column, el, padding, purple, rhythm, row, spacing)
+module Theme exposing (button, column, el, padding, purple, rhythm, row, spacing, wrappedRow)
 
 import Element exposing (Attribute, Element, el, shrink, width)
 import Element.Background as Background
@@ -12,20 +12,19 @@ rhythm =
     8
 
 
-column :
-    List (Attribute msg)
-    -> List (Element msg)
-    -> Element msg
+column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
     Element.column (spacing :: Border.color purple :: attrs) children
 
 
-row :
-    List (Attribute msg)
-    -> List (Element msg)
-    -> Element msg
+row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
     Element.row (spacing :: Border.color purple :: attrs) children
+
+
+wrappedRow : List (Attribute msg) -> List (Element msg) -> Element msg
+wrappedRow attrs children =
+    Element.wrappedRow (spacing :: Border.color purple :: attrs) children
 
 
 el : List (Attribute msg) -> Element msg -> Element msg

@@ -1,53 +1,43 @@
-module Frontend exposing (app)
+module Main exposing (main)
 
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, shrink, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, px, row, shrink, spacing, text, width)
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Lamdera
 import List.Extra
 import Theme
-import Types exposing (FrontendModel, FrontendMsg(..), Persona, ToFrontend(..))
+import Types exposing (Flags, Model, Msg(..), Persona)
 import Url
 
 
-app :
-    { init : Lamdera.Url -> Nav.Key -> ( FrontendModel, Cmd FrontendMsg )
-    , view : FrontendModel -> Browser.Document FrontendMsg
-    , update : FrontendMsg -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-    , updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-    , subscriptions : FrontendModel -> Sub FrontendMsg
-    , onUrlRequest : UrlRequest -> FrontendMsg
-    , onUrlChange : Url.Url -> FrontendMsg
-    }
-app =
-    Lamdera.frontend
+main : Program Flags Model Msg
+main =
+    Browser.application
         { init = init
         , onUrlRequest = UrlClicked
         , onUrlChange = UrlChanged
         , update = update
-        , updateFromBackend = updateFromBackend
         , subscriptions = subscriptions
         , view = view
         }
 
 
-init : Url.Url -> Nav.Key -> ( FrontendModel, Cmd FrontendMsg )
-init _ key =
+init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ _ key =
     ( { key = key
       , personas =
-            [ edmundDantes
+            [ cinderellaSheen
             ]
       }
     , Cmd.none
     )
 
 
-edmundDantes : Persona
-edmundDantes =
-    { name = "Edmund Dantes"
+cinderellaSheen : Persona
+cinderellaSheen =
+    { name = "Cinderella Sheen"
     , fitness = 2
     , grace = 2
     , ardor = 2
@@ -56,7 +46,7 @@ edmundDantes =
     , moxie = 2
 
     --
-    , stamina = 1
+    , stamina = 0
     , satiation = 0
     , craving = 0
     , arousal = 0
@@ -69,7 +59,7 @@ edmundDantes =
     }
 
 
-update : FrontendMsg -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UrlClicked urlRequest ->
@@ -87,21 +77,14 @@ update msg model =
         UrlChanged _ ->
             ( model, Cmd.none )
 
-        NoOpFrontendMsg ->
+        NoOp ->
             ( model, Cmd.none )
 
         ChangePersona index persona ->
             ( { model | personas = List.Extra.setAt index persona model.personas }, Cmd.none )
 
 
-updateFromBackend : ToFrontend -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-updateFromBackend msg model =
-    case msg of
-        NoOpToFrontend ->
-            ( model, Cmd.none )
-
-
-view : FrontendModel -> Browser.Document FrontendMsg
+view : Model -> Browser.Document Msg
 view model =
     { title = ""
     , body =
@@ -110,7 +93,7 @@ view model =
     }
 
 
-innerView : FrontendModel -> Element FrontendMsg
+innerView : Model -> Element Msg
 innerView { personas } =
     personas
         |> List.indexedMap (\index persona -> Element.map (ChangePersona index) (viewPersona persona))
@@ -219,6 +202,14 @@ viewPersona persona =
 
         statusView : Element Persona
         statusView =
+            let
+                statusRow : String -> Int -> Int -> ( String, Int, Int )
+                statusRow label value bonusToCap =
+                    ( label
+                    , value
+                    , 20 + 2 * bonusToCap
+                    )
+            in
             Theme.column
                 [ Border.widthEach
                     { left = 1
@@ -234,15 +225,94 @@ viewPersona persona =
                     }
                 , height fill
                 ]
-                [ text "Stamina"
-                , text "Satiation"
-                , text "Craving"
-                , text "Arousal"
-                , text "Sensitivity"
+                [ text "Status meters"
+                , Element.table
+                    [ Theme.spacing
+                    ]
+                    { data =
+                        [ statusRow "Stamina" persona.stamina 0
+                        , statusRow "Satiation" persona.satiation persona.ardor
+                        , statusRow "Craving" persona.craving persona.sanity
+                        , statusRow "Arousal" persona.arousal persona.prowess
+                        , statusRow "Sensitivity" persona.sensitivity persona.moxie
+                        ]
+                    , columns =
+                        [ { header = Element.none
+                          , width = fill
+                          , view = \( label, _, _ ) -> text label
+                          }
+                        , { header = Element.none
+                          , width = shrink
+                          , view = \( _, value, _ ) -> text (String.fromInt value)
+                          }
+                        , { header = Element.none
+                          , width = shrink
+                          , view = \_ -> text "/"
+                          }
+                        , { header = Element.none
+                          , width = shrink
+                          , view = \( _, _, maximum ) -> text (String.fromInt maximum)
+                          }
+                        ]
+                    }
                 ]
 
-        progressionView : Element msg
+        progressionView : Element Persona
         progressionView =
+            let
+                tallyMark : Element msg
+                tallyMark =
+                    el [ Border.width 1, height <| px 16 ] Element.none
+
+                tallyGroup : Int -> Element msg
+                tallyGroup count =
+                    row
+                        [ spacing (Theme.rhythm // 2)
+                        , Element.inFront
+                            (if count == 5 then
+                                el
+                                    [ Border.widthEach
+                                        { bottom = 1
+                                        , top = 0
+                                        , right = 0
+                                        , left = 0
+                                        }
+                                    , centerY
+                                    , width fill
+                                    , Element.rotate (degrees -10)
+                                    ]
+                                    Element.none
+
+                             else
+                                Element.none
+                            )
+                        , Element.paddingXY (Theme.rhythm // 2) 0
+                        ]
+                        (List.repeat (min 4 count) tallyMark)
+
+                viewTally : String -> Int -> (Int -> Persona) -> Element Persona
+                viewTally label value setter =
+                    Theme.row [ width fill ]
+                        [ text label
+                        , Theme.wrappedRow [ width fill ]
+                            (List.repeat (value // 5) (tallyGroup 5)
+                                ++ [ tallyGroup (modBy 5 value) ]
+                            )
+                        , Theme.button [ alignRight ]
+                            { label = text "-"
+                            , onPress =
+                                if value > 0 then
+                                    Just (setter (value - 1))
+
+                                else
+                                    Nothing
+                            }
+                        , Theme.button [ alignRight ]
+                            { label = text "+"
+                            , onPress = Just (setter (value + 1))
+                            }
+                        ]
+            in
             Theme.column
                 [ Border.widthEach
                     { top = 1
@@ -259,10 +329,10 @@ viewPersona persona =
                 , width fill
                 ]
                 [ el [ centerX ] <| text "Progression Tally"
-                , Theme.row [ width fill ]
-                    [ el [ width fill ] <| text "EP"
-                    , el [ width fill ] <| text "IP"
-                    , el [ width fill ] <| text "NP"
+                , Theme.wrappedRow [ width fill ]
+                    [ viewTally "EP" persona.euphoriaPoints <| \newValue -> { persona | euphoriaPoints = newValue }
+                    , viewTally "IP" persona.ichorPoints <| \newValue -> { persona | ichorPoints = newValue }
+                    , viewTally "NP" persona.numinousPoints <| \newValue -> { persona | numinousPoints = newValue }
                     ]
                 ]
     in
@@ -276,6 +346,6 @@ viewPersona persona =
         ]
 
 
-subscriptions : FrontendModel -> Sub FrontendMsg
+subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none

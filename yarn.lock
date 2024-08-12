@@ -2,6 +2,26 @@
 # yarn lockfile v1
 
 
+"@elm_binaries/darwin_arm64@0.19.1-0":
+  version "0.19.1-0"
+  resolved "https://registry.yarnpkg.com/@elm_binaries/darwin_arm64/-/darwin_arm64-0.19.1-0.tgz#ea09fca7cdfedad3fa517267099d78d180f01098"
+  integrity sha512-mjbsH7BNHEAmoE2SCJFcfk5fIHwFIpxtSgnEAqMsVLpBUFoEtAeX+LQ+N0vSFJB3WAh73+QYx/xSluxxLcL6dA==
+
+"@elm_binaries/darwin_x64@0.19.1-0":
+  version "0.19.1-0"
+  resolved "https://registry.yarnpkg.com/@elm_binaries/darwin_x64/-/darwin_x64-0.19.1-0.tgz#8c3254590804c35ee7b97b4d8a21a63318511c44"
+  integrity sha512-QGUtrZTPBzaxgi9al6nr+9313wrnUVHuijzUK39UsPS+pa+n6CmWyV/69sHZeX9qy6UfeugE0PzF3qcUiy2GDQ==
+
+"@elm_binaries/linux_x64@0.19.1-0":
+  version "0.19.1-0"
+  resolved "https://registry.yarnpkg.com/@elm_binaries/linux_x64/-/linux_x64-0.19.1-0.tgz#95440341eee8f6bee2d88859b3bdd99f33ca88f0"
+  integrity sha512-T1ZrWVhg2kKAsi8caOd3vp/1A3e21VuCpSG63x8rDie50fHbCytTway9B8WHEdnBFv4mYWiA68dzGxYCiFmU2w==
+
+"@elm_binaries/win32_x64@0.19.1-0":
+  version "0.19.1-0"
+  resolved "https://registry.yarnpkg.com/@elm_binaries/win32_x64/-/win32_x64-0.19.1-0.tgz#3f8decfd6f5fbc46906f3f5d50561b6e5b33ac3a"
+  integrity sha512-yDleiXqSE9EcqKtd9SkC/4RIW8I71YsXzMPL79ub2bBPHjWTcoyyeBbYjoOB9SxSlArJ74HaoBApzT6hY7Zobg==
+
 ansi-styles@^4.1.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-4.3.0.tgz#edd803628ae71c04c85ae7a0906edad34b648937"
@@ -110,6 +130,26 @@ elm-test@^0.19.1-revision12:
     split "^1.0.1"
     which "^2.0.2"
     xmlbuilder "^15.1.1"
+
+elm-watch@^2.0.0-beta.3:
+  version "2.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/elm-watch/-/elm-watch-2.0.0-beta.3.tgz#3bb7f7952559c9e297734d87a283f0fb8e5b1496"
+  integrity sha512-rEi3cZiPgjnvmHX3toqUEwf+DJsGTqsMeNXVTGIC6POHyGjAXeyaUrp2RxMSrV6IS0hSBDu++KCBGO1tgJ/iew==
+  dependencies:
+    chokidar "^3.5.3"
+    cross-spawn "^7.0.3"
+    tiny-decoders "^7.0.1"
+    ws "^8.12.0"
+
+elm@^0.19.1-6:
+  version "0.19.1-6"
+  resolved "https://registry.yarnpkg.com/elm/-/elm-0.19.1-6.tgz#b6f51d0add8877de70592097a8f6efc4588c476a"
+  integrity sha512-mKYyierHICPdMx/vhiIacdPmTPnh889gjHOZ75ZAoCxo3lZmSWbGP8HMw78wyctJH0HwvTmeKhlYSWboQNYPeQ==
+  optionalDependencies:
+    "@elm_binaries/darwin_arm64" "0.19.1-0"
+    "@elm_binaries/darwin_x64" "0.19.1-0"
+    "@elm_binaries/linux_x64" "0.19.1-0"
+    "@elm_binaries/win32_x64" "0.19.1-0"
 
 fill-range@^7.1.1:
   version "7.1.1"
@@ -265,6 +305,11 @@ through@2:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
 
+tiny-decoders@^7.0.1:
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/tiny-decoders/-/tiny-decoders-7.0.1.tgz#ce80d377a214a5c46ffdd37b3b14f64e91215210"
+  integrity sha512-P1LaHTLASl/lCrdtwgAAVwxt4bEAPmxpf9HMQrlCkAseaT8oH8oxm8ndy4nx5rLTcL5U/Qxp1a+FDoQfS/ZgQQ==
+
 to-regex-range@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-5.0.1.tgz#1648c44aae7c8d988a326018ed72f5b4dd0392e4"
@@ -283,6 +328,11 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
+
+ws@^8.12.0:
+  version "8.18.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.18.0.tgz#0d7505a6eafe2b0e712d232b42279f53bc289bbc"
+  integrity sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==
 
 xmlbuilder@^15.1.1:
   version "15.1.1"

@@ -1,11 +1,15 @@
-module Types exposing (..)
+module Types exposing (Flags, Model, Msg(..), Persona)
 
 import Browser exposing (UrlRequest)
 import Browser.Navigation exposing (Key)
 import Url exposing (Url)
 
 
-type alias FrontendModel =
+type alias Flags =
+    {}
+
+
+type alias Model =
     { key : Key
     , personas : List Persona
     }
@@ -36,24 +40,8 @@ type alias Persona =
     }
 
 
-type alias BackendModel =
-    {}
-
-
-type FrontendMsg
+type Msg
     = UrlClicked UrlRequest
     | UrlChanged Url
     | ChangePersona Int Persona
-    | NoOpFrontendMsg
-
-
-type ToBackend
-    = NoOpToBackend
-
-
-type BackendMsg
-    = NoOpBackendMsg
-
-
-type ToFrontend
-    = NoOpToFrontend
+    | NoOp
