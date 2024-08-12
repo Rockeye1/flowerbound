@@ -1,7 +1,7 @@
 module View.Persona exposing (view)
 
 import Browser exposing (UrlRequest(..))
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -25,59 +25,71 @@ view :
     -> Element msg
 view config { flipped, persona } =
     let
-        commonAttrs flip =
+        style : String -> String -> Attribute msg
+        style key value =
+            Element.htmlAttribute <|
+                Html.Attributes.style key value
+
+        commonAttrs : Int -> List (Attribute msg)
+        commonAttrs rotate =
             [ Border.width 1
             , width fill
             , height fill
             , Theme.padding
             , Background.color (rgb 1 1 1)
-            , Element.htmlAttribute <| Html.Attributes.style "backface-visibility" "hidden"
-            , Element.htmlAttribute <|
-                Html.Attributes.style "transition" "all .5s ease-in-out"
-            , Element.htmlAttribute <|
-                Html.Attributes.style "transform"
-                    ("rotateY("
-                        ++ (if flip then
-                                "180deg"
-
-                            else
-                                "0"
-                           )
-                        ++ ")"
-                    )
+            , style "backface-visibility" "hidden"
+            , style "transition" "all .5s ease-in-out"
+            , style "position" "absolute"
+            , style "transform"
+                ("rotateY("
+                    ++ String.fromInt rotate
+                    ++ "deg)"
+                )
             ]
     in
-    el
-        []
-        (el
-            [ Element.inFront <|
-                Theme.column
-                    (commonAttrs flipped)
-                    [ nameRow config persona
-                    , Element.map config.update <|
-                        Theme.row [ width fill ]
-                            [ abilitiesView persona
-                            , statusView persona
-                            ]
-                    , Element.map config.update <| progressionView persona
+    Theme.row
+        [ width <| px 600
+        , style "perspective" "1200px"
+        ]
+        [ Theme.column
+            (commonAttrs
+                (if flipped then
+                    180
+
+                 else
+                    0
+                )
+            )
+            [ nameRow config persona
+            , Element.map config.update <|
+                Theme.row [ width fill ]
+                    [ abilitiesView persona
+                    , statusView persona
                     ]
+            , Element.map config.update <| progressionView persona
             ]
-         <|
-            Theme.column
-                (commonAttrs (not flipped))
-                [ Theme.row [ width fill ]
-                    [ text "Gendertrope"
-                    , Theme.button [ alignRight ]
-                        { onPress = Just config.flip
-                        , label = Icons.flip
-                        }
-                    ]
-                , text "The Butterfly"
-                , paragraph [ Font.italic ]
-                    [ text "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
-                    ]
+        , Theme.column
+            (commonAttrs
+                (if flipped then
+                    360
+
+                 else
+                    180
+                )
+            )
+            [ Theme.row [ width fill ]
+                [ text "Gendertrope"
+                , Theme.button [ alignRight ]
+                    { onPress = Just config.flip
+                    , label = Icons.flip
+                    }
                 ]
-        )
+            , text "The Butterfly"
+            , paragraph [ Font.italic ]
+                [ text "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
+                ]
+            ]
+        ]
 
 
 nameRow : Config msg -> Persona -> Element msg
