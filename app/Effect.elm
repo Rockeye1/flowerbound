@@ -9,8 +9,8 @@ module Effect exposing (Effect(..), batch, fromCmd, map, none, perform)
 import Browser.Navigation
 import Form
 import Http
-import Json.Decode as Decode
 import Pages.Fetcher
+import Route exposing (Route)
 import Url exposing (Url)
 
 
@@ -19,7 +19,7 @@ type Effect msg
     = None
     | Cmd (Cmd msg)
     | Batch (List (Effect msg))
-    | GetStargazers (Result Http.Error Int -> msg)
+    | SetRoute Route
     | SetField { formId : String, name : String, value : String }
     | FetchRouteData
         { data : Maybe FormData
@@ -30,13 +30,6 @@ type Effect msg
         , toMsg : Result Http.Error Url -> msg
         }
     | SubmitFetcher (Pages.Fetcher.Fetcher msg)
-
-
-{-| -}
-type alias RequestInfo =
-    { contentType : String
-    , body : String
-    }
 
 
 {-| -}
@@ -64,14 +57,14 @@ map fn effect =
         None ->
             None
 
+        SetRoute route ->
+            SetRoute route
+
         Cmd cmd ->
             Cmd (Cmd.map fn cmd)
 
         Batch list ->
             Batch (List.map (map fn) list)
-
-        GetStargazers toMsg ->
-            GetStargazers (toMsg >> fn)
 
         FetchRouteData fetchInfo ->
             FetchRouteData
@@ -120,6 +113,9 @@ perform ({ fromPageMsg, key } as helpers) effect =
         None ->
             Cmd.none
 
+        SetRoute route ->
+            Browser.Navigation.replaceUrl key (Route.toString route)
+
         Cmd cmd ->
             Cmd.map fromPageMsg cmd
 
@@ -128,13 +124,6 @@ perform ({ fromPageMsg, key } as helpers) effect =
 
         Batch list ->
             Cmd.batch (List.map (perform helpers) list)
-
-        GetStargazers toMsg ->
-            Http.get
-                { url =
-                    "https://api.github.com/repos/dillonkearns/elm-pages"
-                , expect = Http.expectJson (toMsg >> fromPageMsg) (Decode.field "stargazers_count" Decode.int)
-                }
 
         FetchRouteData fetchInfo ->
             helpers.fetchRouteData

@@ -31,6 +31,7 @@
             "elm-community/list-extra": "8.7.0",
             "elm-community/result-extra": "2.4.0",
             "elmcraft/core-extra": "2.0.0",
+            "folkertdev/elm-flate": "2.0.5",
             "jluckyiv/elm-utc-date-strings": "1.0.0",
             "justinmimbs/date": "4.1.0",
             "mdgriffith/elm-codegen": "4.2.1",
