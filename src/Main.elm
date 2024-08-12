@@ -26,7 +26,9 @@ init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ _ key =
     ( { key = key
       , personas =
-            [ cinderellaSheen
+            [ { flipped = False
+              , persona = cinderellaSheen
+              }
             ]
       }
     , Cmd.none
@@ -79,7 +81,10 @@ update msg model =
             ( model, Cmd.none )
 
         ChangePersona index persona ->
-            ( { model | personas = List.Extra.setAt index persona model.personas }, Cmd.none )
+            ( { model | personas = List.Extra.updateAt index (\p -> { p | persona = persona }) model.personas }, Cmd.none )
+
+        Flip index ->
+            ( { model | personas = List.Extra.updateAt index (\p -> { p | flipped = not p.flipped }) model.personas }, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -94,7 +99,14 @@ view model =
 innerView : Model -> Element Msg
 innerView { personas } =
     personas
-        |> List.indexedMap (\index persona -> Element.map (ChangePersona index) (View.Persona.view persona))
+        |> List.indexedMap
+            (\index persona ->
+                View.Persona.view
+                    { update = ChangePersona index
+                    , flip = Flip index
+                    }
+                    persona
+            )
         |> Theme.column [ Theme.padding ]
 
 

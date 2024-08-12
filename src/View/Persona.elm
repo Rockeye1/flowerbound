@@ -1,58 +1,119 @@
 module View.Persona exposing (view)
 
 import Browser exposing (UrlRequest(..))
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, px, row, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Html.Attributes
+import Icons
 import Theme exposing (withHint)
 import Types exposing (Msg(..), Persona)
 
 
-view : Persona -> Element Persona
-view persona =
-    Theme.column
-        [ Border.width 1
-        , Theme.padding
-        ]
-        [ nameRow persona
-        , Theme.row [ width fill ]
-            [ abilitiesView persona
-            , statusView persona
-            ]
-        , progressionView persona
-        ]
+type alias Config msg =
+    { update : Persona -> msg, flip : msg }
 
 
-nameRow : Persona -> Element Persona
-nameRow persona =
-    Input.text
-        [ width fill
-        , Font.color Theme.purple
-        ]
-        { label = Input.labelHidden "Name"
-        , text = persona.name
-        , onChange = \newValue -> { persona | name = newValue }
-        , placeholder =
-            Just <|
-                Input.placeholder [] <|
-                    text "Name"
+view :
+    Config msg
+    ->
+        { flipped : Bool
+        , persona : Persona
         }
-        |> Theme.el
-            [ Element.paddingEach
-                { top = 0
-                , bottom = Theme.rhythm
-                , left = 0
-                , right = 0
-                }
-            , Border.widthEach
-                { top = 0
-                , right = 0
-                , left = 0
-                , bottom = 1
-                }
+    -> Element msg
+view config { flipped, persona } =
+    let
+        commonAttrs flip =
+            [ Border.width 1
             , width fill
+            , height fill
+            , Theme.padding
+            , Background.color (rgb 1 1 1)
+            , Element.htmlAttribute <| Html.Attributes.style "backface-visibility" "hidden"
+            , Element.htmlAttribute <|
+                Html.Attributes.style "transition" "all .5s ease-in-out"
+            , Element.htmlAttribute <|
+                Html.Attributes.style "transform"
+                    ("rotateY("
+                        ++ (if flip then
+                                "180deg"
+
+                            else
+                                "0"
+                           )
+                        ++ ")"
+                    )
             ]
+    in
+    el
+        []
+        (el
+            [ Element.inFront <|
+                Theme.column
+                    (commonAttrs flipped)
+                    [ nameRow config persona
+                    , Element.map config.update <|
+                        Theme.row [ width fill ]
+                            [ abilitiesView persona
+                            , statusView persona
+                            ]
+                    , Element.map config.update <| progressionView persona
+                    ]
+            ]
+         <|
+            Theme.column
+                (commonAttrs (not flipped))
+                [ Theme.row [ width fill ]
+                    [ text "Gendertrope"
+                    , Theme.button [ alignRight ]
+                        { onPress = Just config.flip
+                        , label = Icons.flip
+                        }
+                    ]
+                , text "The Butterfly"
+                , paragraph [ Font.italic ]
+                    [ text "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
+                    ]
+                ]
+        )
+
+
+nameRow : Config msg -> Persona -> Element msg
+nameRow config persona =
+    Theme.row
+        [ Element.paddingEach
+            { top = 0
+            , bottom = Theme.rhythm
+            , left = 0
+            , right = 0
+            }
+        , Border.widthEach
+            { top = 0
+            , right = 0
+            , left = 0
+            , bottom = 1
+            }
+        , width fill
+        ]
+        [ Input.text
+            [ width fill
+            , Font.color Theme.purple
+            ]
+            { label = Input.labelHidden "Name"
+            , text = persona.name
+            , onChange = \newValue -> config.update { persona | name = newValue }
+            , placeholder =
+                Just <|
+                    Input.placeholder [] <|
+                        text "Name"
+            }
+        , Theme.button []
+            { onPress = Just config.flip
+            , label = Icons.flip
+            }
+        ]
 
 
 abilitiesView : Persona -> Element Persona
@@ -74,7 +135,7 @@ abilitiesView persona =
                 [ alignRight ]
                 [ text (String.fromInt value)
                 , Theme.button []
-                    { label = text "-"
+                    { label = Icons.minus
                     , onPress =
                         if value > 2 then
                             Just (setter (value - 1))
@@ -83,7 +144,7 @@ abilitiesView persona =
                             Nothing
                     }
                 , Theme.button []
-                    { label = text "+"
+                    { label = Icons.plus
                     , onPress =
                         if availablePoints > 0 then
                             Just (setter (value + 1))
@@ -212,7 +273,7 @@ viewPoints label fullName value setter =
                 ++ [ tallyGroup (modBy 5 value) ]
             )
         , Theme.button [ alignRight ]
-            { label = text "-"
+            { label = Icons.minus
             , onPress =
                 if value > 0 then
                     Just (setter (value - 1))
@@ -221,7 +282,7 @@ viewPoints label fullName value setter =
                     Nothing
             }
         , Theme.button [ alignRight ]
-            { label = text "+"
+            { label = Icons.plus
             , onPress = Just (setter (value + 1))
             }
         ]

@@ -11,7 +11,7 @@ type alias Flags =
 
 type alias Model =
     { key : Key
-    , personas : List Persona
+    , personas : List { flipped : Bool, persona : Persona }
     }
 
 
@@ -44,4 +44,5 @@ type Msg
     = UrlClicked UrlRequest
     | UrlChanged Url
     | ChangePersona Int Persona
+    | Flip Int
     | NoOp
