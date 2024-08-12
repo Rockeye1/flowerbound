@@ -1,10 +1,11 @@
-module Theme exposing (button, column, el, padding, purple, rhythm, row, spacing, wrappedRow)
+module Theme exposing (button, column, el, padding, purple, rhythm, row, spacing, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, el, shrink, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Html.Attributes
 
 
 rhythm : Int
@@ -79,3 +80,14 @@ button attrs config =
 purple : Element.Color
 purple =
     Element.rgb255 0x80 0 0x80
+
+
+withHint : String -> Element msg -> Element msg
+withHint hint label =
+    el
+        [ Element.htmlAttribute <| Html.Attributes.title hint
+        , Font.underline
+        , Element.htmlAttribute <| Html.Attributes.style "text-decoration-style" "dotted"
+        , Element.htmlAttribute <| Html.Attributes.style "cursor" "help"
+        ]
+        label
