@@ -1,11 +1,12 @@
-module Theme exposing (button, column, el, padding, purple, rhythm, row, spacing, withHint, wrappedRow)
+module Theme exposing (button, column, el, link, padding, purple, rhythm, row, spacing, withHint, wrappedRow)
 
-import Element exposing (Attribute, Element, el, shrink, width)
+import Element exposing (Attribute, Element, el, link, shrink, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html.Attributes
+import Route
 
 
 rhythm : Int
@@ -91,3 +92,20 @@ withHint hint label =
         , Element.htmlAttribute <| Html.Attributes.style "cursor" "help"
         ]
         label
+
+
+link :
+    List (Attribute msg)
+    ->
+        { label : Element msg
+        , route : Route.Route
+        }
+    -> Element msg
+link attrs { label, route } =
+    Element.link
+        (Element.htmlAttribute (Html.Attributes.attribute "elm-pages:prefetch" "")
+            :: attrs
+        )
+        { url = Route.toString route
+        , label = label
+        }
