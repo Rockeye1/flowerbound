@@ -30,7 +30,6 @@ routes getStaticRoutes htmlToString =
                 |> Response.bytesBody
                 |> BackendTask.succeed
         )
-        -- Path: /pages/:pageId/revisions/:revisionId/request-test
         |> ApiRoute.literal "persona"
         |> ApiRoute.slash
         |> ApiRoute.literal "image"
