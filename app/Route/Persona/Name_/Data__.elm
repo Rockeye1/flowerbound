@@ -1,4 +1,4 @@
-module Route.Persona.Slug_ exposing (ActionData, Data, Model, Msg, encodeNonnegativeInt, encodePositiveInt, parsePositiveInt, route)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parsePositiveInt, route)
 
 import BackendTask exposing (BackendTask)
 import Base64
@@ -7,7 +7,6 @@ import BitParser
 import Bits
 import Bytes exposing (Bytes)
 import Bytes.Encode
-import Codec.Bare as Codec
 import Effect exposing (Effect)
 import Element exposing (el)
 import ErrorPage exposing (ErrorPage(..))
@@ -24,6 +23,7 @@ import Server.Response as Response exposing (Response)
 import Shared
 import Theme
 import Types exposing (Persona)
+import Url
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 import View.Persona
@@ -41,7 +41,9 @@ type Msg
 
 
 type alias RouteParams =
-    { slug : String }
+    { name : String
+    , data : Maybe String
+    }
 
 
 route : StatefulRoute RouteParams Data ActionData Model Msg
@@ -73,14 +75,17 @@ init app _ =
     )
 
 
-personaFromSlug : String -> Persona
-personaFromSlug slug =
+personaFromSlug : String -> String -> Persona
+personaFromSlug name slug =
     slug
         |> String.replace "_" "/"
         |> String.replace "-" "+"
         |> Base64.toBytes
         |> Maybe.andThen Flate.inflate
-        |> Maybe.andThen decodePersona
+        |> Maybe.andThen
+            (\inflated ->
+                Maybe.andThen (\n -> decodePersona n inflated) (Url.percentDecode name)
+            )
         |> Maybe.withDefault defaultPersona
 
 
@@ -100,8 +105,9 @@ update _ _ msg model =
     case msg of
         Update persona ->
             ( { model | persona = persona }
-            , Route.Persona__Slug_
-                { slug = personaToSlug persona
+            , Route.Persona__Name___Data__
+                { name = Url.percentEncode persona.name
+                , data = Just (personaToSlug persona)
                 }
                 |> Effect.SetRoute
             )
@@ -119,8 +125,12 @@ type alias ActionData =
 
 
 data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
-data { slug } _ =
-    BackendTask.succeed (Response.render (personaFromSlug slug))
+data params _ =
+    params.data
+        |> Maybe.withDefault ""
+        |> personaFromSlug params.name
+        |> Response.render
+        |> BackendTask.succeed
 
 
 defaultPersona : Persona
@@ -147,16 +157,14 @@ defaultPersona =
     }
 
 
-decodePersona : Bytes -> Maybe Persona
-decodePersona bytes =
-    BitParser.run personaParser bytes
+decodePersona : String -> Bytes -> Maybe Persona
+decodePersona name bytes =
+    BitParser.run (personaParser name) bytes
 
 
-personaParser : BitParser.Parser Persona
-personaParser =
-    BitParser.succeed Persona
-        |> BitParser.andMap
-            (parseNonnegativeInt |> BitParser.andThen BitParser.stringDecoder)
+personaParser : String -> BitParser.Parser Persona
+personaParser name =
+    BitParser.succeed (Persona name)
         |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
         |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
         |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
@@ -198,12 +206,7 @@ parsePositiveInt =
 
 encodePersona : Persona -> Bytes
 encodePersona persona =
-    [ encodeNonnegativeInt (Bytes.Encode.getStringWidth persona.name)
-    , persona.name
-        |> Bytes.Encode.string
-        |> Bytes.Encode.encode
-        |> Bits.fromBytes
-    , encodeNonnegativeInt (persona.fitness - 2)
+    [ encodeNonnegativeInt (persona.fitness - 2)
     , encodeNonnegativeInt (persona.grace - 2)
     , encodeNonnegativeInt (persona.ardor - 2)
     , encodeNonnegativeInt (persona.sanity - 2)
@@ -261,7 +264,7 @@ head app =
         { canonicalUrlOverride = Nothing
         , siteName = "Flowerbound"
         , image =
-            { url = Pages.Url.external <| "/persona/image/" ++ app.routeParams.slug
+            { url = Pages.Url.external <| "/persona/image/" ++ app.routeParams.name ++ "/" ++ Maybe.withDefault "" app.routeParams.data
             , alt = "Card for " ++ app.data.name
             , dimensions = Nothing
             , mimeType = Nothing

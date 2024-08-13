@@ -17,7 +17,7 @@ routes :
     -> List (ApiRoute ApiRoute.Response)
 routes getStaticRoutes htmlToString =
     [ ApiRoute.succeed
-        (\persona _ ->
+        (\name data _ ->
             let
                 image : Image
                 image =
@@ -34,6 +34,8 @@ routes getStaticRoutes htmlToString =
         |> ApiRoute.literal "persona"
         |> ApiRoute.slash
         |> ApiRoute.literal "image"
+        |> ApiRoute.slash
+        |> ApiRoute.capture
         |> ApiRoute.slash
         |> ApiRoute.capture
         |> ApiRoute.serverRender

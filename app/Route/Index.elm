@@ -5,7 +5,6 @@ import Element exposing (text)
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
-import Html
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Route
@@ -81,7 +80,7 @@ view app shared =
     { title = "elm-pages is running"
     , body =
         Theme.link []
-            { label = text "My blog post"
-            , route = Route.Persona__Slug_ { slug = "hello" }
+            { label = text "New Persona"
+            , route = Route.Persona
             }
     }
