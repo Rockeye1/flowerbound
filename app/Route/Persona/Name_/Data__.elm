@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parsePositiveInt, route)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, route)
 
 import BackendTask exposing (BackendTask)
 import Base64
@@ -156,7 +156,7 @@ defaultPersona =
 
 decodePersona : String -> Bytes -> Maybe Persona
 decodePersona name bytes =
-    BitParser.run (personaParser name) bytes
+    BitParser.run (personaParser name) (Bits.fromBytes bytes)
 
 
 personaParser : String -> BitParser.Parser Persona
@@ -219,10 +219,7 @@ encodePersona persona =
     , encodeNonnegativeInt persona.numinousPoints
     ]
         |> List.concat
-        |> Bits.toIntUnsigned8s
-        |> List.map Bytes.Encode.unsignedInt8
-        |> Bytes.Encode.sequence
-        |> Bytes.Encode.encode
+        |> BitParser.bitsToBytes
 
 
 encodeNonnegativeInt : Int -> List Bit

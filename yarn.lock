@@ -329,6 +329,36 @@
   resolved "https://registry.yarnpkg.com/@lamdera/compiler-win32-x64/-/compiler-win32-x64-0.19.1-1.2.1.tgz#5f63fb2a56dd9fdc520cfb9c91572b6a4af8b499"
   integrity sha512-GxegjV/2Uet8IFaOBOhyVEmo7Ay2r8JxoWx8VKKs1ooF5jPrtLYvlCMbgqn9Gy62RRjvR2vmNmks25E8vrVQeQ==
 
+"@mattpiz/elm-test-rs-darwin-arm64@3.0.0-1":
+  version "3.0.0-1"
+  resolved "https://registry.yarnpkg.com/@mattpiz/elm-test-rs-darwin-arm64/-/elm-test-rs-darwin-arm64-3.0.0-1.tgz#fe2abeb2b472b76242b0e8b69b5d5a18e97f20d1"
+  integrity sha512-+8pzcj2CK8NUElWvI4NUwCtn1doLk05NjFRXS9nUluGzgoImy9wwQPLtla5DWgdYOL70UufkwfxJN+0qaQMEpg==
+
+"@mattpiz/elm-test-rs-darwin-x64@3.0.0-0":
+  version "3.0.0-0"
+  resolved "https://registry.yarnpkg.com/@mattpiz/elm-test-rs-darwin-x64/-/elm-test-rs-darwin-x64-3.0.0-0.tgz#26b0cc9c9543b58a7f03bac958ba2652e8f540a3"
+  integrity sha512-PfUELK7y9UpeZnvKeJBSPbuCbb1I3T0ptZUOnjVIWvAQmg3iov6I79PD2OEP9NtP0iepj+2v2BtgbmZlVrXIZg==
+
+"@mattpiz/elm-test-rs-linux-arm64@3.0.0-0":
+  version "3.0.0-0"
+  resolved "https://registry.yarnpkg.com/@mattpiz/elm-test-rs-linux-arm64/-/elm-test-rs-linux-arm64-3.0.0-0.tgz#f3e95983a4cb405d3b09c29ae8b668dc02413864"
+  integrity sha512-BdfQDWtVUFM1NMPa5U5lBKT3gtDSP7KpypdK+R0jRBx51382t5VA5Byb+2Nzc7aXgS6LA1/nvNRtq/jO7Aj2uw==
+
+"@mattpiz/elm-test-rs-linux-arm@3.0.0-0":
+  version "3.0.0-0"
+  resolved "https://registry.yarnpkg.com/@mattpiz/elm-test-rs-linux-arm/-/elm-test-rs-linux-arm-3.0.0-0.tgz#9ed4ee3eebb280cd90761738d06bfb4017e23d66"
+  integrity sha512-VVFq5horhAldLLmz/P2ljLArJkZuuzpjIUVo9KIPA15euesAxM0lzUnj5Bag9kbjZz4T6/YKToXnaxdDdwcitg==
+
+"@mattpiz/elm-test-rs-linux-x64@3.0.0-0":
+  version "3.0.0-0"
+  resolved "https://registry.yarnpkg.com/@mattpiz/elm-test-rs-linux-x64/-/elm-test-rs-linux-x64-3.0.0-0.tgz#ccaee2191358fe9b5daad6ffcf0d58c3e01092dd"
+  integrity sha512-RfOs3KEyPn0yEHjMjka3R99SdR/TtjgnjSsYahLL1mVUaWOHEcdr86iU6CpWScVtY2jMNQLaeudXOcBm6lXIsQ==
+
+"@mattpiz/elm-test-rs-win32-x64@3.0.0-0":
+  version "3.0.0-0"
+  resolved "https://registry.yarnpkg.com/@mattpiz/elm-test-rs-win32-x64/-/elm-test-rs-win32-x64-3.0.0-0.tgz#77f5d2adfe9a0dc864d6adfc229b44b2eb613c2a"
+  integrity sha512-7Vr74820XFPwUNrpZVybStPlCTyAjthgnUel23j3fJB2yDm9ydbBSPvLCmngqzkZBAnpX8eruUqDphTx+mR28Q==
+
 "@netlify/functions@^2.4.1":
   version "2.8.1"
   resolved "https://registry.yarnpkg.com/@netlify/functions/-/functions-2.8.1.tgz#67cd94f929551e156225fb50d2efba603b97e138"
@@ -1293,6 +1323,18 @@ elm-solve-deps-wasm@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/elm-solve-deps-wasm/-/elm-solve-deps-wasm-1.0.2.tgz#cabd3cadf344295944b8d046a857b6ee05e12aaf"
   integrity sha512-qnwo7RO9IO7jd9SLHvIy0rSOEIlc/tNMTE9Cras0kl+b161PVidW4FvXo0MtXU8GAKi/2s/HYvhcnpR/NNQ1zw==
+
+elm-test-rs@^3.0.0-5:
+  version "3.0.0-5"
+  resolved "https://registry.yarnpkg.com/elm-test-rs/-/elm-test-rs-3.0.0-5.tgz#b5d300b6585cff60fcae29157d52081281b728e8"
+  integrity sha512-efTPM54Ly7gm6zfECCYxfueP4TOVrMudae2eturtMBAvp5rlFOkWUL+7VHAsd4AjCvMNw5h7qD+c/RqQDhAH9Q==
+  optionalDependencies:
+    "@mattpiz/elm-test-rs-darwin-arm64" "3.0.0-1"
+    "@mattpiz/elm-test-rs-darwin-x64" "3.0.0-0"
+    "@mattpiz/elm-test-rs-linux-arm" "3.0.0-0"
+    "@mattpiz/elm-test-rs-linux-arm64" "3.0.0-0"
+    "@mattpiz/elm-test-rs-linux-x64" "3.0.0-0"
+    "@mattpiz/elm-test-rs-win32-x64" "3.0.0-0"
 
 elm-tooling@^1.15.1:
   version "1.15.1"

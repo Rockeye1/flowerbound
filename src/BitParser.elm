@@ -1,4 +1,4 @@
-module BitParser exposing (Parser, Step(..), andMap, andThen, bit, bits, fail, loop, map, run, stringDecoder, succeed)
+module BitParser exposing (Parser, Step(..), andMap, andThen, bit, bits, bitsToBytes, fail, loop, map, run, stringDecoder, succeed)
 
 import Bit exposing (Bit(..))
 import Bits
@@ -16,9 +16,9 @@ type alias State =
     List Bit
 
 
-run : Parser result -> Bytes -> Maybe result
+run : Parser result -> List Bit -> Maybe result
 run (Parser p) input =
-    Maybe.map Tuple.first (p (Bits.fromBytes input))
+    Maybe.map Tuple.first (p input)
 
 
 bit : Parser Bit
@@ -109,10 +109,8 @@ stringDecoder width =
         |> andThen
             (\bs ->
                 case
-                    Bits.toIntUnsigned8s bs
-                        |> List.map Bytes.Encode.unsignedInt8
-                        |> Bytes.Encode.sequence
-                        |> Bytes.Encode.encode
+                    bs
+                        |> bitsToBytes
                         |> Bytes.Decode.decode (Bytes.Decode.string width)
                 of
                     Just s ->
@@ -121,3 +119,20 @@ stringDecoder width =
                     Nothing ->
                         fail
             )
+
+
+bitsToBytes : List Bit -> Bytes
+bitsToBytes bs =
+    let
+        length : Int
+        length =
+            List.length bs
+
+        padded : List Bit
+        padded =
+            bs ++ List.repeat (modBy 8 -length) O
+    in
+    Bits.toIntUnsigned8s padded
+        |> List.map Bytes.Encode.unsignedInt8
+        |> Bytes.Encode.sequence
+        |> Bytes.Encode.encode
