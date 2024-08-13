@@ -1,4 +1,4 @@
-module Route.Persona.Slug_ exposing (ActionData, Data, Model, Msg, route)
+module Route.Persona.Slug_ exposing (ActionData, Data, Model, Msg, personaCodec, route)
 
 import BackendTask exposing (BackendTask)
 import Base64
@@ -9,6 +9,7 @@ import FatalError exposing (FatalError)
 import Flate
 import Head
 import Head.Seo as Seo
+import Image exposing (Image)
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Route
@@ -167,19 +168,19 @@ personaCodec =
 
 
 head :
-    App Data ActionData RouteParams
+    App Persona ActionData RouteParams
     -> List Head.Tag
 head app =
     Seo.summary
         { canonicalUrlOverride = Nothing
-        , siteName = "elm-pages"
+        , siteName = "Flowerbound"
         , image =
-            { url = Pages.Url.external "TODO"
-            , alt = "elm-pages logo"
+            { url = Pages.Url.external <| "/persona/image/" ++ app.routeParams.slug
+            , alt = "Card for " ++ app.data.name
             , dimensions = Nothing
             , mimeType = Nothing
             }
-        , description = "TODO"
+        , description = "FIT " ++ String.fromInt app.data.fitness
         , locale = Nothing
         , title = "Persona: " ++ app.data.name
         }
