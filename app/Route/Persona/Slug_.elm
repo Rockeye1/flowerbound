@@ -4,6 +4,7 @@ import BackendTask exposing (BackendTask)
 import Base64
 import Effect exposing (Effect)
 import Element exposing (el)
+import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
 import Flate
 import Head
@@ -13,6 +14,8 @@ import PagesMsg exposing (PagesMsg)
 import Route
 import RouteBuilder exposing (App, StatefulRoute)
 import Serialize as Codec exposing (Codec)
+import Server.Request exposing (Request)
+import Server.Response as Response exposing (Response)
 import Shared
 import Theme
 import Types exposing (Persona)
@@ -38,10 +41,10 @@ type alias RouteParams =
 
 route : StatefulRoute RouteParams Data ActionData Model Msg
 route =
-    RouteBuilder.preRender
+    RouteBuilder.serverRender
         { head = head
-        , pages = pages
         , data = data
+        , action = action
         }
         |> RouteBuilder.buildWithLocalState
             { init = init
@@ -49,6 +52,11 @@ route =
             , update = update
             , subscriptions = subscriptions
             }
+
+
+action : RouteParams -> Request -> BackendTask FatalError (Response ActionData ErrorPage)
+action _ _ =
+    BackendTask.succeed (Response.errorPage (InternalError "Go away"))
 
 
 init : App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect Msg )
@@ -60,44 +68,8 @@ init app _ =
     )
 
 
-update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
-update _ _ msg model =
-    case msg of
-        Update persona ->
-            ( { model | persona = persona }
-            , Route.Persona__Slug_
-                { slug =
-                    persona
-                        |> Codec.encodeToBytes personaCodec
-                        |> Flate.deflate
-                        |> Base64.fromBytes
-                        |> Maybe.withDefault ""
-                        |> String.replace "/" "_"
-                }
-                |> Effect.SetRoute
-            )
-
-        Flip ->
-            ( { model | flipped = not model.flipped }, Effect.none )
-
-
-pages : BackendTask FatalError (List RouteParams)
-pages =
-    BackendTask.succeed
-        [ { slug = "hello" }
-        ]
-
-
-type alias Data =
-    Persona
-
-
-type alias ActionData =
-    {}
-
-
-data : RouteParams -> BackendTask FatalError Data
-data { slug } =
+personaFromSlug : String -> Persona
+personaFromSlug slug =
     slug
         |> String.replace "_" "/"
         |> Base64.toBytes
@@ -109,7 +81,44 @@ data { slug } =
                     |> Result.toMaybe
             )
         |> Maybe.withDefault defaultPersona
-        |> BackendTask.succeed
+
+
+personaToSlug : Persona -> String
+personaToSlug persona =
+    persona
+        |> Codec.encodeToBytes personaCodec
+        |> Flate.deflate
+        |> Base64.fromBytes
+        |> Maybe.withDefault ""
+        |> String.replace "/" "_"
+
+
+update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
+update _ _ msg model =
+    case msg of
+        Update persona ->
+            ( { model | persona = persona }
+            , Route.Persona__Slug_
+                { slug = personaToSlug persona
+                }
+                |> Effect.SetRoute
+            )
+
+        Flip ->
+            ( { model | flipped = not model.flipped }, Effect.none )
+
+
+type alias Data =
+    Persona
+
+
+type alias ActionData =
+    {}
+
+
+data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
+data { slug } _ =
+    BackendTask.succeed (Response.render (personaFromSlug slug))
 
 
 defaultPersona : Persona
