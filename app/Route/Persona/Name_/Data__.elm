@@ -11,7 +11,6 @@ import Effect exposing (Effect)
 import Element exposing (el)
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
-import Flate
 import Head
 import Head.Seo as Seo
 import Pages.Url
@@ -81,7 +80,6 @@ personaFromSlug name slug =
         |> String.replace "_" "/"
         |> String.replace "-" "+"
         |> Base64.toBytes
-        |> Maybe.andThen Flate.inflate
         |> Maybe.andThen
             (\inflated ->
                 Maybe.andThen (\n -> decodePersona n inflated) (Url.percentDecode name)
@@ -93,7 +91,6 @@ personaToSlug : Persona -> String
 personaToSlug persona =
     persona
         |> encodePersona
-        |> Flate.deflate
         |> Base64.fromBytes
         |> Maybe.withDefault ""
         |> String.replace "/" "_"
