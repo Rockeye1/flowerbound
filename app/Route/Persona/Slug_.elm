@@ -1,7 +1,13 @@
-module Route.Persona.Slug_ exposing (ActionData, Data, Model, Msg, personaCodec, route)
+module Route.Persona.Slug_ exposing (ActionData, Data, Model, Msg, encodeNonnegativeInt, encodePositiveInt, parsePositiveInt, route)
 
 import BackendTask exposing (BackendTask)
 import Base64
+import Bit exposing (Bit(..))
+import BitParser
+import Bits
+import Bytes exposing (Bytes)
+import Bytes.Encode
+import Codec.Bare as Codec
 import Effect exposing (Effect)
 import Element exposing (el)
 import ErrorPage exposing (ErrorPage(..))
@@ -9,12 +15,10 @@ import FatalError exposing (FatalError)
 import Flate
 import Head
 import Head.Seo as Seo
-import Image exposing (Image)
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Route
 import RouteBuilder exposing (App, StatefulRoute)
-import Serialize as Codec exposing (Codec)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
@@ -73,25 +77,22 @@ personaFromSlug : String -> Persona
 personaFromSlug slug =
     slug
         |> String.replace "_" "/"
+        |> String.replace "-" "+"
         |> Base64.toBytes
         |> Maybe.andThen Flate.inflate
-        |> Maybe.andThen
-            (\inflated ->
-                inflated
-                    |> Codec.decodeFromBytes personaCodec
-                    |> Result.toMaybe
-            )
+        |> Maybe.andThen decodePersona
         |> Maybe.withDefault defaultPersona
 
 
 personaToSlug : Persona -> String
 personaToSlug persona =
     persona
-        |> Codec.encodeToBytes personaCodec
+        |> encodePersona
         |> Flate.deflate
         |> Base64.fromBytes
         |> Maybe.withDefault ""
         |> String.replace "/" "_"
+        |> String.replace "+" "-"
 
 
 update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -146,25 +147,110 @@ defaultPersona =
     }
 
 
-personaCodec : Codec e Persona
-personaCodec =
-    Codec.record Persona
-        |> Codec.field .name Codec.string
-        |> Codec.field .fitness Codec.int
-        |> Codec.field .grace Codec.int
-        |> Codec.field .ardor Codec.int
-        |> Codec.field .sanity Codec.int
-        |> Codec.field .prowess Codec.int
-        |> Codec.field .moxie Codec.int
-        |> Codec.field .stamina Codec.int
-        |> Codec.field .satiation Codec.int
-        |> Codec.field .craving Codec.int
-        |> Codec.field .arousal Codec.int
-        |> Codec.field .sensitivity Codec.int
-        |> Codec.field .euphoriaPoints Codec.int
-        |> Codec.field .ichorPoints Codec.int
-        |> Codec.field .numinousPoints Codec.int
-        |> Codec.finishRecord
+decodePersona : Bytes -> Maybe Persona
+decodePersona bytes =
+    BitParser.run personaParser bytes
+
+
+personaParser : BitParser.Parser Persona
+personaParser =
+    BitParser.succeed Persona
+        |> BitParser.andMap
+            (parseNonnegativeInt |> BitParser.andThen BitParser.stringDecoder)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+
+
+parseNonnegativeInt : BitParser.Parser Int
+parseNonnegativeInt =
+    BitParser.map (\n -> n - 1) parsePositiveInt
+
+
+parsePositiveInt : BitParser.Parser Int
+parsePositiveInt =
+    BitParser.loop
+        (\n ->
+            BitParser.bit
+                |> BitParser.andThen
+                    (\bit ->
+                        if bit == O then
+                            BitParser.succeed (BitParser.Done n)
+
+                        else
+                            BitParser.bits n
+                                |> BitParser.map (\bits -> BitParser.Loop (Bits.toIntUnsigned (I :: bits)))
+                    )
+        )
+        1
+
+
+encodePersona : Persona -> Bytes
+encodePersona persona =
+    [ encodeNonnegativeInt (Bytes.Encode.getStringWidth persona.name)
+    , persona.name
+        |> Bytes.Encode.string
+        |> Bytes.Encode.encode
+        |> Bits.fromBytes
+    , encodeNonnegativeInt (persona.fitness - 2)
+    , encodeNonnegativeInt (persona.grace - 2)
+    , encodeNonnegativeInt (persona.ardor - 2)
+    , encodeNonnegativeInt (persona.sanity - 2)
+    , encodeNonnegativeInt (persona.prowess - 2)
+    , encodeNonnegativeInt (persona.moxie - 2)
+    , encodeNonnegativeInt (persona.stamina - 2)
+    , encodeNonnegativeInt (persona.satiation - 2)
+    , encodeNonnegativeInt (persona.craving - 2)
+    , encodeNonnegativeInt (persona.arousal - 2)
+    , encodeNonnegativeInt (persona.sensitivity - 2)
+    , encodeNonnegativeInt (persona.euphoriaPoints - 2)
+    , encodeNonnegativeInt (persona.ichorPoints - 2)
+    , encodeNonnegativeInt (persona.numinousPoints - 2)
+    ]
+        |> List.concat
+        |> Bits.toIntUnsigned8s
+        |> List.map Bytes.Encode.unsignedInt8
+        |> Bytes.Encode.sequence
+        |> Bytes.Encode.encode
+
+
+encodeNonnegativeInt : Int -> List Bit
+encodeNonnegativeInt n =
+    encodePositiveInt (n + 1)
+
+
+encodePositiveInt : Int -> List Bit
+encodePositiveInt i =
+    if i < 1 then
+        []
+
+    else
+        encodePositiveIntHelper i [ O ]
+
+
+encodePositiveIntHelper : Int -> List Bit -> List Bit
+encodePositiveIntHelper n acc =
+    if n == 1 then
+        acc
+
+    else
+        let
+            length : Int
+            length =
+                ceiling (logBase 2 (toFloat n + 1))
+        in
+        encodePositiveIntHelper (length - 1) (Bits.fromIntUnsigned length n ++ acc)
 
 
 head :

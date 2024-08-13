@@ -2,6 +2,7 @@ module Api exposing (routes)
 
 import ApiRoute exposing (ApiRoute)
 import BackendTask exposing (BackendTask)
+import BackendTask.File
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Image exposing (Image)
@@ -20,7 +21,7 @@ routes getStaticRoutes htmlToString =
             let
                 image : Image
                 image =
-                    0xFF000000
+                    0xFF0000FF
                         |> List.repeat 200
                         |> List.repeat 300
                         |> Image.fromList2d
