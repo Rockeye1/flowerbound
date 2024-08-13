@@ -163,14 +163,14 @@ personaParser =
         |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
         |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
         |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap parseNonnegativeInt
 
 
 parseNonnegativeInt : BitParser.Parser Int
@@ -209,14 +209,14 @@ encodePersona persona =
     , encodeNonnegativeInt (persona.sanity - 2)
     , encodeNonnegativeInt (persona.prowess - 2)
     , encodeNonnegativeInt (persona.moxie - 2)
-    , encodeNonnegativeInt (persona.stamina - 2)
-    , encodeNonnegativeInt (persona.satiation - 2)
-    , encodeNonnegativeInt (persona.craving - 2)
-    , encodeNonnegativeInt (persona.arousal - 2)
-    , encodeNonnegativeInt (persona.sensitivity - 2)
-    , encodeNonnegativeInt (persona.euphoriaPoints - 2)
-    , encodeNonnegativeInt (persona.ichorPoints - 2)
-    , encodeNonnegativeInt (persona.numinousPoints - 2)
+    , encodeNonnegativeInt persona.stamina
+    , encodeNonnegativeInt persona.satiation
+    , encodeNonnegativeInt persona.craving
+    , encodeNonnegativeInt persona.arousal
+    , encodeNonnegativeInt persona.sensitivity
+    , encodeNonnegativeInt persona.euphoriaPoints
+    , encodeNonnegativeInt persona.ichorPoints
+    , encodeNonnegativeInt persona.numinousPoints
     ]
         |> List.concat
         |> Bits.toIntUnsigned8s
