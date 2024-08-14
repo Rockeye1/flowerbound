@@ -6,16 +6,17 @@ import Bit exposing (Bit(..))
 import BitParser
 import Bits
 import Bytes exposing (Bytes)
-import Bytes.Encode
 import Effect exposing (Effect)
 import Element exposing (el)
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
+import Http
+import Image exposing (Image)
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import Route
+import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
@@ -31,12 +32,14 @@ import View.Persona
 type alias Model =
     { flipped : Bool
     , persona : Persona
+    , image : Maybe String
     }
 
 
 type Msg
     = Flip
     | Update Persona
+    | GotImage (Result Http.Error String)
 
 
 type alias RouteParams =
@@ -69,6 +72,7 @@ init : App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect Msg )
 init app _ =
     ( { flipped = False
       , persona = app.data
+      , image = Nothing
       }
     , Effect.none
     )
@@ -101,16 +105,43 @@ update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Mo
 update _ _ msg model =
     case msg of
         Update persona ->
+            let
+                newRoute : Route
+                newRoute =
+                    Route.Persona__Name___Data__
+                        { name = Url.percentEncode persona.name
+                        , data = Just (personaToSlug persona)
+                        }
+            in
             ( { model | persona = persona }
-            , Route.Persona__Name___Data__
-                { name = Url.percentEncode persona.name
-                , data = Just (personaToSlug persona)
-                }
-                |> Effect.SetRoute
+            , Effect.batch
+                [ newRoute
+                    |> Effect.SetRoute
+                , Http.get
+                    { url =
+                        Route.toString newRoute
+                            |> String.replace "/persona/" "/persona/image/"
+                    , expect = Http.expectString GotImage
+                    }
+                    |> Effect.fromCmd
+                ]
             )
 
         Flip ->
             ( { model | flipped = not model.flipped }, Effect.none )
+
+        GotImage (Err _) ->
+            ( model, Effect.none )
+
+        GotImage (Ok bytes) ->
+            ( bytes
+                |> Base64.toBytes
+                |> Maybe.andThen Image.decode
+                |> Maybe.map Image.toPngUrl
+                |> Maybe.map (\image -> { model | image = Just image })
+                |> Maybe.withDefault model
+            , Effect.none
+            )
 
 
 type alias Data =
@@ -278,12 +309,22 @@ view :
 view _ _ model =
     { title = "Placeholder - Blog.Slug_"
     , body =
-        el [ Theme.padding ] <|
-            View.Persona.view
+        Theme.column [ Theme.padding ]
+            [ View.Persona.view
                 { update = PagesMsg.fromMsg << Update
                 , flip = PagesMsg.fromMsg Flip
                 }
                 model
+            , case model.image of
+                Just src ->
+                    Element.image []
+                        { src = src
+                        , description = "Preview"
+                        }
+
+                Nothing ->
+                    Element.none
+            ]
     }
 
 

@@ -19,8 +19,9 @@ type alias Config msg =
 view :
     Config msg
     ->
-        { flipped : Bool
-        , persona : Persona
+        { a
+            | flipped : Bool
+            , persona : Persona
         }
     -> Element msg
 view config { flipped, persona } =
@@ -49,6 +50,7 @@ view config { flipped, persona } =
     in
     Theme.row
         [ width <| px 600
+        , height <| px 462
         , style "perspective" "1200px"
         ]
         [ Theme.column
