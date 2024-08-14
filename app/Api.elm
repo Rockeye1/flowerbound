@@ -2,11 +2,12 @@ module Api exposing (routes)
 
 import ApiRoute exposing (ApiRoute)
 import BackendTask exposing (BackendTask)
-import BackendTask.File
+import BackendTask.File as File
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Image exposing (Image)
 import Pages.Manifest as Manifest
+import Parser exposing ((|.), (|=), Parser)
 import Route exposing (Route)
 import Server.Response as Response
 
@@ -18,19 +19,23 @@ routes :
 routes getStaticRoutes htmlToString =
     [ ApiRoute.succeed
         (\name data _ ->
-            let
-                image : Image
-                image =
-                    0xFF0000FF
-                        |> List.repeat 200
-                        |> List.repeat 300
-                        |> Image.fromList2d
-            in
-            image
-                |> Image.toPng
-                |> Response.bytesBody
-                |> Response.withHeader "Content-Type" "image/png"
-                |> BackendTask.succeed
+            getFont
+                |> BackendTask.andThen
+                    (\font ->
+                        let
+                            image : Image
+                            image =
+                                0xFFFF
+                                    |> List.repeat 400
+                                    |> List.repeat 300
+                                    |> Image.fromList2d
+                        in
+                        image
+                            |> Image.toPng
+                            |> Response.bytesBody
+                            |> Response.withHeader "Content-Type" "image/png"
+                            |> BackendTask.succeed
+                    )
         )
         |> ApiRoute.literal "persona"
         |> ApiRoute.slash
@@ -41,6 +46,37 @@ routes getStaticRoutes htmlToString =
         |> ApiRoute.capture
         |> ApiRoute.serverRender
     ]
+
+
+getFont : BackendTask FatalError Image
+getFont =
+    File.rawFile "dist/microfont.pbm"
+        |> BackendTask.allowFatal
+        |> BackendTask.andThen
+            (\rawFile ->
+                Parser.run pbmParser rawFile
+                    |> Result.mapError (\e -> FatalError.fromString (Debug.toString e))
+                    |> BackendTask.fromResult
+            )
+
+
+pbmParser : Parser Image
+pbmParser =
+    Parser.succeed (\width height data -> Image.fromList width (List.map (\p -> p) data))
+        |. Parser.symbol "P1"
+        |. Parser.spaces
+        |= Parser.int
+        |. Parser.spaces
+        |= Parser.int
+        |. Parser.spaces
+        |= Parser.sequence
+            { start = ""
+            , end = ""
+            , separator = ""
+            , spaces = Parser.spaces
+            , item = Parser.int
+            , trailing = Parser.Optional
+            }
 
 
 manifest : Manifest.Config

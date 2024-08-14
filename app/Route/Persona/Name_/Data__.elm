@@ -7,13 +7,13 @@ import BitParser
 import Bits
 import Bytes exposing (Bytes)
 import Effect exposing (Effect)
-import Element exposing (el)
+import Element
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
 import Http
-import Image exposing (Image)
+import Image
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Route exposing (Route)
@@ -113,7 +113,10 @@ update _ _ msg model =
                         , data = Just (personaToSlug persona)
                         }
             in
-            ( { model | persona = persona }
+            ( { model
+                | persona = persona
+                , image = Nothing
+              }
             , Effect.batch
                 [ newRoute
                     |> Effect.SetRoute
