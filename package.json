@@ -17,6 +17,7 @@
     "vite": "^5.3.3"
   },
   "dependencies": {
-    "@netlify/functions": "^2.4.1"
+    "@netlify/functions": "^2.4.1",
+    "express": "^4.19.2"
   }
 }
