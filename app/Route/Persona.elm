@@ -12,7 +12,7 @@ import Route
 import Route.Persona.Name_.Data__
 import RouteBuilder exposing (StatelessRoute)
 import Server.Request exposing (Request)
-import Server.Response exposing (Response)
+import Server.Response as Response exposing (Response)
 import Shared
 import View exposing (View)
 
@@ -50,7 +50,7 @@ route =
 
 
 head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
-head arg1 =
+head _ =
     Seo.summary
         { canonicalUrlOverride = Nothing
         , siteName = "Flowerbound"
@@ -70,7 +70,7 @@ head arg1 =
 data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
 data _ _ =
     BackendTask.succeed
-        (Server.Response.temporaryRedirect
+        (Response.temporaryRedirect
             (Route.toString
                 (Route.Persona__Name___Data__
                     { name = Route.Persona.Name_.Data__.defaultPersona.name
@@ -82,8 +82,8 @@ data _ _ =
 
 
 action : RouteParams -> Request -> BackendTask FatalError (Response ActionData ErrorPage)
-action arg1 arg2 =
-    Debug.todo "TODO"
+action _ _ =
+    BackendTask.succeed (Response.errorPage (ErrorPage.InternalError "Unexpected call to Route.Persona.action"))
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)
