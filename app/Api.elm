@@ -29,6 +29,7 @@ routes getStaticRoutes htmlToString =
             image
                 |> Image.toPng
                 |> Response.bytesBody
+                |> Response.withHeader "Content-Type" "image/png"
                 |> BackendTask.succeed
         )
         |> ApiRoute.literal "persona"
