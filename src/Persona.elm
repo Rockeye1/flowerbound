@@ -153,6 +153,10 @@ view :
     -> Element msg
 view config { flipped, persona } =
     let
+        fullWidth : number
+        fullWidth =
+            800
+
         style : String -> String -> Attribute msg
         style key value =
             Element.htmlAttribute <|
@@ -161,7 +165,7 @@ view config { flipped, persona } =
         commonAttrs : Int -> List (Attribute msg)
         commonAttrs rotate =
             [ Border.width 1
-            , width fill
+            , width <| px fullWidth
             , height fill
             , Theme.padding
             , Background.color Theme.white
@@ -176,9 +180,9 @@ view config { flipped, persona } =
             ]
     in
     Theme.row
-        [ width <| px 600
-        , height <| px 462
-        , style "perspective" "1200px"
+        [ width <| px fullWidth
+        , height <| px 600
+        , style "perspective" "2000px"
         ]
         [ Theme.column
             (commonAttrs
