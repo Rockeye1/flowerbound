@@ -29,9 +29,7 @@ import View exposing (View)
 
 
 type alias Model =
-    { flipped : Bool
-    , persona : Persona
-    }
+    Persona
 
 
 type Msg
@@ -52,7 +50,7 @@ route =
         , data = data
         , action = action
         }
-        |> RouteBuilder.buildWithLocalState
+        |> RouteBuilder.buildWithSharedState
             { init = init
             , view = view
             , update = update
@@ -67,9 +65,7 @@ action _ _ =
 
 init : App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect Msg )
 init app _ =
-    ( { flipped = False
-      , persona = app.data
-      }
+    ( app.data
     , Effect.none
     )
 
@@ -97,7 +93,7 @@ personaToSlug persona =
         |> String.replace "+" "-"
 
 
-update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
+update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg, Maybe Shared.Msg )
 update _ _ msg model =
     case msg of
         Update persona ->
@@ -109,12 +105,13 @@ update _ _ msg model =
                         , data = Just (personaToSlug persona)
                         }
             in
-            ( { model | persona = persona }
+            ( persona
             , newRoute |> Effect.SetRoute
+            , Nothing
             )
 
         Flip ->
-            ( { model | flipped = not model.flipped }, Effect.none )
+            ( model, Effect.none, Just Shared.Flip )
 
 
 type alias Data =
@@ -206,7 +203,7 @@ view :
     -> Shared.Model
     -> Model
     -> View (PagesMsg Msg)
-view app _ model =
+view app shared model =
     { title = title app.data
     , body =
         Theme.el [ Theme.padding ] <|
@@ -214,7 +211,9 @@ view app _ model =
                 { update = PagesMsg.fromMsg << Update
                 , flip = PagesMsg.fromMsg Flip
                 }
-                model
+                { persona = model
+                , flipped = shared.flipped
+                }
     }
 
 

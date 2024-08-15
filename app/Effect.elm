@@ -67,11 +67,7 @@ perform ({ fromPageMsg, key } as helpers) effect =
             Cmd.none
 
         SetRoute route ->
-            if False then
-                Browser.Navigation.replaceUrl key (Route.toString route)
-
-            else
-                Cmd.none
+            Browser.Navigation.replaceUrl key (Route.toString route)
 
         Cmd cmd ->
             Cmd.map fromPageMsg cmd

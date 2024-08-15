@@ -1,4 +1,4 @@
-module Shared exposing (Data, Model, Msg(..), SharedMsg(..), template)
+module Shared exposing (Data, Model, Msg(..), template)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
@@ -25,19 +25,15 @@ template =
 
 
 type Msg
-    = SharedMsg SharedMsg
+    = Flip
 
 
 type alias Data =
     ()
 
 
-type SharedMsg
-    = NoOp
-
-
 type alias Model =
-    {}
+    { flipped : Bool }
 
 
 init :
@@ -53,8 +49,8 @@ init :
             , pageUrl : Maybe PageUrl
             }
     -> ( Model, Effect Msg )
-init flags maybePagePath =
-    ( {}
+init _ _ =
+    ( { flipped = False }
     , Effect.none
     )
 
@@ -62,8 +58,8 @@ init flags maybePagePath =
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        SharedMsg _ ->
-            ( model, Effect.none )
+        Flip ->
+            ( { model | flipped = not model.flipped }, Effect.none )
 
 
 subscriptions : UrlPath -> Model -> Sub Msg
@@ -86,7 +82,7 @@ view :
     -> (Msg -> msg)
     -> View msg
     -> { body : List (Html msg), title : String }
-view sharedData page model toMsg pageView =
+view _ _ _ _ pageView =
     { body =
         [ Element.layout [] pageView.body
         ]
