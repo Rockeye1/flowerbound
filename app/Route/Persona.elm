@@ -1,20 +1,16 @@
 module Route.Persona exposing (ActionData, Data, Model, Msg, route)
 
 import BackendTask exposing (BackendTask)
-import Element
 import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import Head
-import Head.Seo as Seo
-import Pages.Url
 import PagesMsg exposing (PagesMsg)
+import Persona
 import Route
-import Route.Persona.Name_.Data__
 import RouteBuilder exposing (StatelessRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
-import Site
 import View exposing (View)
 
 
@@ -31,7 +27,7 @@ type alias RouteParams =
 
 
 type alias Data =
-    {}
+    Never
 
 
 type alias ActionData =
@@ -51,21 +47,8 @@ route =
 
 
 head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
-head _ =
-    Seo.summary
-        { canonicalUrlOverride = Nothing
-        , siteName = Site.manifest.name
-        , image =
-            { url = Pages.Url.external "/"
-            , alt = "Card"
-            , dimensions = Nothing
-            , mimeType = Nothing
-            }
-        , description = ""
-        , locale = Nothing
-        , title = "Persona"
-        }
-        |> Seo.website
+head app =
+    never app.data
 
 
 data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
@@ -74,7 +57,7 @@ data _ _ =
         (Response.temporaryRedirect
             (Route.toString
                 (Route.Persona__Name___Data__
-                    { name = Route.Persona.Name_.Data__.defaultPersona.name
+                    { name = Persona.default.name
                     , data = Nothing
                     }
                 )
@@ -88,7 +71,5 @@ action _ _ =
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)
-view _ _ =
-    { title = "Persona"
-    , body = Element.text "..."
-    }
+view app _ =
+    never app.data
