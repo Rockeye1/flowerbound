@@ -6,7 +6,6 @@ import Base64
 import Bit exposing (Bit(..))
 import BitParser
 import Bits
-import Bytes exposing (Bytes)
 import Drawing
 import Effect exposing (Effect)
 import Element
@@ -16,6 +15,7 @@ import Head
 import Head.Seo as Seo
 import Http
 import Image
+import Maybe.Extra
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona exposing (Gendertrope(..), Persona)
@@ -82,14 +82,13 @@ init app _ =
 
 personaFromSlug : String -> String -> Persona
 personaFromSlug name slug =
-    slug
-        |> String.replace "_" "/"
-        |> String.replace "-" "+"
-        |> Base64.toBytes
-        |> Maybe.andThen
-            (\inflated ->
-                Maybe.andThen (\n -> decodePersona n inflated) (Url.percentDecode name)
-            )
+    Maybe.Extra.andThen2 (\fixedName bytes -> BitParser.run (Persona.parser fixedName) (Bits.fromBytes bytes))
+        (Url.percentDecode name)
+        (slug
+            |> String.replace "_" "/"
+            |> String.replace "-" "+"
+            |> Base64.toBytes
+        )
         |> Maybe.withDefault Persona.default
 
 
@@ -163,11 +162,6 @@ data params _ =
         |> personaFromSlug params.name
         |> Response.render
         |> BackendTask.succeed
-
-
-decodePersona : String -> Bytes -> Maybe Persona
-decodePersona name bytes =
-    BitParser.run (Persona.parser name) (Bits.fromBytes bytes)
 
 
 head :
