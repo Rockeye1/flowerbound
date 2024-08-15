@@ -394,7 +394,7 @@ subscriptions _ _ _ _ =
 toCard : Persona -> BackendTask FatalError (Response.Response Never Never)
 toCard persona =
     Drawing.getFont
-        |> BackendTask.andThen
+        |> BackendTask.map
             (\font ->
                 let
                     image : Drawing.Image
@@ -447,7 +447,6 @@ toCard persona =
                     |> Image.toPng
                     |> Response.bytesBody
                     |> Response.withHeader "Content-Type" "image/png"
-                    |> BackendTask.succeed
             )
 
 
