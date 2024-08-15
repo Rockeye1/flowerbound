@@ -3,13 +3,19 @@ module Persona exposing (Config, Feature, Gendertrope(..), GendertropeRecord, Pe
 import Bit exposing (Bit)
 import BitParser
 import Dict exposing (Dict)
-import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, el, fill, height, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Html
 import Html.Attributes
 import Icons
+import List.Extra
+import Markdown.Block
+import Markdown.Html
+import Markdown.Parser
+import Markdown.Renderer
 import Theme exposing (withHint)
 
 
@@ -218,13 +224,13 @@ view config { flipped, persona } =
                                     config.update { persona | features = newFeatures }
                         )
                     )
-                    (viewGendertrope persona.features persona.gendertrope)
+                    (viewGendertrope persona)
             )
         ]
 
 
-viewGendertrope : List Int -> Gendertrope -> List (Element (Result (List Int) Gendertrope))
-viewGendertrope features gendertrope =
+viewGendertrope : Persona -> List (Element (Result (List Int) Gendertrope))
+viewGendertrope ({ features, gendertrope } as persona) =
     let
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
@@ -300,7 +306,7 @@ viewGendertrope features gendertrope =
                 _ =
                     Debug.todo
               in
-              text "Features:"
+              text "TODO - Features"
             ]
 
         _ ->
@@ -312,33 +318,136 @@ viewGendertrope features gendertrope =
                 |> Dict.toList
                 |> List.map
                     (\( level, feature ) ->
-                        Theme.column
-                            [ Border.width 1
-                            , Theme.padding
-                            , Background.color
-                                (if level == 1 || List.member level features then
-                                    Theme.purple
+                        let
+                            selected : Bool
+                            selected =
+                                level == 1 || List.member level features
 
-                                 else
-                                    Theme.gray
-                                )
-                            , Font.color
-                                (if level == 1 || List.member level features then
-                                    Theme.white
+                            canSelect : Bool
+                            canSelect =
+                                usedEuphoriaPoints persona >= 10 + level
+                        in
+                        Theme.button
+                            [ Font.alignLeft
+                            , padding 0
+                            , Border.width 0
+                            ]
+                            { onPress =
+                                if level == 1 || not canSelect then
+                                    Nothing
 
-                                 else
-                                    Theme.black
-                                )
-                            ]
-                            [ paragraph [ Font.underline ]
-                                [ text ("Level " ++ String.fromInt level ++ " Feature: ")
-                                , el [ Font.bold ] (text feature.name)
-                                ]
-                            , paragraph [] [ text feature.description ]
-                            ]
+                                else if selected then
+                                    Just (Err (List.Extra.remove level features))
+
+                                else
+                                    Just (Err (level :: features))
+                            , label =
+                                Theme.column
+                                    [ Border.width 1
+                                    , Theme.padding
+                                    , Background.color
+                                        (if selected then
+                                            Theme.purple
+
+                                         else if canSelect then
+                                            Theme.white
+
+                                         else
+                                            Theme.gray
+                                        )
+                                    , Font.color
+                                        (if selected then
+                                            Theme.white
+
+                                         else
+                                            Theme.black
+                                        )
+                                    ]
+                                    (paragraph [ Font.underline ]
+                                        [ text ("Level " ++ String.fromInt level ++ " Feature: ")
+                                        , el [ Font.bold ] (text feature.name)
+                                        ]
+                                        :: viewMarkdown feature.description
+                                    )
+                            }
                     )
                 |> Theme.column []
             ]
+
+
+viewMarkdown : String -> List (Element msg)
+viewMarkdown markdown =
+    case Markdown.Parser.parse markdown of
+        Ok blocks ->
+            viewMarkdownBlocks blocks
+
+        Err _ ->
+            [ text "Could not parse Markdown" ]
+
+
+viewMarkdownBlocks : List Markdown.Block.Block -> List (Element msg)
+viewMarkdownBlocks blocks =
+    case Markdown.Renderer.render markdownRenderer blocks of
+        Ok elem ->
+            elem
+
+        Err e ->
+            [ text e ]
+
+
+markdownRenderer : Markdown.Renderer.Renderer (Element msg)
+markdownRenderer =
+    { heading = \_ -> text "TODO: heading"
+    , paragraph = paragraph [ Theme.spacing ]
+    , blockQuote = Theme.column [ Theme.padding, Border.width 1 ]
+    , html = Markdown.Html.oneOf []
+    , text = text
+    , codeSpan = \_ -> text "TODO: codeSpan"
+    , strong = row [ Font.bold ]
+    , emphasis = row [ Font.italic ]
+    , strikethrough = row [ Font.strike ]
+    , hardLineBreak = Html.br [] [] |> Element.html
+    , link =
+        \{ title, destination } body ->
+            Element.newTabLink
+                [ maybeTitle title
+                , Element.htmlAttribute (Html.Attributes.style "display" "inline-flex")
+                ]
+                { url = destination
+                , label =
+                    Element.paragraph
+                        [ Font.color (Element.rgb255 0 0 255)
+                        ]
+                        body
+                }
+    , image =
+        \image ->
+            Element.image
+                [ Element.width Element.fill
+                , maybeTitle image.title
+                ]
+                { src = image.src, description = image.alt }
+    , unorderedList = \_ -> text "TODO: unorderedList"
+    , orderedList = \_ _ -> text "TODO: orderedList"
+    , codeBlock = \_ -> text "TODO: codeBlock"
+    , thematicBreak = Element.none
+    , table = \_ -> text "TODO: table"
+    , tableHeader = \_ -> text "TODO: tableHeader"
+    , tableBody = \_ -> text "TODO: tableBody"
+    , tableRow = \_ -> text "TODO: tableRow"
+    , tableCell = \_ _ -> text "TODO: tableCell"
+    , tableHeaderCell = \_ _ -> text "TODO: tableHeaderCell"
+    }
+
+
+maybeTitle : Maybe String -> Attribute msg
+maybeTitle title =
+    case title of
+        Just t ->
+            Element.htmlAttribute (Html.Attributes.title t)
+
+        Nothing ->
+            Element.htmlAttribute (Html.Attributes.classList [])
 
 
 nameRow : Config msg -> Persona -> Element msg
@@ -727,21 +836,20 @@ dominantExemplar =
 
 You also permanently gain access to these three **Moves**:
 
-> **Assertive Grope** (Tease) [Grips] | CT **6** |
+> **Assertive Grope** (Tease) [Grips] | CT **6** |  
 > If, and only if, the Stimulation dealt by this Move causes **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
 
-> **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |
+> **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |  
 If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
 
-> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
+> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |  
 > _You want that nectar, and it doesn't matter how deep you have to plunge in to taste it. Nowhere is safe from your tongue._
 >
 > If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **1 Craving**.
 
 During your partner's turn, you may spend **1 Dominance Point** to force them to take an action, or _not_ take an action, of your choice. You may only do this once per turn.
 
-> **Subspace**
-> __Passive__
+> **Subspace** _Passive_  
 > You have disadvantage on all Grace Checks and Sanity Checks. You have advantage on all Ardor Checks and Moxie Checks.
 >
 > At the beginning of your turn, if you are not Having An Orgasm, you may roll a Moxie Check. If the result of the Check is greater than your Craving value, you may remove this effect.
