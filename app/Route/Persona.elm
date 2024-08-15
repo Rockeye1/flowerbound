@@ -31,7 +31,7 @@ type alias Data =
 
 
 type alias ActionData =
-    {}
+    Never
 
 
 route : StatelessRoute RouteParams Data ActionData
@@ -66,8 +66,8 @@ data _ _ =
 
 
 action : RouteParams -> Request -> BackendTask FatalError (Response ActionData ErrorPage)
-action _ _ =
-    BackendTask.succeed (Response.errorPage (ErrorPage.InternalError "Unexpected call to Route.Persona.action"))
+action =
+    data
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)

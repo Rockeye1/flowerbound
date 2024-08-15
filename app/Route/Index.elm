@@ -1,26 +1,25 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, route)
 
 import BackendTask exposing (BackendTask)
-import Element exposing (text)
+import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import Head
-import Head.Seo as Seo
-import Pages.Url
 import PagesMsg exposing (PagesMsg)
+import Persona
 import Route
-import RouteBuilder exposing (App, StatelessRoute)
+import RouteBuilder exposing (StatelessRoute)
+import Server.Request exposing (Request)
+import Server.Response as Response exposing (Response)
 import Shared
-import Theme
-import UrlPath
 import View exposing (View)
-
-
-type alias Model =
-    {}
 
 
 type alias Msg =
     ()
+
+
+type alias Model =
+    {}
 
 
 type alias RouteParams =
@@ -28,59 +27,49 @@ type alias RouteParams =
 
 
 type alias Data =
-    { message : String
-    }
+    Never
 
 
 type alias ActionData =
-    {}
+    Never
 
 
 route : StatelessRoute RouteParams Data ActionData
 route =
-    RouteBuilder.single
+    RouteBuilder.serverRender
         { head = head
         , data = data
+        , action = action
         }
-        |> RouteBuilder.buildNoState { view = view }
+        |> RouteBuilder.buildNoState
+            { view = view
+            }
 
 
-data : BackendTask FatalError Data
-data =
-    BackendTask.succeed Data
-        |> BackendTask.andMap
-            (BackendTask.succeed "Hello!")
-
-
-head :
-    App Data ActionData RouteParams
-    -> List Head.Tag
+head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
 head app =
-    Seo.summary
-        { canonicalUrlOverride = Nothing
-        , siteName = "elm-pages"
-        , image =
-            { url = [ "images", "icon-png.png" ] |> UrlPath.join |> Pages.Url.fromPath
-            , alt = "elm-pages logo"
-            , dimensions = Nothing
-            , mimeType = Nothing
-            }
-        , description = "Welcome to elm-pages!"
-        , locale = Nothing
-        , title = "elm-pages is running"
-        }
-        |> Seo.website
+    never app.data
 
 
-view :
-    App Data ActionData RouteParams
-    -> Shared.Model
-    -> View (PagesMsg Msg)
-view app shared =
-    { title = "elm-pages is running"
-    , body =
-        Theme.link []
-            { label = text "New Persona"
-            , route = Route.Persona
-            }
-    }
+data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
+data _ _ =
+    BackendTask.succeed
+        (Response.temporaryRedirect
+            (Route.toString
+                (Route.Persona__Name___Data__
+                    { name = Persona.default.name
+                    , data = Nothing
+                    }
+                )
+            )
+        )
+
+
+action : RouteParams -> Request -> BackendTask FatalError (Response ActionData ErrorPage)
+action =
+    data
+
+
+view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)
+view app _ =
+    never app.data
