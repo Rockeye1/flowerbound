@@ -398,12 +398,23 @@ toCard persona =
                         (Theme.purpleHex * 256 + 0xFF)
                             |> Array.repeat cardImageSize.width
                             |> Array.repeat cardImageSize.height
+
+                    description : String
+                    description =
+                        [ "FIT " ++ String.fromInt persona.fitness
+                        , "GRC " ++ String.fromInt persona.grace
+                        , "ARD " ++ String.fromInt persona.ardor
+                        , "SAN " ++ String.fromInt persona.sanity
+                        , "PRW " ++ String.fromInt persona.prowess
+                        , "MOX " ++ String.fromInt persona.moxie
+                        ]
+                            |> String.join "\n"
                 in
                 image
                     |> Drawing.drawImage 1 1 Drawing.flower
-                    |> Drawing.drawImage (cardImageSize.width - 5 - 1) 1 Drawing.flower
+                    |> Drawing.drawImage (cardImageSize.width - 6) 1 Drawing.flower
                     |> Drawing.drawTextCenter font 1 persona.name
-                    |> Drawing.drawText font 1 (font.height + 2) (toDescription persona)
+                    |> Drawing.drawText font 1 (font.height + 2) description
                     |> Drawing.scaleBy 4
                     |> Image.fromArray2d
                     |> Image.toPng
