@@ -1,8 +1,8 @@
-module Persona exposing (Config, Gendertrope(..), GendertropeRecord, Persona, default, encode, gendertropeToRecord, parser, view)
+module Persona exposing (Config, Gendertrope(..), GendertropeRecord, Persona, default, encode, gendertropeToRecord, levelBonus, parser, view)
 
 import Bit exposing (Bit)
 import BitParser
-import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -37,6 +37,7 @@ type alias Persona =
 
     --
     , gendertrope : Gendertrope
+    , features : List Int
     }
 
 
@@ -91,11 +92,41 @@ default =
 
     --
     , gendertrope = Butterfly
+    , features = []
     }
 
 
 type alias Config msg =
     { update : Persona -> msg, flip : msg }
+
+
+levelBonus : Persona -> Int
+levelBonus persona =
+    let
+        highestSum : Int
+        highestSum =
+            [ persona.fitness
+            , persona.grace
+            , persona.ardor
+            , persona.sanity
+            , persona.prowess
+            , persona.moxie
+            ]
+                |> List.sort
+                |> List.drop 4
+                |> List.sum
+
+        fromAbilityScores : Int
+        fromAbilityScores =
+            highestSum // 20
+
+        fromFeatures : Int
+        fromFeatures =
+            -- The +1 is for the implicit level 1 feature
+            (List.length persona.features + 1) // 2
+    in
+    max 1
+        (fromAbilityScores + fromFeatures)
 
 
 view :
@@ -408,6 +439,25 @@ statusView persona =
                   }
                 ]
             }
+        , Theme.row
+            [ alignBottom
+            , Border.widthEach
+                { left = 0
+                , top = 1
+                , bottom = 0
+                , right = 0
+                }
+            , Element.paddingEach
+                { left = 0
+                , top = Theme.rhythm
+                , bottom = 0
+                , right = 0
+                }
+            , width fill
+            ]
+            [ text "Level Bonus"
+            , el [ alignRight ] (text (String.fromInt (levelBonus persona)))
+            ]
         ]
 
 
@@ -616,6 +666,7 @@ encode persona =
     , BitParser.encodeNonnegativeInt persona.ichorPoints
     , BitParser.encodeNonnegativeInt persona.numinousPoints
     , encodeGendertrope persona.gendertrope
+    , BitParser.encodeList BitParser.encodePositiveInt persona.features
     ]
         |> List.concat
 
@@ -638,3 +689,4 @@ parser name =
         |> BitParser.andMap BitParser.parseNonnegativeInt
         |> BitParser.andMap BitParser.parseNonnegativeInt
         |> BitParser.andMap parseGendertrope
+        |> BitParser.andMap (BitParser.parseList BitParser.parsePositiveInt)

@@ -1,4 +1,4 @@
-module BitParser exposing (Parser, Step(..), andMap, andThen, bitsToBytes, encodeInt, encodeNonnegativeInt, encodePositiveInt, encodeString, fail, loop, map, map2, parseInt, parseNonnegativeInt, parsePositiveInt, parseString, run, succeed)
+module BitParser exposing (Parser, Step(..), andMap, andThen, bitsToBytes, encodeInt, encodeList, encodeNonnegativeInt, encodePositiveInt, encodeString, fail, loop, map, map2, parseInt, parseList, parseNonnegativeInt, parsePositiveInt, parseString, run, succeed)
 
 import Bit exposing (Bit(..))
 import Bits
@@ -204,6 +204,32 @@ parsePositiveInt =
                     )
         )
         1
+
+
+encodeList : (a -> List Bit) -> List a -> List Bit
+encodeList f list =
+    encodeNonnegativeInt (List.length list) ++ List.concatMap f list
+
+
+parseList : Parser a -> Parser (List a)
+parseList item =
+    parseNonnegativeInt
+        |> andThen
+            (\len ->
+                loop
+                    (\( left, acc ) ->
+                        if left <= 0 then
+                            succeed (Done (List.reverse acc))
+
+                        else
+                            item
+                                |> map
+                                    (\i ->
+                                        Loop ( left - 1, i :: acc )
+                                    )
+                    )
+                    ( len, [] )
+            )
 
 
 encodeString : String -> List Bit

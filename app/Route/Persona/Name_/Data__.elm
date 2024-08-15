@@ -267,6 +267,7 @@ toCard persona =
                         , meter "Craving" persona.craving persona.sanity
                         , meter "Arousal" persona.arousal persona.prowess
                         , meter "Sensitivity" persona.sensitivity persona.moxie
+                        , "Level bonus " ++ padNumber 5 (Persona.levelBonus persona)
                         ]
                             |> String.join "\n"
                 in
