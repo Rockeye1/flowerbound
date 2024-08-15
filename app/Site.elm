@@ -1,8 +1,10 @@
-module Site exposing (config)
+module Site exposing (config, manifest)
 
 import BackendTask exposing (BackendTask)
 import FatalError exposing (FatalError)
 import Head
+import Pages.Manifest as Manifest
+import Route
 import SiteConfig exposing (SiteConfig)
 
 
@@ -19,3 +21,13 @@ head =
     , Head.sitemapLink "/sitemap.xml"
     ]
         |> BackendTask.succeed
+
+
+manifest : Manifest.Config
+manifest =
+    Manifest.init
+        { name = "Site Name"
+        , description = "Description"
+        , startUrl = Route.Index |> Route.toPath
+        , icons = []
+        }

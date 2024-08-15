@@ -14,6 +14,7 @@ import Parser exposing ((|.), (|=), Parser)
 import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Server.Response as Response
+import Site
 import String.Extra
 import Theme
 import Types exposing (Persona)
@@ -60,6 +61,9 @@ routes {- getStaticRoutes htmlToString -} _ _ =
         |> ApiRoute.slash
         |> ApiRoute.capture
         |> ApiRoute.serverRender
+    , Manifest.generator
+        Site.config.canonicalUrl
+        (BackendTask.succeed Site.manifest)
     ]
 
 
@@ -256,13 +260,3 @@ fontParser characters =
             , item = Parser.int
             , trailing = Parser.Optional
             }
-
-
-manifest : Manifest.Config
-manifest =
-    Manifest.init
-        { name = "Site Name"
-        , description = "Description"
-        , startUrl = Route.Index |> Route.toPath
-        , icons = []
-        }
