@@ -173,7 +173,13 @@ view config { flipped, persona } =
                             (\gendertrope ->
                                 Input.option
                                     gendertrope
-                                    (text (gendertropeToRecord gendertrope).name)
+                                    (case gendertrope of
+                                        Custom _ ->
+                                            text "Custom"
+
+                                        _ ->
+                                            text (gendertropeToRecord gendertrope).name
+                                    )
                             )
                 , label = Input.labelHidden "Gendertrope kind"
                 , onChange = \gendertrope -> config.update { persona | gendertrope = gendertrope }
