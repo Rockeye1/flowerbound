@@ -1,13 +1,15 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, personaFromSlug, route, title, toDescription)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, personaFromSlug, route, title, toCard, toDescription)
 
+import Array
 import BackendTask exposing (BackendTask)
 import Base64
 import Bit exposing (Bit(..))
 import BitParser
 import Bits
 import Bytes exposing (Bytes)
+import Drawing
 import Effect exposing (Effect)
-import Element exposing (px, width)
+import Element
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
 import Head
@@ -122,9 +124,7 @@ update _ _ msg model =
                 [ newRoute
                     |> Effect.SetRoute
                 , Http.get
-                    { url =
-                        Route.toString newRoute
-                            |> String.replace "/persona/" "/persona/image/"
+                    { url = (cardImage persona).url |> Pages.Url.toString
                     , expect = Http.expectString GotImage
                     }
                     |> Effect.fromCmd
@@ -293,30 +293,31 @@ head app =
         persona : Persona
         persona =
             app.data
-
-        image : Seo.Image
-        image =
-            { url =
-                Pages.Url.fromPath
-                    [ "persona"
-                    , "image"
-                    , app.routeParams.name
-                    , Maybe.withDefault "" app.routeParams.data
-                    ]
-            , alt = "Card for " ++ persona.name
-            , dimensions = Just cardImageSize
-            , mimeType = Nothing
-            }
     in
     Seo.summaryLarge
         { canonicalUrlOverride = Nothing
         , siteName = Site.manifest.name
-        , image = image
+        , image = cardImage persona
         , description = toDescription persona
         , locale = Nothing
         , title = title persona
         }
         |> Seo.website
+
+
+cardImage : Persona -> Seo.Image
+cardImage persona =
+    { url =
+        Pages.Url.fromPath
+            [ "card"
+            , "persona"
+            , persona.name
+            , personaToSlug persona
+            ]
+    , alt = "Card for " ++ persona.name
+    , dimensions = Just cardImageSize
+    , mimeType = Nothing
+    }
 
 
 title : Persona -> String
@@ -380,3 +381,33 @@ view app _ model =
 subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg
 subscriptions _ _ _ _ =
     Sub.none
+
+
+
+-- CARD --
+
+
+toCard : Persona -> BackendTask FatalError (Response.Response Never Never)
+toCard persona =
+    Drawing.getFont
+        |> BackendTask.andThen
+            (\font ->
+                let
+                    image : Drawing.Image
+                    image =
+                        (Theme.purpleHex * 256 + 0xFF)
+                            |> Array.repeat cardImageSize.width
+                            |> Array.repeat cardImageSize.height
+                in
+                image
+                    |> Drawing.drawImage 1 1 Drawing.flower
+                    |> Drawing.drawImage (cardImageSize.width - 5 - 1) 1 Drawing.flower
+                    |> Drawing.drawTextCenter font 1 persona.name
+                    |> Drawing.drawText font 1 (font.height + 2) (toDescription persona)
+                    |> Drawing.scaleBy 4
+                    |> Image.fromArray2d
+                    |> Image.toPng
+                    |> Response.bytesBody
+                    |> Response.withHeader "Content-Type" "image/png"
+                    |> BackendTask.succeed
+            )
