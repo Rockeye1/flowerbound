@@ -3,7 +3,7 @@ module Persona exposing (Config, Feature, Gendertrope(..), GendertropeRecord, Pe
 import Bit exposing (Bit)
 import BitParser
 import Dict exposing (Dict)
-import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -230,7 +230,7 @@ view config { flipped, persona } =
 
 
 viewGendertrope : Persona -> List (Element (Result (List Int) Gendertrope))
-viewGendertrope ({ features, gendertrope } as persona) =
+viewGendertrope ({ gendertrope } as persona) =
     let
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
@@ -314,65 +314,74 @@ viewGendertrope ({ features, gendertrope } as persona) =
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
-            , gendertropeRecord.features
-                |> Dict.toList
-                |> List.map
-                    (\( level, feature ) ->
-                        let
-                            selected : Bool
-                            selected =
-                                level == 1 || List.member level features
-
-                            canSelect : Bool
-                            canSelect =
-                                selected || (persona.euphoriaPoints - usedEuphoriaPoints persona) >= 10 + level
-                        in
-                        Theme.button
-                            [ Font.alignLeft
-                            , padding 0
-                            , Border.width 0
-                            ]
-                            { onPress =
-                                if level == 1 || not canSelect then
-                                    Nothing
-
-                                else if selected then
-                                    Just (Err (List.Extra.remove level features))
-
-                                else
-                                    Just (Err (level :: features))
-                            , label =
-                                Theme.column
-                                    [ Border.width 1
-                                    , Theme.padding
-                                    , Background.color
-                                        (if selected then
-                                            Theme.purple
-
-                                         else if canSelect then
-                                            Theme.white
-
-                                         else
-                                            Theme.gray
-                                        )
-                                    , Font.color
-                                        (if selected then
-                                            Theme.white
-
-                                         else
-                                            Theme.black
-                                        )
-                                    ]
-                                    (paragraph [ Font.underline ]
-                                        [ text ("Level " ++ String.fromInt level ++ " Feature: ")
-                                        , el [ Font.bold ] (text feature.name)
-                                        ]
-                                        :: viewMarkdown feature.description
-                                    )
-                            }
-                    )
-                |> Theme.column []
+            , Element.map Err (viewStandardFeatures persona gendertropeRecord)
             ]
+
+
+viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
+viewStandardFeatures ({ features } as persona) gendertropeRecord =
+    let
+        viewStandardFeature : ( Int, Feature ) -> Element (List Int)
+        viewStandardFeature ( level, feature ) =
+            let
+                selected : Bool
+                selected =
+                    level == 1 || List.member level features
+
+                canSelect : Bool
+                canSelect =
+                    selected || (persona.euphoriaPoints - usedEuphoriaPoints persona) >= 10 + level
+            in
+            Theme.button
+                [ Font.alignLeft
+                , padding 0
+                , Border.width 0
+                , width fill
+                ]
+                { onPress =
+                    if level == 1 || not canSelect then
+                        Nothing
+
+                    else if selected then
+                        Just (List.Extra.remove level features)
+
+                    else
+                        Just (level :: features)
+                , label =
+                    Theme.column
+                        [ Border.width 1
+                        , Theme.padding
+                        , width fill
+                        , Background.color
+                            (if selected then
+                                Theme.purple
+
+                             else if canSelect then
+                                Theme.white
+
+                             else
+                                Theme.gray
+                            )
+                        , Font.color
+                            (if selected then
+                                Theme.white
+
+                             else
+                                Theme.black
+                            )
+                        ]
+                        (paragraph [ Font.underline ]
+                            [ text ("Level " ++ String.fromInt level ++ " Feature: ")
+                            , el [ Font.bold ] (text feature.name)
+                            ]
+                            :: viewMarkdown feature.description
+                        )
+                }
+    in
+    gendertropeRecord.features
+        |> Dict.toList
+        |> List.map viewStandardFeature
+        |> Theme.column [ width fill ]
 
 
 viewMarkdown : String -> List (Element msg)
@@ -399,7 +408,12 @@ markdownRenderer : Markdown.Renderer.Renderer (Element msg)
 markdownRenderer =
     { heading = \_ -> text "TODO: heading"
     , paragraph = paragraph [ Theme.spacing ]
-    , blockQuote = Theme.column [ Theme.padding, Border.width 1 ]
+    , blockQuote =
+        column
+            [ Theme.padding
+            , Theme.spacing
+            , Border.width 1
+            ]
     , html = Markdown.Html.oneOf []
     , text = text
     , codeSpan = \_ -> text "TODO: codeSpan"
@@ -759,6 +773,7 @@ gendertropeToRecord gendertrope =
                 in
                 [ ( 1, prehensileProficency )
                 , ( 2, dominantExemplar )
+                , ( 3, ambrosia )
                 ]
                     |> Dict.fromList
             }
@@ -855,6 +870,20 @@ During your partner's turn, you may spend **1 Dominance Point** to force them to
 > At the beginning of your turn, if you are not Having An Orgasm, you may roll a Moxie Check. If the result of the Check is greater than your Craving value, you may remove this effect.
 """
     }
+
+
+ambrosia : Feature
+ambrosia =
+    { name = "Ambrosia", description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
+
+
+> **Fixation** _Passive_  
+> You have disadvantage on all actions that do not target the Organ that inflicted this effect. You cannot volitionally Unpair from the Organ that inflicted this effect.
+>
+> At the beginning of your turn, you may roll a Sanity Check. If the result of the Check is greater than your Craving value, you may remove this effect.
+
+In addition, so long as the effect remains, you gain an extrasensory perception of their body and sexual state and may demand full access to all the information on their Persona Card and Organ Cards at any time.
+""" }
 
 
 parseGendertrope : BitParser.Parser Gendertrope
