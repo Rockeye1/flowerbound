@@ -23,7 +23,7 @@ routes :
     BackendTask FatalError (List Route)
     -> (Maybe { indent : Int, newLines : Bool } -> Html Never -> String)
     -> List (ApiRoute ApiRoute.Response)
-routes getStaticRoutes htmlToString =
+routes {- getStaticRoutes htmlToString -} _ _ =
     [ ApiRoute.succeed
         (\name data _ ->
             let
@@ -100,7 +100,7 @@ drawText font x y rawText image =
 
         maxWidth : Int
         maxWidth =
-            (imageWidth - x - 1) // font.width
+            (imageWidth - x) // (font.width + 1)
 
         lines : List String
         lines =
