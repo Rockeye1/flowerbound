@@ -13,7 +13,9 @@ import SiteConfig exposing (SiteConfig)
 
 config : SiteConfig
 config =
-    { canonicalUrl = "http://localhost:1234"
+    { canonicalUrl =
+        -- "http://localhost:1234"
+        "https://uriel.tail1b193.ts.net"
     , head = head
     }
 
