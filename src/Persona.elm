@@ -325,7 +325,7 @@ viewGendertrope ({ features, gendertrope } as persona) =
 
                             canSelect : Bool
                             canSelect =
-                                usedEuphoriaPoints persona >= 10 + level
+                                selected || (persona.euphoriaPoints - usedEuphoriaPoints persona) >= 10 + level
                         in
                         Theme.button
                             [ Font.alignLeft
