@@ -5,7 +5,6 @@ import BitParser
 import Bits
 import Expect
 import Fuzz
-import Route.Persona.Name_.Data__
 import Test exposing (Test)
 
 
@@ -17,9 +16,9 @@ intRoundtrip =
                 encoded : List Bit
                 encoded =
                     i
-                        |> Route.Persona.Name_.Data__.encodePositiveInt
+                        |> BitParser.encodePositiveInt
             in
-            case BitParser.run Route.Persona.Name_.Data__.parsePositiveInt encoded of
+            case BitParser.run BitParser.parsePositiveInt encoded of
                 Nothing ->
                     Expect.fail "Could not roundtrip"
 
