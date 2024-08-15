@@ -14,6 +14,7 @@ intRoundtrip =
     Test.fuzz (Fuzz.intAtLeast 1) "Int roundtrips" <|
         \i ->
             let
+                encoded : List Bit
                 encoded =
                     i
                         |> Route.Persona.Name_.Data__.encodePositiveInt
