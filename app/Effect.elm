@@ -24,10 +24,6 @@ type Effect msg
     | Batch (List (Effect msg))
     | SetRoute Route
     | SetField { formId : String, name : String, value : String }
-    | FetchRouteData
-        { data : Maybe FormData
-        , toMsg : Result Http.Error Url -> msg
-        }
     | Submit
         { values : FormData
         , toMsg : Result Http.Error Url -> msg
@@ -68,12 +64,6 @@ map fn effect =
 
         Batch list ->
             Batch (List.map (map fn) list)
-
-        FetchRouteData fetchInfo ->
-            FetchRouteData
-                { data = fetchInfo.data
-                , toMsg = fetchInfo.toMsg >> fn
-                }
 
         Submit fetchInfo ->
             Submit
@@ -127,10 +117,6 @@ perform ({ fromPageMsg, key } as helpers) effect =
 
         Batch list ->
             Cmd.batch (List.map (perform helpers) list)
-
-        FetchRouteData fetchInfo ->
-            helpers.fetchRouteData
-                fetchInfo
 
         Submit record ->
             helpers.submit record
