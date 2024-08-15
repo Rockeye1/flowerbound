@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, personaFromSlug, route, title, toCard, toDescription)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, personaFromSlug, route, title, toCard, toDescription)
 
 import Array
 import BackendTask exposing (BackendTask)
@@ -96,7 +96,8 @@ personaFromSlug name slug =
 personaToSlug : Persona -> String
 personaToSlug persona =
     persona
-        |> encodePersona
+        |> Persona.encode
+        |> BitParser.bitsToBytes
         |> Base64.fromBytes
         |> Maybe.withDefault ""
         |> String.replace "/" "_"
@@ -166,122 +167,7 @@ data params _ =
 
 decodePersona : String -> Bytes -> Maybe Persona
 decodePersona name bytes =
-    BitParser.run (personaParser name) (Bits.fromBytes bytes)
-
-
-personaParser : String -> BitParser.Parser Persona
-personaParser name =
-    BitParser.succeed (Persona name)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) parseNonnegativeInt)
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap parseNonnegativeInt
-        |> BitParser.andMap
-            parseGendertrope
-
-
-parseGendertrope : BitParser.Parser Gendertrope
-parseGendertrope =
-    parseNonnegativeInt
-        |> BitParser.andThen
-            (\i ->
-                case i of
-                    0 ->
-                        BitParser.succeed TheButterfly
-
-                    _ ->
-                        BitParser.fail
-            )
-
-
-encodeGendertrope : Gendertrope -> List Bit
-encodeGendertrope gendertrope =
-    case gendertrope of
-        TheButterfly ->
-            encodeNonnegativeInt 0
-
-
-parseNonnegativeInt : BitParser.Parser Int
-parseNonnegativeInt =
-    BitParser.map (\n -> n - 1) parsePositiveInt
-
-
-parsePositiveInt : BitParser.Parser Int
-parsePositiveInt =
-    BitParser.loop
-        (\n ->
-            BitParser.bit
-                |> BitParser.andThen
-                    (\bit ->
-                        if bit == O then
-                            BitParser.succeed (BitParser.Done n)
-
-                        else
-                            BitParser.bits n
-                                |> BitParser.map (\bits -> BitParser.Loop (Bits.toIntUnsigned (I :: bits)))
-                    )
-        )
-        1
-
-
-encodePersona : Persona -> Bytes
-encodePersona persona =
-    [ encodeNonnegativeInt (persona.fitness - 2)
-    , encodeNonnegativeInt (persona.grace - 2)
-    , encodeNonnegativeInt (persona.ardor - 2)
-    , encodeNonnegativeInt (persona.sanity - 2)
-    , encodeNonnegativeInt (persona.prowess - 2)
-    , encodeNonnegativeInt (persona.moxie - 2)
-    , encodeNonnegativeInt persona.stamina
-    , encodeNonnegativeInt persona.satiation
-    , encodeNonnegativeInt persona.craving
-    , encodeNonnegativeInt persona.arousal
-    , encodeNonnegativeInt persona.sensitivity
-    , encodeNonnegativeInt persona.euphoriaPoints
-    , encodeNonnegativeInt persona.ichorPoints
-    , encodeNonnegativeInt persona.numinousPoints
-    , encodeGendertrope persona.gendertrope
-    ]
-        |> List.concat
-        |> BitParser.bitsToBytes
-
-
-encodeNonnegativeInt : Int -> List Bit
-encodeNonnegativeInt n =
-    encodePositiveInt (n + 1)
-
-
-encodePositiveInt : Int -> List Bit
-encodePositiveInt i =
-    if i < 1 then
-        []
-
-    else
-        encodePositiveIntHelper i [ O ]
-
-
-encodePositiveIntHelper : Int -> List Bit -> List Bit
-encodePositiveIntHelper n acc =
-    if n == 1 then
-        acc
-
-    else
-        let
-            length : Int
-            length =
-                ceiling (logBase 2 (toFloat n + 1))
-        in
-        encodePositiveIntHelper (length - 1) (Bits.fromIntUnsigned length n ++ acc)
+    BitParser.run (Persona.parser name) (Bits.fromBytes bytes)
 
 
 head :
@@ -439,7 +325,7 @@ toCard persona =
                     |> Drawing.drawImage 1 1 Drawing.flower
                     |> Drawing.drawImage (cardImageSize.width - 6) 1 Drawing.flower
                     |> Drawing.drawTextCenter font 1 persona.name
-                    |> Drawing.drawTextCenter font (font.height + 2) (gendertropeToString persona.gendertrope)
+                    |> Drawing.drawTextCenter font (font.height + 2) (Persona.gendertropeToRecord persona.gendertrope).name
                     |> Drawing.drawText font 1 (font.height * 2 + 3) description
                     |> Drawing.drawText font 30 (font.height * 2 + 3) meters
                     |> Drawing.scaleBy (800 // cardImageSize.width)
@@ -448,10 +334,3 @@ toCard persona =
                     |> Response.bytesBody
                     |> Response.withHeader "Content-Type" "image/png"
             )
-
-
-gendertropeToString : Gendertrope -> String
-gendertropeToString gendertrope =
-    case gendertrope of
-        TheButterfly ->
-            "The Butterfly"

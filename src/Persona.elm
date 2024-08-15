@@ -1,5 +1,7 @@
-module Persona exposing (Gendertrope(..), Msg(..), Persona, default, view)
+module Persona exposing (Gendertrope(..), Msg(..), Persona, default, encode, gendertropeToRecord, parser, view)
 
+import Bit exposing (Bit)
+import BitParser
 import Browser exposing (UrlRequest(..))
 import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
 import Element.Background as Background
@@ -39,6 +41,13 @@ type alias Persona =
 
 type Gendertrope
     = TheButterfly
+    | Custom GendertropeRecord
+
+
+type alias GendertropeRecord =
+    { name : String
+    , description : String
+    }
 
 
 type Msg
@@ -108,6 +117,10 @@ view config { flipped, persona } =
                     ++ "deg)"
                 )
             ]
+
+        gendertropeRecord : GendertropeRecord
+        gendertropeRecord =
+            gendertropeToRecord persona.gendertrope
     in
     Theme.row
         [ width <| px 600
@@ -147,9 +160,9 @@ view config { flipped, persona } =
                     , label = Icons.flip
                     }
                 ]
-            , text "The Butterfly"
+            , text gendertropeRecord.name
             , paragraph [ Font.italic ]
-                [ text "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
+                [ text gendertropeRecord.description
                 ]
             ]
         ]
@@ -397,3 +410,91 @@ tallyGroup count =
 tallyMark : Element msg
 tallyMark =
     el [ Border.width 1, height <| px 16 ] Element.none
+
+
+gendertropeToRecord : Gendertrope -> GendertropeRecord
+gendertropeToRecord gendertrope =
+    case gendertrope of
+        TheButterfly ->
+            { name = "The Butterfly"
+            , description =
+                "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
+            }
+
+        Custom record ->
+            record
+
+
+parseGendertrope : BitParser.Parser Gendertrope
+parseGendertrope =
+    BitParser.parseNonnegativeInt
+        |> BitParser.andThen
+            (\i ->
+                case i of
+                    0 ->
+                        BitParser.succeed TheButterfly
+
+                    999 ->
+                        BitParser.map2
+                            (\name description -> Custom { name = name, description = description })
+                            BitParser.parseString
+                            BitParser.parseString
+
+                    _ ->
+                        BitParser.fail
+            )
+
+
+encodeGendertrope : Gendertrope -> List Bit
+encodeGendertrope gendertrope =
+    case gendertrope of
+        TheButterfly ->
+            BitParser.encodeNonnegativeInt 0
+
+        Custom { name, description } ->
+            [ BitParser.encodeNonnegativeInt 999
+            , BitParser.encodeString name
+            , BitParser.encodeString description
+            ]
+                |> List.concat
+
+
+encode : Persona -> List Bit
+encode persona =
+    [ BitParser.encodeNonnegativeInt (persona.fitness - 2)
+    , BitParser.encodeNonnegativeInt (persona.grace - 2)
+    , BitParser.encodeNonnegativeInt (persona.ardor - 2)
+    , BitParser.encodeNonnegativeInt (persona.sanity - 2)
+    , BitParser.encodeNonnegativeInt (persona.prowess - 2)
+    , BitParser.encodeNonnegativeInt (persona.moxie - 2)
+    , BitParser.encodeNonnegativeInt persona.stamina
+    , BitParser.encodeNonnegativeInt persona.satiation
+    , BitParser.encodeNonnegativeInt persona.craving
+    , BitParser.encodeNonnegativeInt persona.arousal
+    , BitParser.encodeNonnegativeInt persona.sensitivity
+    , BitParser.encodeNonnegativeInt persona.euphoriaPoints
+    , BitParser.encodeNonnegativeInt persona.ichorPoints
+    , BitParser.encodeNonnegativeInt persona.numinousPoints
+    , encodeGendertrope persona.gendertrope
+    ]
+        |> List.concat
+
+
+parser : String -> BitParser.Parser Persona
+parser name =
+    BitParser.succeed (Persona name)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
+        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap parseGendertrope
