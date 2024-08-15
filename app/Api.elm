@@ -7,7 +7,7 @@ import BackendTask.File as File
 import Dict exposing (Dict)
 import FatalError exposing (FatalError)
 import Html exposing (Html)
-import Image exposing (Image)
+import Image
 import List.Extra
 import Pages.Manifest as Manifest
 import Parser exposing ((|.), (|=), Parser)
@@ -19,6 +19,10 @@ import Sitemap
 import String.Extra
 import Theme
 import Types exposing (Persona)
+
+
+type alias Image =
+    Array (Array Image.Pixel)
 
 
 routes :
@@ -42,12 +46,12 @@ routes getStaticRoutes {- htmlToString -} _ =
                                 (Theme.purpleHex * 256 + 0xFF)
                                     |> Array.repeat Persona.cardImageSize.width
                                     |> Array.repeat Persona.cardImageSize.height
-                                    |> Image.fromArray2d
                         in
                         image
                             |> drawText font 1 1 persona.name
                             |> drawText font 1 (font.height + 2) (Persona.toDescription persona)
                             |> scaleBy 4
+                            |> Image.fromArray2d
                             |> Image.toPng
                             |> Response.bytesBody
                             |> Response.withHeader "Content-Type" "image/png"
@@ -88,6 +92,7 @@ routes getStaticRoutes {- htmlToString -} _ =
 scaleBy : Int -> Image -> Image
 scaleBy factor img =
     let
+        pushN : Int -> a -> Array a -> Array a
         pushN k e acc =
             if k <= 0 then
                 acc
@@ -95,27 +100,25 @@ scaleBy factor img =
             else
                 pushN (k - 1) e (Array.push e acc)
     in
-    img
-        |> Image.toArray2d
-        |> Array.foldl
-            (\row acc ->
-                let
-                    scaledRow : Array Int
-                    scaledRow =
-                        Array.foldl (\pixel rowAcc -> pushN factor pixel rowAcc) Array.empty row
-                in
-                acc |> pushN factor scaledRow
-            )
-            Array.empty
-        |> Image.fromArray2d
+    Array.foldl
+        (\row acc ->
+            let
+                scaledRow : Array Int
+                scaledRow =
+                    Array.foldl (\pixel rowAcc -> pushN factor pixel rowAcc) Array.empty row
+            in
+            acc |> pushN factor scaledRow
+        )
+        Array.empty
+        img
 
 
 drawText : Font -> Int -> Int -> String -> Image -> Image
 drawText font x y rawText image =
     let
+        imageWidth : Int
         imageWidth =
             image
-                |> Image.toArray2d
                 |> Array.get 0
                 |> Maybe.withDefault Array.empty
                 |> Array.length
@@ -149,57 +152,73 @@ drawText font x y rawText image =
 drawTextNoWrap : Font -> Int -> Int -> String -> Image -> Image
 drawTextNoWrap font x y text image =
     String.foldl
-        (\char ( currentX, img ) ->
-            case Dict.get (Char.toUpper char) font.chars of
-                Nothing ->
-                    ( currentX + font.width + 1, img )
-
-                Just charImg ->
-                    let
-                        charArray =
-                            Image.toArray2d charImg
-
-                        newImg =
-                            List.foldl
-                                (\dy imgAcc ->
-                                    case Array.get (y + dy) imgAcc of
-                                        Nothing ->
-                                            imgAcc
-
-                                        Just row ->
-                                            case Array.get dy charArray of
-                                                Nothing ->
-                                                    imgAcc
-
-                                                Just charRow ->
-                                                    let
-                                                        newRow =
-                                                            List.foldl
-                                                                (\dx rowAcc ->
-                                                                    case Array.get dx charRow of
-                                                                        Nothing ->
-                                                                            rowAcc
-
-                                                                        Just 0 ->
-                                                                            rowAcc
-
-                                                                        Just px ->
-                                                                            Array.set (currentX + dx) px rowAcc
-                                                                )
-                                                                row
-                                                                (List.range 0 (font.width - 1))
-                                                    in
-                                                    Array.set (y + dy) newRow imgAcc
-                                )
-                                img
-                                (List.range 0 (font.height - 1))
-                    in
-                    ( currentX + font.width + 1, newImg )
+        (\char ( currentX, imageAcc ) ->
+            ( currentX + font.width + 1
+            , drawChar font currentX y char imageAcc
+            )
         )
-        ( x, Image.toArray2d image )
+        ( x, image )
         text
         |> Tuple.second
-        |> Image.fromArray2d
+
+
+drawChar : Font -> Int -> Int -> Char -> Image -> Image
+drawChar font x y char img =
+    case Dict.get (Char.toUpper char) font.chars of
+        Nothing ->
+            img
+
+        Just toDraw ->
+            drawImage x y toDraw img
+
+
+drawImage : Int -> Int -> Image -> Image -> Image
+drawImage x y toDraw img =
+    let
+        width : Int
+        width =
+            toDraw
+                |> Array.get 0
+                |> Maybe.withDefault Array.empty
+                |> Array.length
+
+        height : Int
+        height =
+            Array.length toDraw
+    in
+    List.foldl
+        (\dy imgAcc ->
+            case Array.get (y + dy) imgAcc of
+                Nothing ->
+                    imgAcc
+
+                Just row ->
+                    case Array.get dy toDraw of
+                        Nothing ->
+                            imgAcc
+
+                        Just charRow ->
+                            let
+                                newRow =
+                                    List.foldl
+                                        (\dx rowAcc ->
+                                            case Array.get dx charRow of
+                                                Nothing ->
+                                                    rowAcc
+
+                                                Just 0 ->
+                                                    rowAcc
+
+                                                Just px ->
+                                                    Array.set (x + dx) px rowAcc
+                                        )
+                                        row
+                                        (List.range 0 (width - 1))
+                            in
+                            Array.set (y + dy) newRow imgAcc
+        )
+        img
+        (List.range 0 (height - 1))
 
 
 type alias Font =
@@ -256,7 +275,7 @@ fontParser characters =
                     |> List.Extra.transpose
                     |> List.Extra.greedyGroupsOf fontWidth
                     |> List.map List.Extra.transpose
-                    |> List.map2 (\char pixels -> ( char, Image.fromList2d pixels ))
+                    |> List.map2 (\char pixels -> ( char, Array.fromList (List.map Array.fromList pixels) ))
                         characters
                     |> Dict.fromList
             }
