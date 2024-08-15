@@ -333,7 +333,7 @@ toDescription persona =
         ++ String.fromInt persona.ardor
         ++ " SAN "
         ++ String.fromInt persona.sanity
-        ++ "PRW "
+        ++ " PRW "
         ++ String.fromInt persona.prowess
         ++ " MOX "
         ++ String.fromInt persona.moxie

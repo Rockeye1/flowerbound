@@ -14,6 +14,7 @@ import Parser exposing ((|.), (|=), Parser)
 import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Server.Response as Response
+import String.Extra
 import Theme
 import Types exposing (Persona)
 
@@ -42,7 +43,8 @@ routes getStaticRoutes htmlToString =
                                     |> Image.fromArray2d
                         in
                         image
-                            |> drawText font font.width font.height persona.name
+                            |> drawText font 1 1 persona.name
+                            |> drawText font 1 (font.height + 2) (Persona.toDescription persona)
                             |> scaleBy 4
                             |> Image.toPng
                             |> Response.bytesBody
@@ -87,7 +89,43 @@ scaleBy factor img =
 
 
 drawText : Font -> Int -> Int -> String -> Image -> Image
-drawText font x y text image =
+drawText font x y rawText image =
+    let
+        imageWidth =
+            image
+                |> Image.toArray2d
+                |> Array.get 0
+                |> Maybe.withDefault Array.empty
+                |> Array.length
+
+        maxWidth : Int
+        maxWidth =
+            (imageWidth - x - 1) // font.width
+
+        lines : List String
+        lines =
+            rawText
+                |> String.split "\n"
+                |> List.concatMap
+                    (\line ->
+                        line
+                            |> String.Extra.softBreak maxWidth
+                            |> List.map String.trim
+                    )
+    in
+    lines
+        |> List.foldl
+            (\line ( currentY, acc ) ->
+                ( currentY + font.height + 1
+                , drawTextNoWrap font x currentY line acc
+                )
+            )
+            ( y, image )
+        |> Tuple.second
+
+
+drawTextNoWrap : Font -> Int -> Int -> String -> Image -> Image
+drawTextNoWrap font x y text image =
     String.foldl
         (\char ( currentX, img ) ->
             case Dict.get (Char.toUpper char) font.chars of
