@@ -1,7 +1,4 @@
-module Effect exposing
-    ( Effect(..), batch, fromCmd, map, none, perform
-    , FormData
-    )
+module Effect exposing (Effect(..), batch, fromCmd, map, none, perform)
 
 {-|
 
@@ -10,11 +7,7 @@ module Effect exposing
 -}
 
 import Browser.Navigation
-import Form
-import Http
-import Pages.Fetcher
 import Route exposing (Route)
-import Url exposing (Url)
 
 
 {-| -}
@@ -23,12 +16,6 @@ type Effect msg
     | Cmd (Cmd msg)
     | Batch (List (Effect msg))
     | SetRoute Route
-    | SetField { formId : String, name : String, value : String }
-    | Submit
-        { values : FormData
-        , toMsg : Result Http.Error Url -> msg
-        }
-    | SubmitFetcher (Pages.Fetcher.Fetcher msg)
 
 
 {-| -}
@@ -65,39 +52,12 @@ map fn effect =
         Batch list ->
             Batch (List.map (map fn) list)
 
-        Submit fetchInfo ->
-            Submit
-                { values = fetchInfo.values
-                , toMsg = fetchInfo.toMsg >> fn
-                }
-
-        SetField info ->
-            SetField info
-
-        SubmitFetcher fetcher ->
-            fetcher
-                |> Pages.Fetcher.map fn
-                |> SubmitFetcher
-
 
 {-| -}
 perform :
-    { fetchRouteData :
-        { data : Maybe FormData
-        , toMsg : Result Http.Error Url -> pageMsg
-        }
-        -> Cmd msg
-    , submit :
-        { values : FormData
-        , toMsg : Result Http.Error Url -> pageMsg
-        }
-        -> Cmd msg
-    , runFetcher :
-        Pages.Fetcher.Fetcher pageMsg
-        -> Cmd msg
-    , fromPageMsg : pageMsg -> msg
-    , key : Browser.Navigation.Key
-    , setField : { formId : String, name : String, value : String } -> Cmd msg
+    { config
+        | fromPageMsg : pageMsg -> msg
+        , key : Browser.Navigation.Key
     }
     -> Effect pageMsg
     -> Cmd msg
@@ -112,22 +72,5 @@ perform ({ fromPageMsg, key } as helpers) effect =
         Cmd cmd ->
             Cmd.map fromPageMsg cmd
 
-        SetField info ->
-            helpers.setField info
-
         Batch list ->
             Cmd.batch (List.map (perform helpers) list)
-
-        Submit record ->
-            helpers.submit record
-
-        SubmitFetcher record ->
-            helpers.runFetcher record
-
-
-type alias FormData =
-    { fields : List ( String, String )
-    , method : Form.Method
-    , action : String
-    , id : Maybe String
-    }
