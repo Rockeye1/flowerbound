@@ -58,10 +58,10 @@ button attrs config =
                 (Border.width 1
                     :: padding
                     :: Background.color purple
+                    :: Font.center
                     :: Font.color (Element.rgb 1 1 1)
                     :: Border.color (Element.rgb 0 0 0)
                     :: width (Element.minimum 38 shrink)
-                    :: Font.center
                     :: attrs
                 )
                 config
@@ -70,9 +70,9 @@ button attrs config =
             el
                 (Border.width 1
                     :: padding
+                    :: Font.center
                     :: Background.color gray
                     :: width (Element.minimum 38 shrink)
-                    :: Font.center
                     :: attrs
                 )
                 config.label

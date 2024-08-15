@@ -44,6 +44,9 @@ type Gendertrope
     = Butterfly
     | Flower
     | Vixen
+    | Buck
+    | Fiend
+    | Doll
     | Custom GendertropeRecord
 
 
@@ -52,6 +55,9 @@ standardGendertropes =
     [ Butterfly
     , Flower
     , Vixen
+    , Buck
+    , Fiend
+    , Doll
     ]
 
 
@@ -178,47 +184,41 @@ viewGendertrope gendertrope =
 
         radioRow : Element Gendertrope
         radioRow =
-            Input.radioRow [ Theme.spacing ]
-                { options =
-                    (standardGendertropes ++ [ Custom gendertropeRecord ])
-                        |> List.map
-                            (\option ->
-                                Input.optionWith
-                                    option
-                                    (\state ->
-                                        let
-                                            common : List (Attribute msg)
-                                            common =
-                                                [ Border.width 1
-                                                , Theme.padding
-                                                , Font.center
-                                                , width fill
-                                                ]
-                                        in
-                                        Theme.el
-                                            (if state == Input.Selected then
-                                                Background.color Theme.purple
-                                                    :: Font.color (Element.rgb 1 1 1)
-                                                    :: Border.color (Element.rgb 0 0 0)
-                                                    :: common
+            let
+                common : List (Attribute msg)
+                common =
+                    [ Border.width 1
+                    , Theme.padding
+                    , Font.center
+                    , width fill
+                    ]
+            in
+            (standardGendertropes ++ [ Custom gendertropeRecord ])
+                |> List.map
+                    (\option ->
+                        Input.button
+                            (if option == gendertrope then
+                                Background.color Theme.purple
+                                    :: Font.color (Element.rgb 1 1 1)
+                                    :: Border.color (Element.rgb 0 0 0)
+                                    :: common
 
-                                             else
-                                                Background.color Theme.gray
-                                                    :: common
-                                            )
-                                        <|
-                                            case option of
-                                                Custom _ ->
-                                                    text "Custom"
-
-                                                _ ->
-                                                    text (gendertropeToRecord option).name
-                                    )
+                             else
+                                Background.color Theme.gray
+                                    :: Border.color Theme.purple
+                                    :: common
                             )
-                , label = Input.labelHidden "Gendertrope kind"
-                , onChange = identity
-                , selected = Just gendertrope
-                }
+                            { label =
+                                case option of
+                                    Custom _ ->
+                                        text "Custom"
+
+                                    _ ->
+                                        text (gendertropeToRecord option).name
+                            , onPress = Just option
+                            }
+                    )
+                |> Theme.wrappedRow [ width fill ]
     in
     case gendertrope of
         Custom _ ->
@@ -516,6 +516,21 @@ gendertropeToRecord gendertrope =
             , description = "She is one who embodies the predator, the explorer, and the protector all at once. Her whims and her primal hungers drive her to hunt and slake, to frolic and play, to guard and comfort, forever seeking excitement. But her mercurial heart is innocent and soft, gentle and always welcoming... just like her bosom."
             }
 
+        Buck ->
+            { name = "The Buck"
+            , description = "He is one who lives in the moment and is captivated by passion. His earnest whimsy and innocent fascinations lead to carefree nights and a fondness for the unexpected, even for the dangerous, ever delighted by the thrill. But he yearns most deeply to be safe in the arms of someone stronger and kinder than himself."
+            }
+
+        Fiend ->
+            { name = "The Fiend"
+            , description = "He is a cruel being of meticulous obsession and exacting desires. His esoteric pleasures are often strange or abstract, and he will craft them himself if he must, or if he prefers. But his implacable single-minded pursuit of his strange joys is intrinsically entwined with the intense empathy and fascination he feels for his living toys."
+            }
+
+        Doll ->
+            { name = "The Doll"
+            , description = "She is a blissful being of peaceful passivity and masochistic fatalism. Her only wish is to be treasured and tormented, teased and tantalized, in the hands of one worthy to own her, or even remake her. But her selfless wish to gratify her demanding master is tempered by her selfish wish for a life of mindless ecstasy."
+            }
+
         Custom record ->
             record
 
@@ -541,6 +556,15 @@ parseGendertrope =
                     3 ->
                         BitParser.succeed Vixen
 
+                    4 ->
+                        BitParser.succeed Buck
+
+                    5 ->
+                        BitParser.succeed Fiend
+
+                    6 ->
+                        BitParser.succeed Doll
+
                     _ ->
                         BitParser.fail
             )
@@ -564,6 +588,15 @@ encodeGendertrope gendertrope =
 
         Vixen ->
             BitParser.encodeNonnegativeInt 3
+
+        Buck ->
+            BitParser.encodeNonnegativeInt 4
+
+        Fiend ->
+            BitParser.encodeNonnegativeInt 5
+
+        Doll ->
+            BitParser.encodeNonnegativeInt 6
 
 
 encode : Persona -> List Bit
