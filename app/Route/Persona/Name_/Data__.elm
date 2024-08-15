@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, route)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, route)
 
 import BackendTask exposing (BackendTask)
 import Base64
@@ -7,7 +7,7 @@ import BitParser
 import Bits
 import Bytes exposing (Bytes)
 import Effect exposing (Effect)
-import Element
+import Element exposing (px, width)
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
 import Head
@@ -288,20 +288,52 @@ head :
     App Persona ActionData RouteParams
     -> List Head.Tag
 head app =
-    Seo.summary
-        { canonicalUrlOverride = Nothing
-        , siteName = "Flowerbound"
-        , image =
-            { url = Pages.Url.external <| "/persona/image/" ++ app.routeParams.name ++ "/" ++ Maybe.withDefault "" app.routeParams.data
+    let
+        image : Seo.Image
+        image =
+            { url =
+                Pages.Url.fromPath
+                    [ "persona"
+                    , "image"
+                    , app.routeParams.name
+                    , Maybe.withDefault "" app.routeParams.data
+                    ]
             , alt = "Card for " ++ app.data.name
-            , dimensions = Nothing
+            , dimensions = Just cardImageSize
             , mimeType = Nothing
             }
-        , description = "FIT " ++ String.fromInt app.data.fitness
+    in
+    Seo.summaryLarge
+        { canonicalUrlOverride = Nothing
+        , siteName = "Flowerbound"
+        , image = image
+        , description =
+            "FIT "
+                ++ String.fromInt app.data.fitness
+                ++ " GRC "
+                ++ String.fromInt app.data.grace
+                ++ " ARD "
+                ++ String.fromInt app.data.ardor
+                ++ " SAN "
+                ++ String.fromInt app.data.sanity
+                ++ "PRW "
+                ++ String.fromInt app.data.prowess
+                ++ " MOX "
+                ++ String.fromInt app.data.moxie
         , locale = Nothing
-        , title = "Persona: " ++ app.data.name
+        , title = title app
         }
         |> Seo.website
+
+
+cardImageSize :
+    { width : number
+    , height : number
+    }
+cardImageSize =
+    { width = 100
+    , height = 50
+    }
 
 
 view :
@@ -309,8 +341,8 @@ view :
     -> Shared.Model
     -> Model
     -> View (PagesMsg Msg)
-view _ _ model =
-    { title = "Placeholder - Blog.Slug_"
+view app _ model =
+    { title = title app
     , body =
         Theme.column [ Theme.padding ]
             [ View.Persona.view
@@ -329,6 +361,11 @@ view _ _ model =
                     Element.none
             ]
     }
+
+
+title : App Data ActionData RouteParams -> String
+title app =
+    app.data.name ++ " - Flowerbound"
 
 
 subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg

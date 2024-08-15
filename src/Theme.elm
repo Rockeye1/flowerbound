@@ -1,4 +1,4 @@
-module Theme exposing (button, column, el, link, padding, purple, rhythm, row, spacing, withHint, wrappedRow)
+module Theme exposing (button, column, el, link, padding, purple, purpleHex, rhythm, row, spacing, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, el, link, shrink, width)
 import Element.Background as Background
@@ -81,6 +81,11 @@ button attrs config =
 purple : Element.Color
 purple =
     Element.rgb255 0x80 0 0x80
+
+
+purpleHex : number
+purpleHex =
+    0x00800080
 
 
 withHint : String -> Element msg -> Element msg

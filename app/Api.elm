@@ -1,15 +1,21 @@
 module Api exposing (routes)
 
 import ApiRoute exposing (ApiRoute)
+import Array exposing (Array)
 import BackendTask exposing (BackendTask)
 import BackendTask.File as File
+import Dict exposing (Dict)
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Image exposing (Image)
+import List.Extra
 import Pages.Manifest as Manifest
 import Parser exposing ((|.), (|=), Parser)
 import Route exposing (Route)
+import Route.Persona.Name_.Data__ as Persona
 import Server.Response as Response
+import Theme
+import Url
 
 
 routes :
@@ -25,12 +31,14 @@ routes getStaticRoutes htmlToString =
                         let
                             image : Image
                             image =
-                                0xFFFF
-                                    |> List.repeat 400
-                                    |> List.repeat 300
-                                    |> Image.fromList2d
+                                (Theme.purpleHex * 256 + 0xFF)
+                                    |> Array.repeat Persona.cardImageSize.width
+                                    |> Array.repeat Persona.cardImageSize.height
+                                    |> Image.fromArray2d
                         in
                         image
+                            |> drawText font 3 5 (String.toUpper (Maybe.withDefault name (Url.percentDecode name)))
+                            |> scaleBy 4
                             |> Image.toPng
                             |> Response.bytesBody
                             |> Response.withHeader "Content-Type" "image/png"
@@ -48,27 +56,151 @@ routes getStaticRoutes htmlToString =
     ]
 
 
-getFont : BackendTask FatalError Image
+scaleBy : Int -> Image -> Image
+scaleBy factor img =
+    let
+        pushN k e acc =
+            if k <= 0 then
+                acc
+
+            else
+                pushN (k - 1) e (Array.push e acc)
+    in
+    img
+        |> Image.toArray2d
+        |> Array.foldl
+            (\row acc ->
+                let
+                    scaledRow : Array Int
+                    scaledRow =
+                        Array.foldl (\pixel rowAcc -> pushN factor pixel rowAcc) Array.empty row
+                in
+                acc |> pushN factor scaledRow
+            )
+            Array.empty
+        |> Image.fromArray2d
+
+
+drawText : Font -> Int -> Int -> String -> Image -> Image
+drawText ( fontSize, fontChars ) x y text image =
+    String.foldl
+        (\char ( currentX, img ) ->
+            case Dict.get char fontChars of
+                Nothing ->
+                    ( currentX + fontSize.width + 1, img )
+
+                Just charImg ->
+                    let
+                        charArray =
+                            Image.toArray2d charImg
+
+                        newImg =
+                            List.foldl
+                                (\dy imgAcc ->
+                                    case Array.get (y + dy) imgAcc of
+                                        Nothing ->
+                                            imgAcc
+
+                                        Just row ->
+                                            case Array.get dy charArray of
+                                                Nothing ->
+                                                    imgAcc
+
+                                                Just charRow ->
+                                                    let
+                                                        newRow =
+                                                            List.foldl
+                                                                (\dx rowAcc ->
+                                                                    case Array.get dx charRow of
+                                                                        Nothing ->
+                                                                            rowAcc
+
+                                                                        Just 0 ->
+                                                                            rowAcc
+
+                                                                        Just px ->
+                                                                            Array.set (currentX + dx) px rowAcc
+                                                                )
+                                                                row
+                                                                (List.range 0 (fontSize.width - 1))
+                                                    in
+                                                    Array.set (y + dy) newRow imgAcc
+                                )
+                                img
+                                (List.range 0 (fontSize.height - 1))
+                    in
+                    ( currentX + fontSize.width + 1, newImg )
+        )
+        ( x, Image.toArray2d image )
+        text
+        |> Tuple.second
+        |> Image.fromArray2d
+
+
+type alias Font =
+    ( { width : Int, height : Int }
+    , Dict Char Image
+    )
+
+
+getFont : BackendTask FatalError Font
 getFont =
     File.rawFile "dist/microfont.pbm"
         |> BackendTask.allowFatal
         |> BackendTask.andThen
             (\rawFile ->
-                Parser.run pbmParser rawFile
+                let
+                    range : Char -> Char -> List Char
+                    range from to =
+                        List.range
+                            (Char.toCode from)
+                            (Char.toCode to)
+                            |> List.map Char.fromCode
+                in
+                Parser.run
+                    (fontParser (range 'A' 'Z' ++ range '0' '9'))
+                    rawFile
                     |> Result.mapError (\e -> FatalError.fromString (Debug.toString e))
                     |> BackendTask.fromResult
             )
 
 
-pbmParser : Parser Image
-pbmParser =
-    Parser.succeed (\width height data -> Image.fromList width (List.map (\p -> p) data))
+fontParser : List Char -> Parser Font
+fontParser characters =
+    Parser.succeed
+        (\width height data ->
+            let
+                fontWidth =
+                    width // List.length characters
+            in
+            ( { width = fontWidth, height = height }
+            , data
+                |> List.map
+                    (\p ->
+                        if p == 1 then
+                            0xFFFFFFFF
+
+                        else
+                            0
+                    )
+                |> List.Extra.greedyGroupsOf width
+                |> List.Extra.transpose
+                |> List.Extra.greedyGroupsOf fontWidth
+                |> List.map List.Extra.transpose
+                |> List.map2 (\char pixels -> ( char, Image.fromList2d pixels ))
+                    characters
+                |> Dict.fromList
+            )
+        )
         |. Parser.symbol "P1"
         |. Parser.spaces
+        -- width
         |= Parser.int
         |. Parser.spaces
+        -- height
         |= Parser.int
         |. Parser.spaces
+        -- pixels
         |= Parser.sequence
             { start = ""
             , end = ""
