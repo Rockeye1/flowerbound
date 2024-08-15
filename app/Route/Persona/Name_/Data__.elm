@@ -205,18 +205,14 @@ title persona =
 
 toDescription : Persona -> String
 toDescription persona =
-    "FIT "
-        ++ String.fromInt persona.fitness
-        ++ " GRC "
-        ++ String.fromInt persona.grace
-        ++ " ARD "
-        ++ String.fromInt persona.ardor
-        ++ " SAN "
-        ++ String.fromInt persona.sanity
-        ++ " PRW "
-        ++ String.fromInt persona.prowess
-        ++ " MOX "
-        ++ String.fromInt persona.moxie
+    [ "FIT " ++ String.fromInt persona.fitness
+    , "GRC " ++ String.fromInt persona.grace
+    , "ARD " ++ String.fromInt persona.ardor
+    , "SAN " ++ String.fromInt persona.sanity
+    , "PRW " ++ String.fromInt persona.prowess
+    , "MOX " ++ String.fromInt persona.moxie
+    ]
+        |> String.join " "
 
 
 cardImageSize :
