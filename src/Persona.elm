@@ -326,6 +326,7 @@ abilitiesView persona =
         availablePoints : Int
         availablePoints =
             18
+                + persona.numinousPoints
                 - persona.fitness
                 - persona.grace
                 - persona.ardor
@@ -350,7 +351,7 @@ abilitiesView persona =
                 , Theme.button []
                     { label = Icons.plus
                     , onPress =
-                        if availablePoints > 0 then
+                        if availablePoints > 0 && value < 20 then
                             Just (setter (value + 1))
 
                         else
@@ -480,25 +481,43 @@ progressionView persona =
         ]
         [ el [ centerX ] <| text "Progression Tally"
         , Theme.wrappedRow [ width fill ]
-            [ viewPoints "EP" "Euphoria Points" persona.euphoriaPoints <| \newValue -> { persona | euphoriaPoints = newValue }
-            , viewPoints "IP" "Ichor Points" persona.ichorPoints <| \newValue -> { persona | ichorPoints = newValue }
-            , viewPoints "NP" "Numinous Points" persona.numinousPoints <| \newValue -> { persona | numinousPoints = newValue }
+            [ viewPoints "EP" "Euphoria Points" persona.euphoriaPoints 0 <| \newValue -> { persona | euphoriaPoints = newValue }
+            , viewPoints "IP" "Ichor Points" persona.ichorPoints 0 <| \newValue -> { persona | ichorPoints = newValue }
+            , viewPoints "NP" "Numinous Points" persona.numinousPoints (usedNuminousPoints persona) <| \newValue -> { persona | numinousPoints = newValue }
             ]
         ]
 
 
-viewPoints : String -> String -> Int -> (Int -> Persona) -> Element Persona
-viewPoints label fullName value setter =
+usedNuminousPoints : Persona -> Int
+usedNuminousPoints persona =
+    max 0
+        (persona.fitness
+            + persona.grace
+            + persona.ardor
+            + persona.sanity
+            + persona.prowess
+            + persona.moxie
+            - 18
+        )
+
+
+viewPoints : String -> String -> Int -> Int -> (Int -> Persona) -> Element Persona
+viewPoints label fullName value used setter =
+    let
+        unused : Int
+        unused =
+            value - used
+    in
     Theme.row [ width fill ]
         [ Theme.withHint fullName (text label)
         , Theme.wrappedRow [ width <| px (Theme.rhythm * 8) ]
-            (List.repeat (value // 5) (tallyGroup 5)
-                ++ [ tallyGroup (modBy 5 value) ]
+            (List.repeat (unused // 5) (tallyGroup 5)
+                ++ [ tallyGroup (modBy 5 unused) ]
             )
         , Theme.button [ alignRight ]
             { label = Icons.minus
             , onPress =
-                if value > 0 then
+                if unused > 0 then
                     Just (setter (value - 1))
 
                 else
