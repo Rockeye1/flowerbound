@@ -211,7 +211,7 @@ getFont =
                             |> List.map Char.fromCode
                 in
                 Parser.run
-                    (fontParser (range 'A' 'Z' ++ range '0' '9'))
+                    (fontParser (range 'A' 'Z' ++ range '0' '9' ++ [ '/' ]))
                     rawFile
                     |> Result.mapError (\_ -> FatalError.fromString "Parsing failed")
                     |> BackendTask.fromResult
