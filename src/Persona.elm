@@ -166,19 +166,28 @@ view config { flipped, persona } =
                     , label = Icons.flip
                     }
                 ]
-            , Input.radioRow []
+            , Input.radioRow [ Theme.spacing ]
                 { options =
                     (standardGendertropes ++ [ Custom gendertropeRecord ])
                         |> List.map
                             (\gendertrope ->
-                                Input.option
+                                Input.optionWith
                                     gendertrope
-                                    (case gendertrope of
-                                        Custom _ ->
-                                            text "Custom"
+                                    (\state ->
+                                        el
+                                            [ if state == Input.Selected then
+                                                Font.underline
 
-                                        _ ->
-                                            text (gendertropeToRecord gendertrope).name
+                                              else
+                                                Element.htmlAttribute (Html.Attributes.classList [])
+                                            ]
+                                        <|
+                                            case gendertrope of
+                                                Custom _ ->
+                                                    text "Custom"
+
+                                                _ ->
+                                                    text (gendertropeToRecord gendertrope).name
                                     )
                             )
                 , label = Input.labelHidden "Gendertrope kind"

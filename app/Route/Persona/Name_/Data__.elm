@@ -7,12 +7,10 @@ import BitParser
 import Bits
 import Drawing
 import Effect exposing (Effect)
-import Element
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
-import Http
 import Image
 import Maybe.Extra
 import Pages.Url
@@ -33,14 +31,12 @@ import View exposing (View)
 type alias Model =
     { flipped : Bool
     , persona : Persona
-    , image : Maybe String
     }
 
 
 type Msg
     = Flip
     | Update Persona
-    | GotImage (Result Http.Error String)
 
 
 type alias RouteParams =
@@ -73,7 +69,6 @@ init : App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect Msg )
 init app _ =
     ( { flipped = False
       , persona = app.data
-      , image = Nothing
       }
     , Effect.none
     )
@@ -114,36 +109,12 @@ update _ _ msg model =
                         , data = Just (personaToSlug persona)
                         }
             in
-            ( { model
-                | persona = persona
-                , image = Nothing
-              }
-            , Effect.batch
-                [ newRoute
-                    |> Effect.SetRoute
-                , Http.get
-                    { url = (cardImage persona).url |> Pages.Url.toString
-                    , expect = Http.expectString GotImage
-                    }
-                    |> Effect.fromCmd
-                ]
+            ( { model | persona = persona }
+            , newRoute |> Effect.SetRoute
             )
 
         Flip ->
             ( { model | flipped = not model.flipped }, Effect.none )
-
-        GotImage (Err _) ->
-            ( model, Effect.none )
-
-        GotImage (Ok bytes) ->
-            ( bytes
-                |> Base64.toBytes
-                |> Maybe.andThen Image.decode
-                |> Maybe.map Image.toPngUrl
-                |> Maybe.map (\image -> { model | image = Just image })
-                |> Maybe.withDefault model
-            , Effect.none
-            )
 
 
 type alias Data =
@@ -238,22 +209,12 @@ view :
 view app _ model =
     { title = title app.data
     , body =
-        Theme.column [ Theme.padding ]
-            [ Persona.view
+        Theme.el [ Theme.padding ] <|
+            Persona.view
                 { update = PagesMsg.fromMsg << Update
                 , flip = PagesMsg.fromMsg Flip
                 }
                 model
-            , case model.image of
-                Just src ->
-                    Element.image []
-                        { src = src
-                        , description = "Preview"
-                        }
-
-                Nothing ->
-                    Element.none
-            ]
     }
 
 
