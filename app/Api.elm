@@ -5,11 +5,11 @@ import BackendTask exposing (BackendTask)
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Pages.Manifest as Manifest
+import Persona exposing (Persona)
 import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Site
 import Sitemap
-import Types exposing (Persona)
 
 
 routes :

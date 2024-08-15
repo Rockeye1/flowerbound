@@ -1,4 +1,4 @@
-module View.Persona exposing (view)
+module Persona exposing (Gendertrope(..), Msg(..), Persona, default, view)
 
 import Browser exposing (UrlRequest(..))
 import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
@@ -9,7 +9,68 @@ import Element.Input as Input
 import Html.Attributes
 import Icons
 import Theme exposing (withHint)
-import Types exposing (Msg(..), Persona)
+
+
+type alias Persona =
+    { name : String
+
+    --
+    , fitness : Int
+    , grace : Int
+    , ardor : Int
+    , sanity : Int
+    , prowess : Int
+    , moxie : Int
+
+    --
+    , stamina : Int
+    , satiation : Int
+    , craving : Int
+    , arousal : Int
+    , sensitivity : Int
+
+    --
+    , euphoriaPoints : Int
+    , ichorPoints : Int
+    , numinousPoints : Int
+    , gendertrope : Gendertrope
+    }
+
+
+type Gendertrope
+    = TheButterfly
+
+
+type Msg
+    = ChangePersona Int Persona
+    | Flip Int
+
+
+default : Persona
+default =
+    { name = "Cinderella Sheen"
+    , fitness = 2
+    , grace = 2
+    , ardor = 2
+    , sanity = 2
+    , prowess = 2
+    , moxie = 2
+
+    --
+    , stamina = 0
+    , satiation = 0
+    , craving = 0
+    , arousal = 0
+    , sensitivity = 0
+
+    --
+    , euphoriaPoints = 0
+    , ichorPoints = 0
+    , numinousPoints = 0
+
+    --
+    , gendertrope = TheButterfly
+    }
 
 
 type alias Config msg =

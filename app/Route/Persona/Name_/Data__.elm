@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, personaFromSlug, route, title, toCard, toDescription)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, personaFromSlug, route, title, toCard, toDescription)
 
 import Array
 import BackendTask exposing (BackendTask)
@@ -18,6 +18,7 @@ import Http
 import Image
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
+import Persona exposing (Gendertrope(..), Persona)
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
@@ -25,11 +26,9 @@ import Server.Response as Response exposing (Response)
 import Shared
 import Site
 import Theme
-import Types exposing (Gendertrope(..), Persona)
 import Url
 import UrlPath exposing (UrlPath)
 import View exposing (View)
-import View.Persona
 
 
 type alias Model =
@@ -91,7 +90,7 @@ personaFromSlug name slug =
             (\inflated ->
                 Maybe.andThen (\n -> decodePersona n inflated) (Url.percentDecode name)
             )
-        |> Maybe.withDefault defaultPersona
+        |> Maybe.withDefault Persona.default
 
 
 personaToSlug : Persona -> String
@@ -163,33 +162,6 @@ data params _ =
         |> personaFromSlug params.name
         |> Response.render
         |> BackendTask.succeed
-
-
-defaultPersona : Persona
-defaultPersona =
-    { name = "Cinderella Sheen"
-    , fitness = 2
-    , grace = 2
-    , ardor = 2
-    , sanity = 2
-    , prowess = 2
-    , moxie = 2
-
-    --
-    , stamina = 0
-    , satiation = 0
-    , craving = 0
-    , arousal = 0
-    , sensitivity = 0
-
-    --
-    , euphoriaPoints = 0
-    , ichorPoints = 0
-    , numinousPoints = 0
-
-    --
-    , gendertrope = TheButterfly
-    }
 
 
 decodePersona : String -> Bytes -> Maybe Persona
@@ -392,7 +364,7 @@ view app _ model =
     { title = title app.data
     , body =
         Theme.column [ Theme.padding ]
-            [ View.Persona.view
+            [ Persona.view
                 { update = PagesMsg.fromMsg << Update
                 , flip = PagesMsg.fromMsg Flip
                 }

@@ -4,59 +4,10 @@ import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Element exposing (Element)
 import List.Extra
+import Persona
 import Theme
-import Types exposing (Flags, Model, Msg(..), Persona)
+import Types exposing (Flags, Model, Msg(..))
 import Url
-import View.Persona
-
-
-main : Program Flags Model Msg
-main =
-    Browser.application
-        { init = init
-        , onUrlRequest = UrlClicked
-        , onUrlChange = UrlChanged
-        , update = update
-        , subscriptions = subscriptions
-        , view = view
-        }
-
-
-init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ _ key =
-    ( { key = key
-      , personas =
-            [ { flipped = False
-              , persona = cinderellaSheen
-              }
-            ]
-      }
-    , Cmd.none
-    )
-
-
-cinderellaSheen : Persona
-cinderellaSheen =
-    { name = "Cinderella Sheen"
-    , fitness = 2
-    , grace = 2
-    , ardor = 2
-    , sanity = 2
-    , prowess = 2
-    , moxie = 2
-
-    --
-    , stamina = 0
-    , satiation = 0
-    , craving = 0
-    , arousal = 0
-    , sensitivity = 0
-
-    --
-    , euphoriaPoints = 0
-    , ichorPoints = 0
-    , numinousPoints = 0
-    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -101,7 +52,7 @@ innerView { personas } =
     personas
         |> List.indexedMap
             (\index persona ->
-                View.Persona.view
+                Persona.view
                     { update = ChangePersona index
                     , flip = Flip index
                     }
