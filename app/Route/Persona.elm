@@ -14,6 +14,7 @@ import RouteBuilder exposing (StatelessRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
+import Site
 import View exposing (View)
 
 
@@ -53,7 +54,7 @@ head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
 head _ =
     Seo.summary
         { canonicalUrlOverride = Nothing
-        , siteName = "Flowerbound"
+        , siteName = Site.manifest.name
         , image =
             { url = Pages.Url.external "/"
             , alt = "Card"

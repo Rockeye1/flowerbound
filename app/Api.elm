@@ -48,7 +48,9 @@ routes getStaticRoutes {- htmlToString -} _ =
                                     |> Array.repeat Persona.cardImageSize.height
                         in
                         image
-                            |> drawText font 1 1 persona.name
+                            |> drawImage 1 1 flower
+                            |> drawImage (Persona.cardImageSize.width - 5 - 1) 1 flower
+                            |> drawTextCenter font 1 persona.name
                             |> drawText font 1 (font.height + 2) (Persona.toDescription persona)
                             |> scaleBy 4
                             |> Image.fromArray2d
@@ -87,6 +89,48 @@ routes getStaticRoutes {- htmlToString -} _ =
         |> ApiRoute.literal "sitemap.xml"
         |> ApiRoute.single
     ]
+
+
+drawTextCenter : Font -> Int -> String -> Image -> Image
+drawTextCenter font y text img =
+    let
+        imageWidth : Int
+        imageWidth =
+            img
+                |> Array.get 0
+                |> Maybe.withDefault Array.empty
+                |> Array.length
+
+        textWidth : Int
+        textWidth =
+            (font.width + 1) * String.length text - 1
+    in
+    drawTextNoWrap font ((imageWidth - textWidth) // 2) y text img
+
+
+flower : Image
+flower =
+    let
+        red =
+            0xF04030FF
+
+        brick =
+            0xC02020FF
+
+        yellow =
+            0xFFF000FF
+
+        transparent =
+            0
+    in
+    [ [ transparent, red, red, red, transparent ]
+    , [ red, brick, red, brick, red ]
+    , [ red, red, yellow, red, red ]
+    , [ red, brick, red, brick, red ]
+    , [ transparent, red, red, red, transparent ]
+    ]
+        |> List.map Array.fromList
+        |> Array.fromList
 
 
 scaleBy : Int -> Image -> Image

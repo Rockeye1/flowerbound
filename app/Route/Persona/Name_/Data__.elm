@@ -21,6 +21,7 @@ import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
+import Site
 import Theme
 import Types exposing (Persona)
 import Url
@@ -309,7 +310,7 @@ head app =
     in
     Seo.summaryLarge
         { canonicalUrlOverride = Nothing
-        , siteName = "Flowerbound"
+        , siteName = Site.manifest.name
         , image = image
         , description = toDescription persona
         , locale = Nothing
@@ -320,7 +321,7 @@ head app =
 
 title : Persona -> String
 title persona =
-    persona.name ++ " - Flowerbound"
+    persona.name ++ " - " ++ Site.manifest.name
 
 
 toDescription : Persona -> String
