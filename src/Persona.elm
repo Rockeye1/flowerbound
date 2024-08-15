@@ -123,10 +123,6 @@ view config { flipped, persona } =
                     ++ "deg)"
                 )
             ]
-
-        gendertropeRecord : GendertropeRecord
-        gendertropeRecord =
-            gendertropeToRecord persona.gendertrope
     in
     Theme.row
         [ width <| px 600
@@ -159,46 +155,105 @@ view config { flipped, persona } =
                     180
                 )
             )
-            [ Theme.row [ width fill ]
+            (Theme.row [ width fill ]
                 [ text "Gendertrope"
                 , Theme.button [ alignRight ]
                     { onPress = Just config.flip
                     , label = Icons.flip
                     }
                 ]
-            , Input.radioRow [ Theme.spacing ]
+                :: List.map
+                    (Element.map (\newGendertrope -> config.update { persona | gendertrope = newGendertrope }))
+                    (viewGendertrope persona.gendertrope)
+            )
+        ]
+
+
+viewGendertrope : Gendertrope -> List (Element Gendertrope)
+viewGendertrope gendertrope =
+    let
+        gendertropeRecord : GendertropeRecord
+        gendertropeRecord =
+            gendertropeToRecord gendertrope
+
+        radioRow : Element Gendertrope
+        radioRow =
+            Input.radioRow [ Theme.spacing ]
                 { options =
                     (standardGendertropes ++ [ Custom gendertropeRecord ])
                         |> List.map
-                            (\gendertrope ->
+                            (\option ->
                                 Input.optionWith
-                                    gendertrope
+                                    option
                                     (\state ->
-                                        el
-                                            [ if state == Input.Selected then
-                                                Font.underline
+                                        let
+                                            common : List (Attribute msg)
+                                            common =
+                                                [ Border.width 1
+                                                , Theme.padding
+                                                , Font.center
+                                                , width fill
+                                                ]
+                                        in
+                                        Theme.el
+                                            (if state == Input.Selected then
+                                                Background.color Theme.purple
+                                                    :: Font.color (Element.rgb 1 1 1)
+                                                    :: Border.color (Element.rgb 0 0 0)
+                                                    :: common
 
-                                              else
-                                                Element.htmlAttribute (Html.Attributes.classList [])
-                                            ]
+                                             else
+                                                Background.color Theme.gray
+                                                    :: common
+                                            )
                                         <|
-                                            case gendertrope of
+                                            case option of
                                                 Custom _ ->
                                                     text "Custom"
 
                                                 _ ->
-                                                    text (gendertropeToRecord gendertrope).name
+                                                    text (gendertropeToRecord option).name
                                     )
                             )
                 , label = Input.labelHidden "Gendertrope kind"
-                , onChange = \gendertrope -> config.update { persona | gendertrope = gendertrope }
-                , selected = Just persona.gendertrope
+                , onChange = identity
+                , selected = Just gendertrope
                 }
+    in
+    case gendertrope of
+        Custom _ ->
+            [ radioRow
+            , Theme.input []
+                { label = Input.labelHidden "Gendertrope"
+                , onChange =
+                    \newName ->
+                        Custom
+                            { gendertropeRecord
+                                | name = newName
+                            }
+                , placeholder = Just <| Input.placeholder [] (text "Name")
+                , text = gendertropeRecord.name
+                }
+            , Theme.multiline []
+                { label = Input.labelHidden "Gendertrope - description"
+                , onChange =
+                    \newDescription ->
+                        Custom
+                            { gendertropeRecord
+                                | description = newDescription
+                            }
+                , placeholder = Just <| Input.placeholder [] (text "Description")
+                , text = gendertropeRecord.description
+                , spellcheck = True
+                }
+            ]
+
+        _ ->
+            [ radioRow
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
             ]
-        ]
 
 
 nameRow : Config msg -> Persona -> Element msg
@@ -218,10 +273,7 @@ nameRow config persona =
             }
         , width fill
         ]
-        [ Input.text
-            [ width fill
-            , Font.color Theme.purple
-            ]
+        [ Theme.input [ width fill ]
             { label = Input.labelHidden "Name"
             , text = persona.name
             , onChange = \newValue -> config.update { persona | name = newValue }

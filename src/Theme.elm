@@ -1,4 +1,4 @@
-module Theme exposing (button, column, el, link, padding, purple, purpleHex, rhythm, row, spacing, withHint, wrappedRow)
+module Theme exposing (button, column, el, gray, input, link, multiline, padding, purple, purpleHex, rhythm, row, spacing, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
@@ -70,12 +70,17 @@ button attrs config =
             el
                 (Border.width 1
                     :: padding
-                    :: Background.color (Element.rgb 0.7 0.7 0.7)
+                    :: Background.color gray
                     :: width (Element.minimum 38 shrink)
                     :: Font.center
                     :: attrs
                 )
                 config.label
+
+
+gray : Element.Color
+gray =
+    Element.rgb 0.7 0.7 0.7
 
 
 purple : Element.Color
@@ -114,3 +119,30 @@ link attrs { label, route } =
         { url = Route.toString route
         , label = label
         }
+
+
+input :
+    List (Attribute msg)
+    ->
+        { onChange : String -> msg
+        , text : String
+        , placeholder : Maybe (Input.Placeholder msg)
+        , label : Input.Label msg
+        }
+    -> Element msg
+input attrs config =
+    Input.text (Font.color purple :: attrs) config
+
+
+multiline :
+    List (Attribute msg)
+    ->
+        { onChange : String -> msg
+        , text : String
+        , placeholder : Maybe (Input.Placeholder msg)
+        , label : Input.Label msg
+        , spellcheck : Bool
+        }
+    -> Element msg
+multiline attrs config =
+    Input.multiline (Font.color purple :: attrs) config
