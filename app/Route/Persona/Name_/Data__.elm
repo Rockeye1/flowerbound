@@ -346,8 +346,8 @@ cardImageSize :
     , height : number
     }
 cardImageSize =
-    { width = 100
-    , height = 50
+    { width = 43 * 2
+    , height = 43
     }
 
 
