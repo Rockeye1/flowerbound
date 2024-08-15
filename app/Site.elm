@@ -2,13 +2,16 @@ module Site exposing (config, manifest)
 
 import BackendTask exposing (BackendTask)
 import Color
+import Element
 import FatalError exposing (FatalError)
 import Head
+import Hex
 import MimeType
 import Pages.Manifest as Manifest
 import Pages.Url
 import Route
 import SiteConfig exposing (SiteConfig)
+import Theme
 
 
 config : SiteConfig
@@ -26,7 +29,7 @@ head =
     , Head.appleTouchIcon (Just 180) (Pages.Url.fromPath [ "apple-touch-icon.png" ])
     , Head.icon [ ( 32, 32 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-32x32.png" ])
     , Head.icon [ ( 16, 16 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-16x16.png" ])
-    , Head.metaName "theme-color" (Head.raw "#800080")
+    , Head.metaName "theme-color" (Head.raw ("#" ++ Hex.toString Theme.purpleHex))
     , Head.manifestLink "/manifest.json"
     , Head.sitemapLink "/sitemap.xml"
     ]
@@ -41,8 +44,18 @@ manifest =
         , startUrl = Route.Index |> Route.toPath
         , icons = [ androidChromeIcon 192, androidChromeIcon 512 ]
         }
-        |> Manifest.withThemeColor (Color.rgb255 0x80 0 0x80)
+        |> Manifest.withThemeColor (toColor Theme.purple)
         |> Manifest.withDisplayMode Manifest.Standalone
+
+
+toColor : Element.Color -> Color.Color
+toColor color =
+    let
+        rgb : { red : Float, green : Float, blue : Float, alpha : Float }
+        rgb =
+            Element.toRgb color
+    in
+    Color.rgba rgb.red rgb.blue rgb.blue rgb.alpha
 
 
 androidChromeIcon : Int -> Manifest.Icon

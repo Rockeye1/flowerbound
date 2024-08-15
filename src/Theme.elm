@@ -1,4 +1,4 @@
-module Theme exposing (button, column, el, gray, input, link, multiline, padding, purple, purpleHex, rhythm, row, spacing, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, link, multiline, padding, purple, purpleHex, rhythm, row, spacing, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
@@ -59,8 +59,8 @@ button attrs config =
                     :: padding
                     :: Background.color purple
                     :: Font.center
-                    :: Font.color (Element.rgb 1 1 1)
-                    :: Border.color (Element.rgb 0 0 0)
+                    :: Font.color white
+                    :: Border.color black
                     :: width (Element.minimum 38 shrink)
                     :: attrs
                 )
@@ -81,6 +81,16 @@ button attrs config =
 gray : Element.Color
 gray =
     Element.rgb 0.7 0.7 0.7
+
+
+black : Element.Color
+black =
+    Element.rgb 0 0 0
+
+
+white : Element.Color
+white =
+    Element.rgb 1 1 1
 
 
 purple : Element.Color

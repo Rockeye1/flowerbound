@@ -1,4 +1,4 @@
-module BitParser exposing (Parser, Step(..), andMap, andThen, bitsToBytes, encodeInt, encodeList, encodeNonnegativeInt, encodePositiveInt, encodeString, fail, loop, map, map2, parseInt, parseList, parseNonnegativeInt, parsePositiveInt, parseString, run, succeed)
+module BitParser exposing (Parser, Step(..), andMap, andThen, bitsToBytes, encodeInt, encodeList, encodeNonnegativeInt, encodePositiveInt, encodeString, fail, loop, map, map2, map3, parseInt, parseList, parseNonnegativeInt, parsePositiveInt, parseString, run, succeed)
 
 import Bit exposing (Bit(..))
 import Bits
@@ -106,6 +106,11 @@ map f p =
 map2 : (a -> b -> c) -> Parser a -> Parser b -> Parser c
 map2 f l r =
     l |> andThen (\x -> r |> andThen (\y -> succeed (f x y)))
+
+
+map3 : (a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
+map3 f a b c =
+    a |> andThen (\va -> b |> andThen (\vb -> c |> andThen (\vc -> succeed (f va vb vc))))
 
 
 andMap : Parser a -> Parser (a -> b) -> Parser b
