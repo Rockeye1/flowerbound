@@ -213,7 +213,7 @@ getFont =
                 Parser.run
                     (fontParser (range 'A' 'Z' ++ range '0' '9'))
                     rawFile
-                    |> Result.mapError (\e -> FatalError.fromString (Debug.toString e))
+                    |> Result.mapError (\_ -> FatalError.fromString "Parsing failed")
                     |> BackendTask.fromResult
             )
 
