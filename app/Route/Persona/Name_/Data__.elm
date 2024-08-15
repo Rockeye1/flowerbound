@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, route)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, defaultPersona, encodeNonnegativeInt, encodePositiveInt, parseNonnegativeInt, parsePositiveInt, personaFromSlug, route, title, toDescription)
 
 import BackendTask exposing (BackendTask)
 import Base64
@@ -289,6 +289,10 @@ head :
     -> List Head.Tag
 head app =
     let
+        persona : Persona
+        persona =
+            app.data
+
         image : Seo.Image
         image =
             { url =
@@ -298,7 +302,7 @@ head app =
                     , app.routeParams.name
                     , Maybe.withDefault "" app.routeParams.data
                     ]
-            , alt = "Card for " ++ app.data.name
+            , alt = "Card for " ++ persona.name
             , dimensions = Just cardImageSize
             , mimeType = Nothing
             }
@@ -307,23 +311,32 @@ head app =
         { canonicalUrlOverride = Nothing
         , siteName = "Flowerbound"
         , image = image
-        , description =
-            "FIT "
-                ++ String.fromInt app.data.fitness
-                ++ " GRC "
-                ++ String.fromInt app.data.grace
-                ++ " ARD "
-                ++ String.fromInt app.data.ardor
-                ++ " SAN "
-                ++ String.fromInt app.data.sanity
-                ++ "PRW "
-                ++ String.fromInt app.data.prowess
-                ++ " MOX "
-                ++ String.fromInt app.data.moxie
+        , description = toDescription persona
         , locale = Nothing
-        , title = title app
+        , title = title persona
         }
         |> Seo.website
+
+
+title : Persona -> String
+title persona =
+    persona.name ++ " - Flowerbound"
+
+
+toDescription : Persona -> String
+toDescription persona =
+    "FIT "
+        ++ String.fromInt persona.fitness
+        ++ " GRC "
+        ++ String.fromInt persona.grace
+        ++ " ARD "
+        ++ String.fromInt persona.ardor
+        ++ " SAN "
+        ++ String.fromInt persona.sanity
+        ++ "PRW "
+        ++ String.fromInt persona.prowess
+        ++ " MOX "
+        ++ String.fromInt persona.moxie
 
 
 cardImageSize :
@@ -342,7 +355,7 @@ view :
     -> Model
     -> View (PagesMsg Msg)
 view app _ model =
-    { title = title app
+    { title = title app.data
     , body =
         Theme.column [ Theme.padding ]
             [ View.Persona.view
@@ -361,11 +374,6 @@ view app _ model =
                     Element.none
             ]
     }
-
-
-title : App Data ActionData RouteParams -> String
-title app =
-    app.data.name ++ " - Flowerbound"
 
 
 subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg

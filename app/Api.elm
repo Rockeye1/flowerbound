@@ -15,7 +15,7 @@ import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Server.Response as Response
 import Theme
-import Url
+import Types exposing (Persona)
 
 
 routes :
@@ -25,6 +25,11 @@ routes :
 routes getStaticRoutes htmlToString =
     [ ApiRoute.succeed
         (\name data _ ->
+            let
+                persona : Persona
+                persona =
+                    Persona.personaFromSlug name data
+            in
             getFont
                 |> BackendTask.andThen
                     (\font ->
@@ -37,7 +42,7 @@ routes getStaticRoutes htmlToString =
                                     |> Image.fromArray2d
                         in
                         image
-                            |> drawText font 3 5 (String.toUpper (Maybe.withDefault name (Url.percentDecode name)))
+                            |> drawText font font.width font.height persona.name
                             |> scaleBy 4
                             |> Image.toPng
                             |> Response.bytesBody
@@ -82,12 +87,12 @@ scaleBy factor img =
 
 
 drawText : Font -> Int -> Int -> String -> Image -> Image
-drawText ( fontSize, fontChars ) x y text image =
+drawText font x y text image =
     String.foldl
         (\char ( currentX, img ) ->
-            case Dict.get char fontChars of
+            case Dict.get (Char.toUpper char) font.chars of
                 Nothing ->
-                    ( currentX + fontSize.width + 1, img )
+                    ( currentX + font.width + 1, img )
 
                 Just charImg ->
                     let
@@ -122,14 +127,14 @@ drawText ( fontSize, fontChars ) x y text image =
                                                                             Array.set (currentX + dx) px rowAcc
                                                                 )
                                                                 row
-                                                                (List.range 0 (fontSize.width - 1))
+                                                                (List.range 0 (font.width - 1))
                                                     in
                                                     Array.set (y + dy) newRow imgAcc
                                 )
                                 img
-                                (List.range 0 (fontSize.height - 1))
+                                (List.range 0 (font.height - 1))
                     in
-                    ( currentX + fontSize.width + 1, newImg )
+                    ( currentX + font.width + 1, newImg )
         )
         ( x, Image.toArray2d image )
         text
@@ -138,9 +143,10 @@ drawText ( fontSize, fontChars ) x y text image =
 
 
 type alias Font =
-    ( { width : Int, height : Int }
-    , Dict Char Image
-    )
+    { width : Int
+    , height : Int
+    , chars : Dict Char Image
+    }
 
 
 getFont : BackendTask FatalError Font
@@ -170,27 +176,30 @@ fontParser characters =
     Parser.succeed
         (\width height data ->
             let
+                fontWidth : Int
                 fontWidth =
                     width // List.length characters
             in
-            ( { width = fontWidth, height = height }
-            , data
-                |> List.map
-                    (\p ->
-                        if p == 1 then
-                            0xFFFFFFFF
+            { width = fontWidth
+            , height = height
+            , chars =
+                data
+                    |> List.map
+                        (\p ->
+                            if p == 1 then
+                                0xFFFFFFFF
 
-                        else
-                            0
-                    )
-                |> List.Extra.greedyGroupsOf width
-                |> List.Extra.transpose
-                |> List.Extra.greedyGroupsOf fontWidth
-                |> List.map List.Extra.transpose
-                |> List.map2 (\char pixels -> ( char, Image.fromList2d pixels ))
-                    characters
-                |> Dict.fromList
-            )
+                            else
+                                0
+                        )
+                    |> List.Extra.greedyGroupsOf width
+                    |> List.Extra.transpose
+                    |> List.Extra.greedyGroupsOf fontWidth
+                    |> List.map List.Extra.transpose
+                    |> List.map2 (\char pixels -> ( char, Image.fromList2d pixels ))
+                        characters
+                    |> Dict.fromList
+            }
         )
         |. Parser.symbol "P1"
         |. Parser.spaces
