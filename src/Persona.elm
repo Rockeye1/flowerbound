@@ -481,11 +481,27 @@ progressionView persona =
         ]
         [ el [ centerX ] <| text "Progression Tally"
         , Theme.wrappedRow [ width fill ]
-            [ viewPoints "EP" "Euphoria Points" persona.euphoriaPoints 0 <| \newValue -> { persona | euphoriaPoints = newValue }
-            , viewPoints "IP" "Ichor Points" persona.ichorPoints 0 <| \newValue -> { persona | ichorPoints = newValue }
+            [ viewPoints "EP" "Euphoria Points" persona.euphoriaPoints (usedEuphoriaPoints persona) <| \newValue -> { persona | euphoriaPoints = newValue }
+            , viewPoints "IP" "Ichor Points" persona.ichorPoints (usedIchorPoints persona) <| \newValue -> { persona | ichorPoints = newValue }
             , viewPoints "NP" "Numinous Points" persona.numinousPoints (usedNuminousPoints persona) <| \newValue -> { persona | numinousPoints = newValue }
             ]
         ]
+
+
+usedIchorPoints : Persona -> Int
+usedIchorPoints persona =
+    let
+        _ =
+            Debug.todo
+    in
+    0
+
+
+usedEuphoriaPoints : Persona -> Int
+usedEuphoriaPoints persona =
+    persona.features
+        |> List.map (\level -> level + 10)
+        |> List.sum
 
 
 usedNuminousPoints : Persona -> Int
