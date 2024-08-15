@@ -26,8 +26,8 @@ head =
 manifest : Manifest.Config
 manifest =
     Manifest.init
-        { name = "Site Name"
-        , description = "Description"
+        { name = "Flowerbound"
+        , description = "An helper for the Flowerbound RPG"
         , startUrl = Route.Index |> Route.toPath
         , icons = []
         }

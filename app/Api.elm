@@ -15,6 +15,7 @@ import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Server.Response as Response
 import Site
+import Sitemap
 import String.Extra
 import Theme
 import Types exposing (Persona)
@@ -24,7 +25,7 @@ routes :
     BackendTask FatalError (List Route)
     -> (Maybe { indent : Int, newLines : Bool } -> Html Never -> String)
     -> List (ApiRoute ApiRoute.Response)
-routes {- getStaticRoutes htmlToString -} _ _ =
+routes getStaticRoutes {- htmlToString -} _ =
     [ ApiRoute.succeed
         (\name data _ ->
             let
@@ -64,6 +65,23 @@ routes {- getStaticRoutes htmlToString -} _ _ =
     , Manifest.generator
         Site.config.canonicalUrl
         (BackendTask.succeed Site.manifest)
+    , ApiRoute.succeed
+        (getStaticRoutes
+            |> BackendTask.map
+                (\staticRoutes ->
+                    Sitemap.build { siteUrl = Site.config.canonicalUrl }
+                        (List.map
+                            (\route ->
+                                { path = Route.toString route
+                                , lastMod = Nothing
+                                }
+                            )
+                            staticRoutes
+                        )
+                )
+        )
+        |> ApiRoute.literal "sitemap.xml"
+        |> ApiRoute.single
     ]
 
 
