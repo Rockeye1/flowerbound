@@ -1,10 +1,7 @@
 {
     "type": "application",
-    "source-directories": [
-        "src",
-        "app",
-        ".elm-pages"
-    ],
+    "source-directories": ["src", "app", ".elm-pages"],
+    "license": "BSD-3-Clause",
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {

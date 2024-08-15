@@ -1,6 +1,7 @@
 {
   "name": "elm-pages-app",
   "type": "module",
+  "license": "BSD-3-Clause",
   "scripts": {
     "postinstall": "elm-tooling install",
     "start": "elm-pages dev",
