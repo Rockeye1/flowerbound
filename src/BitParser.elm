@@ -120,16 +120,8 @@ andMap second first =
 
 bitsToBytes : List Bit -> Bytes
 bitsToBytes bs =
-    let
-        length : Int
-        length =
-            List.length bs
-
-        padded : List Bit
-        padded =
-            bs ++ List.repeat (modBy 8 -length) O
-    in
-    Bits.toIntUnsigned8s padded
+    bs
+        |> Bits.toIntUnsigned8s
         |> List.map Bytes.Encode.unsignedInt8
         |> Bytes.Encode.sequence
         |> Bytes.Encode.encode
