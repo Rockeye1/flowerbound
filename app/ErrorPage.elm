@@ -1,37 +1,28 @@
-module ErrorPage exposing (ErrorPage(..), Model, Msg, head, init, internalError, notFound, statusCode, update, view)
+module ErrorPage exposing (ErrorPage(..), Model, Msg, init, internalError, notFound, statusCode, update, view)
 
 import Effect exposing (Effect)
 import Element exposing (paragraph, text)
-import Head
 import View exposing (View)
 
 
-type Msg
-    = Increment
+type alias Msg =
+    Never
 
 
 type alias Model =
-    { count : Int
-    }
+    {}
 
 
 init : ErrorPage -> ( Model, Effect Msg )
-init errorPage =
-    ( { count = 0 }
+init _ =
+    ( {}
     , Effect.none
     )
 
 
 update : ErrorPage -> Msg -> Model -> ( Model, Effect Msg )
-update errorPage msg model =
-    case msg of
-        Increment ->
-            ( { model | count = model.count + 1 }, Effect.none )
-
-
-head : ErrorPage -> List Head.Tag
-head errorPage =
-    []
+update _ _ model =
+    ( model, Effect.none )
 
 
 type ErrorPage
@@ -50,7 +41,7 @@ internalError =
 
 
 view : ErrorPage -> Model -> View Msg
-view error model =
+view error _ =
     { body =
         paragraph []
             [ text <|
