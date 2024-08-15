@@ -25,7 +25,7 @@ import Server.Response as Response exposing (Response)
 import Shared
 import Site
 import Theme
-import Types exposing (Persona)
+import Types exposing (Gendertrope(..), Persona)
 import Url
 import UrlPath exposing (UrlPath)
 import View exposing (View)
@@ -186,6 +186,9 @@ defaultPersona =
     , euphoriaPoints = 0
     , ichorPoints = 0
     , numinousPoints = 0
+
+    --
+    , gendertrope = TheButterfly
     }
 
 
@@ -211,6 +214,29 @@ personaParser name =
         |> BitParser.andMap parseNonnegativeInt
         |> BitParser.andMap parseNonnegativeInt
         |> BitParser.andMap parseNonnegativeInt
+        |> BitParser.andMap
+            parseGendertrope
+
+
+parseGendertrope : BitParser.Parser Gendertrope
+parseGendertrope =
+    parseNonnegativeInt
+        |> BitParser.andThen
+            (\i ->
+                case i of
+                    0 ->
+                        BitParser.succeed TheButterfly
+
+                    _ ->
+                        BitParser.fail
+            )
+
+
+encodeGendertrope : Gendertrope -> List Bit
+encodeGendertrope gendertrope =
+    case gendertrope of
+        TheButterfly ->
+            encodeNonnegativeInt 0
 
 
 parseNonnegativeInt : BitParser.Parser Int
@@ -252,6 +278,7 @@ encodePersona persona =
     , encodeNonnegativeInt persona.euphoriaPoints
     , encodeNonnegativeInt persona.ichorPoints
     , encodeNonnegativeInt persona.numinousPoints
+    , encodeGendertrope persona.gendertrope
     ]
         |> List.concat
         |> BitParser.bitsToBytes
@@ -346,8 +373,13 @@ cardImageSize :
     , height : number
     }
 cardImageSize =
-    { width = 43 * 2
-    , height = 43
+    let
+        height : number
+        height =
+            (5 + 1) * 8 + 1
+    in
+    { width = height * 2
+    , height = height
     }
 
 
@@ -399,14 +431,35 @@ toCard persona =
                             |> Array.repeat cardImageSize.width
                             |> Array.repeat cardImageSize.height
 
+                    padNumber : Int -> Int -> String
+                    padNumber width value =
+                        String.padLeft width ' ' (String.fromInt value)
+
                     description : String
                     description =
-                        [ "FIT " ++ String.fromInt persona.fitness
-                        , "GRC " ++ String.fromInt persona.grace
-                        , "ARD " ++ String.fromInt persona.ardor
-                        , "SAN " ++ String.fromInt persona.sanity
-                        , "PRW " ++ String.fromInt persona.prowess
-                        , "MOX " ++ String.fromInt persona.moxie
+                        [ "FIT " ++ padNumber 2 persona.fitness
+                        , "GRC " ++ padNumber 2 persona.grace
+                        , "ARD " ++ padNumber 2 persona.ardor
+                        , "SAN " ++ padNumber 2 persona.sanity
+                        , "PRW " ++ padNumber 2 persona.prowess
+                        , "MOX " ++ padNumber 2 persona.moxie
+                        ]
+                            |> String.join "\n"
+
+                    meter : String -> Int -> Int -> String
+                    meter label value bonusToCap =
+                        String.padRight 12 ' ' label
+                            ++ padNumber 2 value
+                            ++ "/"
+                            ++ padNumber 2 (20 + 2 * bonusToCap)
+
+                    meters : String
+                    meters =
+                        [ meter "Stamina" persona.stamina 0
+                        , meter "Satiation" persona.satiation persona.ardor
+                        , meter "Craving" persona.craving persona.sanity
+                        , meter "Arousal" persona.arousal persona.prowess
+                        , meter "Sensitivity" persona.sensitivity persona.moxie
                         ]
                             |> String.join "\n"
                 in
@@ -414,7 +467,9 @@ toCard persona =
                     |> Drawing.drawImage 1 1 Drawing.flower
                     |> Drawing.drawImage (cardImageSize.width - 6) 1 Drawing.flower
                     |> Drawing.drawTextCenter font 1 persona.name
-                    |> Drawing.drawText font 1 (font.height + 2) description
+                    |> Drawing.drawTextCenter font (font.height + 2) (gendertropeToString persona.gendertrope)
+                    |> Drawing.drawText font 1 (font.height * 2 + 3) description
+                    |> Drawing.drawText font ((font.width + 1) * 7 + 1) (font.height * 2 + 3) meters
                     |> Drawing.scaleBy 4
                     |> Image.fromArray2d
                     |> Image.toPng
@@ -422,3 +477,10 @@ toCard persona =
                     |> Response.withHeader "Content-Type" "image/png"
                     |> BackendTask.succeed
             )
+
+
+gendertropeToString : Gendertrope -> String
+gendertropeToString gendertrope =
+    case gendertrope of
+        TheButterfly ->
+            "The Butterfly"

@@ -1,4 +1,4 @@
-module Types exposing (Flags, Model, Msg(..), Persona)
+module Types exposing (Flags, Gendertrope(..), Model, Msg(..), Persona)
 
 import Browser exposing (UrlRequest)
 import Browser.Navigation exposing (Key)
@@ -37,7 +37,12 @@ type alias Persona =
     , euphoriaPoints : Int
     , ichorPoints : Int
     , numinousPoints : Int
+    , gendertrope : Gendertrope
     }
+
+
+type Gendertrope
+    = TheButterfly
 
 
 type Msg
