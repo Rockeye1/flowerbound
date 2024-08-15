@@ -3,8 +3,6 @@ module Tests exposing (bytesRoundtrip, intRoundtrip)
 import Bit exposing (Bit(..))
 import BitParser
 import Bits
-import Bytes
-import Bytes.Encode
 import Expect
 import Fuzz
 import Route.Persona.Name_.Data__
@@ -19,7 +17,6 @@ intRoundtrip =
                 encoded =
                     i
                         |> Route.Persona.Name_.Data__.encodePositiveInt
-                        |> Debug.log "Encoded as"
             in
             case BitParser.run Route.Persona.Name_.Data__.parsePositiveInt encoded of
                 Nothing ->

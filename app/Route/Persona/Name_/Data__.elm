@@ -1,9 +1,8 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, cardImageSize, personaFromSlug, route, title, toCard, toDescription)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, personaFromSlug, route, toCard)
 
 import Array
 import BackendTask exposing (BackendTask)
 import Base64
-import Bit exposing (Bit(..))
 import BitParser
 import Bits
 import Drawing
@@ -18,7 +17,7 @@ import Image
 import Maybe.Extra
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import Persona exposing (Gendertrope(..), Persona)
+import Persona exposing (Persona)
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)

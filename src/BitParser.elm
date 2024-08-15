@@ -1,4 +1,4 @@
-module BitParser exposing (Parser, Step(..), andMap, andThen, bit, bits, bitsToBytes, encodeInt, encodeNonnegativeInt, encodePositiveInt, encodeString, fail, loop, map, map2, parseInt, parseNonnegativeInt, parsePositiveInt, parseString, run, succeed)
+module BitParser exposing (Parser, Step(..), andMap, andThen, bitsToBytes, encodeInt, encodeNonnegativeInt, encodePositiveInt, encodeString, fail, loop, map, map2, parseInt, parseNonnegativeInt, parsePositiveInt, parseString, run, succeed)
 
 import Bit exposing (Bit(..))
 import Bits

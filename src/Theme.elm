@@ -1,6 +1,6 @@
 module Theme exposing (button, column, el, link, padding, purple, purpleHex, rhythm, row, spacing, withHint, wrappedRow)
 
-import Element exposing (Attribute, Element, el, link, shrink, width)
+import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font

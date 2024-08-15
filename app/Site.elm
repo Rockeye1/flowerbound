@@ -57,15 +57,3 @@ androidChromeIcon size =
     , sizes = [ ( size, size ) ]
     , purposes = []
     }
-
-
-iconData :
-    { src : Pages.Url.Url
-    , mimeType : MimeType.MimeImage
-    , sizes : List ( Int, Int )
-    }
-iconData =
-    { src = Pages.Url.fromPath [ "/favicon.png" ]
-    , mimeType = MimeType.Png
-    , sizes = [ ( 1430, 1430 ) ]
-    }

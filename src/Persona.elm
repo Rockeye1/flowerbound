@@ -1,8 +1,7 @@
-module Persona exposing (Gendertrope(..), Msg(..), Persona, default, encode, gendertropeToRecord, parser, view)
+module Persona exposing (Config, Gendertrope(..), GendertropeRecord, Persona, default, encode, gendertropeToRecord, parser, view)
 
 import Bit exposing (Bit)
 import BitParser
-import Browser exposing (UrlRequest(..))
 import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, paragraph, px, rgb, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -48,11 +47,6 @@ type alias GendertropeRecord =
     { name : String
     , description : String
     }
-
-
-type Msg
-    = ChangePersona Int Persona
-    | Flip Int
 
 
 default : Persona

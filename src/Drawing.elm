@@ -1,4 +1,4 @@
-module Drawing exposing (Font, Image, drawChar, drawImage, drawText, drawTextCenter, drawTextNoWrap, flower, fontParser, getFont, scaleBy)
+module Drawing exposing (Font, Image, drawImage, drawText, drawTextCenter, flower, getFont, scaleBy)
 
 import Array exposing (Array)
 import BackendTask exposing (BackendTask)

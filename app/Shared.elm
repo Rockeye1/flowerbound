@@ -5,7 +5,6 @@ import Effect exposing (Effect)
 import Element
 import FatalError exposing (FatalError)
 import Html exposing (Html)
-import Html.Events
 import Pages.Flags
 import Pages.PageUrl exposing (PageUrl)
 import Route exposing (Route)
@@ -63,7 +62,7 @@ init flags maybePagePath =
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        SharedMsg globalMsg ->
+        SharedMsg _ ->
             ( model, Effect.none )
 
 
