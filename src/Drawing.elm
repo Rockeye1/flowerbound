@@ -42,15 +42,19 @@ drawTextCenter font y text img =
 flower : Image
 flower =
     let
+        red : number
         red =
             0xF04030FF
 
+        brick : number
         brick =
             0xC02020FF
 
+        yellow : number
         yellow =
             0xFFF000FF
 
+        transparent : number
         transparent =
             0
     in
@@ -174,6 +178,7 @@ drawImage x y toDraw img =
 
                         Just charRow ->
                             let
+                                newRow : Array Image.Pixel
                                 newRow =
                                     List.foldl
                                         (\dx rowAcc ->
