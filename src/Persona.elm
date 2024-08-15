@@ -34,13 +34,25 @@ type alias Persona =
     , euphoriaPoints : Int
     , ichorPoints : Int
     , numinousPoints : Int
+
+    --
     , gendertrope : Gendertrope
     }
 
 
 type Gendertrope
-    = TheButterfly
+    = Butterfly
+    | Flower
+    | Vixen
     | Custom GendertropeRecord
+
+
+standardGendertropes : List Gendertrope
+standardGendertropes =
+    [ Butterfly
+    , Flower
+    , Vixen
+    ]
 
 
 type alias GendertropeRecord =
@@ -72,7 +84,7 @@ default =
     , numinousPoints = 0
 
     --
-    , gendertrope = TheButterfly
+    , gendertrope = Butterfly
     }
 
 
@@ -154,7 +166,19 @@ view config { flipped, persona } =
                     , label = Icons.flip
                     }
                 ]
-            , text gendertropeRecord.name
+            , Input.radioRow []
+                { options =
+                    (standardGendertropes ++ [ Custom gendertropeRecord ])
+                        |> List.map
+                            (\gendertrope ->
+                                Input.option
+                                    gendertrope
+                                    (text (gendertropeToRecord gendertrope).name)
+                            )
+                , label = Input.labelHidden "Gendertrope kind"
+                , onChange = \gendertrope -> config.update { persona | gendertrope = gendertrope }
+                , selected = Just persona.gendertrope
+                }
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
@@ -409,10 +433,20 @@ tallyMark =
 gendertropeToRecord : Gendertrope -> GendertropeRecord
 gendertropeToRecord gendertrope =
     case gendertrope of
-        TheButterfly ->
+        Butterfly ->
             { name = "The Butterfly"
             , description =
                 "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
+            }
+
+        Flower ->
+            { name = "The Flower"
+            , description = "She is an object of tempting beauty and creative growth, decorative and useful in equal measure. Her body is offered freely to any who would take her, for her longing to be plucked and kept and tended by a worthy gardener runs deep. But she is fearless, and is not one who trades herself for safety. Only for joy."
+            }
+
+        Vixen ->
+            { name = "The Vixen"
+            , description = "She is one who embodies the predator, the explorer, and the protector all at once. Her whims and her primal hungers drive her to hunt and slake, to frolic and play, to guard and comfort, forever seeking excitement. But her mercurial heart is innocent and soft, gentle and always welcoming... just like her bosom."
             }
 
         Custom record ->
@@ -426,13 +460,19 @@ parseGendertrope =
             (\i ->
                 case i of
                     0 ->
-                        BitParser.succeed TheButterfly
-
-                    999 ->
                         BitParser.map2
                             (\name description -> Custom { name = name, description = description })
                             BitParser.parseString
                             BitParser.parseString
+
+                    1 ->
+                        BitParser.succeed Butterfly
+
+                    2 ->
+                        BitParser.succeed Flower
+
+                    3 ->
+                        BitParser.succeed Vixen
 
                     _ ->
                         BitParser.fail
@@ -442,15 +482,21 @@ parseGendertrope =
 encodeGendertrope : Gendertrope -> List Bit
 encodeGendertrope gendertrope =
     case gendertrope of
-        TheButterfly ->
-            BitParser.encodeNonnegativeInt 0
-
         Custom { name, description } ->
-            [ BitParser.encodeNonnegativeInt 999
+            [ BitParser.encodeNonnegativeInt 0
             , BitParser.encodeString name
             , BitParser.encodeString description
             ]
                 |> List.concat
+
+        Butterfly ->
+            BitParser.encodeNonnegativeInt 1
+
+        Flower ->
+            BitParser.encodeNonnegativeInt 2
+
+        Vixen ->
+            BitParser.encodeNonnegativeInt 3
 
 
 encode : Persona -> List Bit
