@@ -469,7 +469,7 @@ toCard persona =
                     |> Drawing.drawTextCenter font 1 persona.name
                     |> Drawing.drawTextCenter font (font.height + 2) (gendertropeToString persona.gendertrope)
                     |> Drawing.drawText font 1 (font.height * 2 + 3) description
-                    |> Drawing.drawText font ((font.width + 1) * 7 + 1) (font.height * 2 + 3) meters
+                    |> Drawing.drawText font 30 (font.height * 2 + 3) meters
                     |> Drawing.scaleBy (800 // cardImageSize.width)
                     |> Image.fromArray2d
                     |> Image.toPng
