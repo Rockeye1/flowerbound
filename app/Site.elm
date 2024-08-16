@@ -25,12 +25,23 @@ config =
 
 head : BackendTask FatalError (List Head.Tag)
 head =
+    let
+        colorCss : String
+        colorCss =
+            "#" ++ Hex.toString Theme.purpleHex
+    in
     [ Head.metaName "viewport" (Head.raw "width=device-width,initial-scale=1")
     , Head.appleTouchIcon (Just 180) (Pages.Url.fromPath [ "apple-touch-icon.png" ])
     , Head.icon [ ( 32, 32 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-32x32.png" ])
     , Head.icon [ ( 16, 16 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-16x16.png" ])
-    , Head.metaName "theme-color" (Head.raw ("#" ++ Hex.toString Theme.purpleHex))
     , Head.manifestLink "/manifest.json"
+    , Head.nonLoadingNode "link"
+        [ ( "rel", Head.raw "mask-icon" )
+        , ( "href", Head.urlAttribute (Pages.Url.fromPath [ "safari-pinned-tab.svg" ]) )
+        , ( "color", Head.raw colorCss )
+        ]
+    , Head.metaName "msapplication-TileColor" (Head.raw colorCss)
+    , Head.metaName "theme-color" (Head.raw colorCss)
     , Head.sitemapLink "/sitemap.xml"
     ]
         |> BackendTask.succeed
@@ -42,9 +53,10 @@ manifest =
         { name = "Flowerbound"
         , description = "An helper for the Flowerbound RPG"
         , startUrl = Route.Index |> Route.toPath
-        , icons = [ androidChromeIcon 192, androidChromeIcon 512 ]
+        , icons = [ androidChromeIcon 192 ]
         }
         |> Manifest.withThemeColor (toColor Theme.purple)
+        |> Manifest.withBackgroundColor (toColor Theme.purple)
         |> Manifest.withDisplayMode Manifest.Standalone
 
 
