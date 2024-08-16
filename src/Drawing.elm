@@ -104,7 +104,16 @@ drawText font x y rawText image =
 
         maxWidth : Int
         maxWidth =
-            (imageWidth - x) // (font.width + 1)
+            (imageWidth
+                - x
+                + (if String.contains "\u{2009}" rawText then
+                    font.width + 1
+
+                   else
+                    0
+                  )
+            )
+                // (font.width + 1)
 
         lines : List String
         lines =
@@ -132,11 +141,15 @@ drawTextNoWrap : Font -> Int -> Int -> String -> Image -> Image
 drawTextNoWrap font x y text image =
     String.foldl
         (\char ( currentX, imageAcc ) ->
-            ( if char == '\u{2009}' then
-                currentX + (font.width + 1) // 2
+            ( case char of
+                '\u{2009}' ->
+                    currentX + 2
 
-              else
-                currentX + font.width + 1
+                '\u{200A}' ->
+                    currentX + 1
+
+                _ ->
+                    currentX + font.width + 1
             , drawChar font currentX y char imageAcc
             )
         )
