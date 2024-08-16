@@ -743,6 +743,7 @@ markdownRenderer =
             Element.newTabLink
                 [ maybeTitle title
                 , Element.htmlAttribute (Html.Attributes.style "display" "inline-flex")
+                , Element.htmlAttribute (Html.Attributes.attribute "elm-pages:prefetch" "")
                 ]
                 { url = destination
                 , label =
