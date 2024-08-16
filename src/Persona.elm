@@ -434,10 +434,10 @@ viewStandardOrgans gendertropeRecord =
         }
 
 
-viewOrgans : GendertropeRecord -> Element msg
+viewOrgans : GendertropeRecord -> Element (List Organ)
 viewOrgans gendertropeRecord =
     let
-        wrap : Int -> Element msg -> Element msg
+        wrap : Int -> Element Organ -> Element (List Organ)
         wrap index child =
             el
                 [ width fill
@@ -452,11 +452,12 @@ viewOrgans gendertropeRecord =
                     )
                 ]
                 child
+                |> Element.map (\newOrgan -> List.Extra.setAt index newOrgan gendertropeRecord.organs)
 
         intColumn :
             String
             -> (Organ -> Int)
-            -> Element.IndexedColumn Organ msg
+            -> Element.IndexedColumn Organ (List Organ)
         intColumn label prop =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
@@ -475,8 +476,8 @@ viewOrgans gendertropeRecord =
         boolColumn :
             String
             -> (Organ -> Bool)
-            -> Element msg
-            -> Element.IndexedColumn Organ msg
+            -> Element Organ
+            -> Element.IndexedColumn Organ (List Organ)
         boolColumn label prop icon =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
@@ -502,7 +503,16 @@ viewOrgans gendertropeRecord =
             [ spacer
             , { width = shrink
               , header = Element.none
-              , view = \index { name } -> wrap index (text name)
+              , view =
+                    \index organ ->
+                        wrap index
+                            (Theme.input []
+                                { text = organ.name
+                                , placeholder = Just <| Input.placeholder [] (text "Name")
+                                , label = Input.labelHidden "Name"
+                                , onChange = \newName -> { organ | name = newName }
+                                }
+                            )
               }
             , intColumn "Cont" .contour
             , intColumn "Erog" .erogeny
