@@ -1,10 +1,12 @@
 module Tests exposing (bytesRoundtrip, compressRoundtrip, intRoundtrip)
 
 import Bit exposing (Bit(..))
-import BitParser
 import Bits
+import Bits.Decode
+import Bits.Encode
 import Expect
 import Fuzz
+import Rope
 import Route.Persona.Name_.Data__
 import Test exposing (Test)
 
@@ -17,13 +19,14 @@ intRoundtrip =
                 encoded : List Bit
                 encoded =
                     i
-                        |> BitParser.encodePositiveInt
+                        |> Bits.Encode.positiveInt
+                        |> Rope.toList
             in
-            case BitParser.run BitParser.parsePositiveInt encoded of
-                Nothing ->
-                    Expect.fail "Could not roundtrip"
+            case Bits.Decode.run Bits.Decode.positiveInt encoded of
+                Err e ->
+                    Expect.fail ("Could not roundtrip: " ++ Debug.toString e)
 
-                Just w ->
+                Ok w ->
                     w
                         |> Expect.equal i
 
@@ -33,7 +36,7 @@ bytesRoundtrip =
     Test.fuzz (Fuzz.list bitFuzzer) "Bit list roundtrips" <|
         \bitList ->
             bitList
-                |> BitParser.bitsToBytes
+                |> Bits.toBytes
                 |> Bits.fromBytes
                 |> Expect.equal (bitList ++ List.repeat (modBy 8 -(List.length bitList)) O)
 
@@ -51,7 +54,7 @@ compressRoundtrip =
                 actual : List Bit
                 actual =
                     bits
-                        |> BitParser.bitsToBytes
+                        |> Bits.toBytes
                         |> Route.Persona.Name_.Data__.maybeCompress
                         |> Bits.fromBytes
                         |> Route.Persona.Name_.Data__.maybeDecompress

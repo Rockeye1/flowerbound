@@ -1,7 +1,6 @@
-module Persona exposing (Config, Feature, Gendertrope(..), GendertropeRecord, Organ, Persona, default, encode, gendertropeToRecord, levelBonus, parser, view)
+module Persona exposing (Config, Feature, Gendertrope(..), GendertropeRecord, Organ, PartialPersona, Persona, codec, default, fromPartial, gendertropeToRecord, levelBonus, toPartial, view)
 
-import Bit exposing (Bit)
-import BitParser
+import Bits.Codec as Codec exposing (Codec)
 import Dict exposing (Dict)
 import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
@@ -16,8 +15,26 @@ import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer
-import Phosphor
 import Theme exposing (withHint)
+
+
+type alias PartialPersona =
+    { fitness : Int
+    , grace : Int
+    , ardor : Int
+    , sanity : Int
+    , prowess : Int
+    , moxie : Int
+
+    --
+    , euphoriaPoints : Int
+    , ichorPoints : Int
+    , numinousPoints : Int
+
+    --
+    , features : List Int
+    , gendertrope : Gendertrope
+    }
 
 
 type alias Persona =
@@ -32,20 +49,13 @@ type alias Persona =
     , moxie : Int
 
     --
-    , stamina : Int
-    , satiation : Int
-    , craving : Int
-    , arousal : Int
-    , sensitivity : Int
-
-    --
     , euphoriaPoints : Int
     , ichorPoints : Int
     , numinousPoints : Int
 
     --
-    , gendertrope : Gendertrope
     , features : List Int
+    , gendertrope : Gendertrope
     }
 
 
@@ -102,6 +112,8 @@ type alias Organ =
 default : Persona
 default =
     { name = "Cinderella Sheen"
+
+    --
     , fitness = 2
     , grace = 2
     , ardor = 2
@@ -110,19 +122,12 @@ default =
     , moxie = 2
 
     --
-    , stamina = 0
-    , satiation = 0
-    , craving = 0
-    , arousal = 0
-    , sensitivity = 0
-
-    --
     , euphoriaPoints = 0
     , ichorPoints = 0
     , numinousPoints = 0
 
     --
-    , gendertrope = Butterfly
+    , gendertrope = Vixen
     , features = []
     }
 
@@ -883,10 +888,9 @@ abilitiesView persona =
 statusView : Persona -> Element Persona
 statusView persona =
     let
-        statusRow : String -> Int -> Int -> ( String, Int, Int )
-        statusRow label value bonusToCap =
+        statusRow : String -> Int -> ( String, Int )
+        statusRow label bonusToCap =
             ( label
-            , value
             , 20 + 2 * bonusToCap
             )
     in
@@ -911,28 +915,20 @@ statusView persona =
             [ Theme.spacing
             ]
             { data =
-                [ statusRow "Stamina" persona.stamina 0
-                , statusRow "Satiation" persona.satiation persona.ardor
-                , statusRow "Craving" persona.craving persona.sanity
-                , statusRow "Arousal" persona.arousal persona.prowess
-                , statusRow "Sensitivity" persona.sensitivity persona.moxie
+                [ statusRow "Max Stamina" 0
+                , statusRow "Max Satiation" persona.ardor
+                , statusRow "Max Craving" persona.sanity
+                , statusRow "Max Arousal" persona.prowess
+                , statusRow "Max Sensitivity" persona.moxie
                 ]
             , columns =
                 [ { header = Element.none
                   , width = fill
-                  , view = \( label, _, _ ) -> text label
+                  , view = \( label, _ ) -> text label
                   }
                 , { header = Element.none
                   , width = shrink
-                  , view = \( _, value, _ ) -> text (String.fromInt value)
-                  }
-                , { header = Element.none
-                  , width = shrink
-                  , view = \_ -> text "/"
-                  }
-                , { header = Element.none
-                  , width = shrink
-                  , view = \( _, _, maximum ) -> text (String.fromInt maximum)
+                  , view = \( _, maximum ) -> text (String.fromInt maximum)
                   }
                 ]
             }
@@ -1447,172 +1443,132 @@ Outside an Encounter, these Roots can be summoned at any distance within line of
     }
 
 
-parseGendertrope : BitParser.Parser Gendertrope
-parseGendertrope =
-    BitParser.parseNonnegativeInt
-        |> BitParser.andThen
-            (\i ->
-                case i of
-                    0 ->
-                        BitParser.map4
-                            (\name description features organs ->
-                                Custom
-                                    { name = name
-                                    , description = description
-                                    , features = Dict.fromList features
-                                    , organs = organs
-                                    }
-                            )
-                            BitParser.parseString
-                            BitParser.parseString
-                            (BitParser.parseList
-                                (BitParser.map2 Tuple.pair
-                                    BitParser.parsePositiveInt
-                                    parseFeature
-                                )
-                            )
-                            (BitParser.parseList parseOrgan)
-
-                    1 ->
-                        BitParser.succeed Butterfly
-
-                    2 ->
-                        BitParser.succeed Flower
-
-                    3 ->
-                        BitParser.succeed Vixen
-
-                    4 ->
-                        BitParser.succeed Buck
-
-                    5 ->
-                        BitParser.succeed Fiend
-
-                    6 ->
-                        BitParser.succeed Doll
-
-                    _ ->
-                        BitParser.fail
-            )
+codec : Codec e PartialPersona
+codec =
+    Codec.object PartialPersona
+        |> Codec.field .fitness (Codec.intWithMinimum 2)
+        |> Codec.field .grace (Codec.intWithMinimum 2)
+        |> Codec.field .ardor (Codec.intWithMinimum 2)
+        |> Codec.field .sanity (Codec.intWithMinimum 2)
+        |> Codec.field .prowess (Codec.intWithMinimum 2)
+        |> Codec.field .moxie (Codec.intWithMinimum 2)
+        |> Codec.field .euphoriaPoints Codec.nonNegativeInt
+        |> Codec.field .ichorPoints Codec.nonNegativeInt
+        |> Codec.field .numinousPoints Codec.nonNegativeInt
+        |> Codec.field .features (Codec.list (Codec.intWithMinimum 2))
+        |> Codec.field .gendertrope gendertropeCodec
+        |> Codec.buildObject
 
 
-parseFeature : BitParser.Parser Feature
-parseFeature =
-    BitParser.map2 Feature
-        BitParser.parseString
-        BitParser.parseString
+featureCodec : Codec e Feature
+featureCodec =
+    Codec.object Feature
+        |> Codec.field .name Codec.string
+        |> Codec.field .description Codec.string
+        |> Codec.buildObject
 
 
-encodeGendertrope : Gendertrope -> List Bit
-encodeGendertrope gendertrope =
-    case gendertrope of
-        Custom { name, description, features, organs } ->
-            [ BitParser.encodeNonnegativeInt 0
-            , BitParser.encodeString name
-            , BitParser.encodeString description
-            , BitParser.encodeList
-                (\( k, v ) ->
-                    [ BitParser.encodePositiveInt k
-                    , BitParser.encodeString v.name
-                    , BitParser.encodeString v.description
-                    ]
-                        |> List.concat
-                )
-                (Dict.toList features)
-            , BitParser.encodeList encodeOrgan organs
-            ]
-                |> List.concat
+gendertropeCodec : Codec e Gendertrope
+gendertropeCodec =
+    Codec.custom
+        (\fCustom fButterfly fFlower fVixen fBuck fFiend fDoll value ->
+            case value of
+                Custom record ->
+                    fCustom record
 
-        Butterfly ->
-            BitParser.encodeNonnegativeInt 1
+                Butterfly ->
+                    fButterfly
 
-        Flower ->
-            BitParser.encodeNonnegativeInt 2
+                Flower ->
+                    fFlower
 
-        Vixen ->
-            BitParser.encodeNonnegativeInt 3
+                Vixen ->
+                    fVixen
 
-        Buck ->
-            BitParser.encodeNonnegativeInt 4
+                Buck ->
+                    fBuck
 
-        Fiend ->
-            BitParser.encodeNonnegativeInt 5
+                Fiend ->
+                    fFiend
 
-        Doll ->
-            BitParser.encodeNonnegativeInt 6
+                Doll ->
+                    fDoll
+        )
+        |> Codec.variant1 Custom gendertropeRecordCodec
+        |> Codec.variant0 Butterfly
+        |> Codec.variant0 Flower
+        |> Codec.variant0 Vixen
+        |> Codec.variant0 Buck
+        |> Codec.variant0 Fiend
+        |> Codec.variant0 Doll
+        |> Codec.buildCustom
 
 
-encodeOrgan : Organ -> List Bit
-encodeOrgan organ =
-    [ BitParser.encodeString organ.name
-    , BitParser.encodeNonnegativeInt organ.contour
-    , BitParser.encodeNonnegativeInt organ.erogeny
-    , BitParser.encodeBool organ.canSquish
-    , BitParser.encodeBool organ.canGrip
-    , BitParser.encodeBool organ.canPenetrate
-    , BitParser.encodeBool organ.canEnsheathe
-    , BitParser.encodeBool organ.isSquishable
-    , BitParser.encodeBool organ.isGrippable
-    , BitParser.encodeBool organ.isPenetrable
-    , BitParser.encodeBool organ.isEnsheatheable
-    ]
-        |> List.concat
+gendertropeRecordCodec : Codec e GendertropeRecord
+gendertropeRecordCodec =
+    Codec.object GendertropeRecord
+        |> Codec.field .name Codec.string
+        |> Codec.field .description Codec.string
+        |> Codec.field .features (Codec.dict Codec.int featureCodec)
+        |> Codec.field .organs (Codec.list organCodec)
+        |> Codec.buildObject
 
 
-parseOrgan : BitParser.Parser Organ
-parseOrgan =
-    BitParser.succeed Organ
-        |> BitParser.andMap BitParser.parseString
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
-        |> BitParser.andMap BitParser.parseBool
+organCodec : Codec e Organ
+organCodec =
+    Codec.object Organ
+        |> Codec.field .name Codec.string
+        |> Codec.field .contour Codec.int
+        |> Codec.field .erogeny Codec.int
+        |> Codec.field .canSquish Codec.bool
+        |> Codec.field .canGrip Codec.bool
+        |> Codec.field .canPenetrate Codec.bool
+        |> Codec.field .canEnsheathe Codec.bool
+        |> Codec.field .isSquishable Codec.bool
+        |> Codec.field .isGrippable Codec.bool
+        |> Codec.field .isPenetrable Codec.bool
+        |> Codec.field .isEnsheatheable Codec.bool
+        |> Codec.buildObject
 
 
-encode : Persona -> List Bit
-encode persona =
-    [ BitParser.encodeNonnegativeInt (persona.fitness - 2)
-    , BitParser.encodeNonnegativeInt (persona.grace - 2)
-    , BitParser.encodeNonnegativeInt (persona.ardor - 2)
-    , BitParser.encodeNonnegativeInt (persona.sanity - 2)
-    , BitParser.encodeNonnegativeInt (persona.prowess - 2)
-    , BitParser.encodeNonnegativeInt (persona.moxie - 2)
-    , BitParser.encodeNonnegativeInt persona.stamina
-    , BitParser.encodeNonnegativeInt persona.satiation
-    , BitParser.encodeNonnegativeInt persona.craving
-    , BitParser.encodeNonnegativeInt persona.arousal
-    , BitParser.encodeNonnegativeInt persona.sensitivity
-    , BitParser.encodeNonnegativeInt persona.euphoriaPoints
-    , BitParser.encodeNonnegativeInt persona.ichorPoints
-    , BitParser.encodeNonnegativeInt persona.numinousPoints
-    , encodeGendertrope persona.gendertrope
-    , BitParser.encodeList BitParser.encodePositiveInt persona.features
-    ]
-        |> List.concat
+fromPartial : String -> PartialPersona -> Persona
+fromPartial name persona =
+    { name = name
+
+    --
+    , fitness = persona.fitness
+    , grace = persona.grace
+    , ardor = persona.ardor
+    , sanity = persona.sanity
+    , prowess = persona.prowess
+    , moxie = persona.moxie
+
+    --
+    , euphoriaPoints = persona.euphoriaPoints
+    , ichorPoints = persona.ichorPoints
+    , numinousPoints = persona.numinousPoints
+
+    --
+    , features = persona.features
+    , gendertrope = persona.gendertrope
+    }
 
 
-parser : String -> BitParser.Parser Persona
-parser name =
-    BitParser.succeed (Persona name)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
-        |> BitParser.andMap (BitParser.map (\n -> n + 2) BitParser.parseNonnegativeInt)
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap BitParser.parseNonnegativeInt
-        |> BitParser.andMap parseGendertrope
-        |> BitParser.andMap (BitParser.parseList BitParser.parsePositiveInt)
+toPartial : Persona -> PartialPersona
+toPartial persona =
+    { fitness = persona.fitness
+    , grace = persona.grace
+    , ardor = persona.ardor
+    , sanity = persona.sanity
+    , prowess = persona.prowess
+    , moxie = persona.moxie
+
+    --
+    , euphoriaPoints = persona.euphoriaPoints
+    , ichorPoints = persona.ichorPoints
+    , numinousPoints = persona.numinousPoints
+
+    --
+    , features = persona.features
+    , gendertrope = persona.gendertrope
+    }

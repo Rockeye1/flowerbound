@@ -4,8 +4,8 @@ import Array
 import BackendTask exposing (BackendTask)
 import Base64
 import Bit exposing (Bit)
-import BitParser
 import Bits
+import Bits.Decode
 import Bytes exposing (Bytes)
 import Drawing
 import Effect exposing (Effect)
@@ -19,6 +19,7 @@ import Maybe.Extra
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona exposing (Persona)
+import Rope
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
@@ -77,9 +78,11 @@ personaFromSlug : String -> String -> Persona
 personaFromSlug name slug =
     Maybe.Extra.andThen2
         (\fixedName bytes ->
-            BitParser.run
-                (Persona.parser fixedName)
+            Bits.Decode.run
+                Persona.codec.decoder
                 bytes
+                |> Result.toMaybe
+                |> Maybe.map (Persona.fromPartial fixedName)
         )
         (Url.percentDecode name)
         (slug
@@ -103,7 +106,7 @@ maybeDecompress input =
 
         Bit.I :: tail ->
             List.drop 7 tail
-                |> BitParser.bitsToBytes
+                |> Bits.toBytes
                 |> Flate.deflate
                 |> Bits.fromBytes
 
@@ -111,8 +114,10 @@ maybeDecompress input =
 personaToSlug : Persona -> String
 personaToSlug persona =
     persona
-        |> Persona.encode
-        |> BitParser.bitsToBytes
+        |> Persona.toPartial
+        |> Persona.codec.encoder
+        |> Rope.toList
+        |> Bits.toBytes
         |> maybeCompress
         |> Base64.fromBytes
         |> Maybe.withDefault ""
@@ -135,7 +140,7 @@ maybeCompress input =
             else
                 Bit.O :: List.repeat 7 Bit.O ++ Bits.fromBytes input
     in
-    BitParser.bitsToBytes bits
+    Bits.toBytes bits
 
 
 update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg, Maybe Shared.Msg )
@@ -298,20 +303,18 @@ toCard persona =
                         ]
                             |> String.join "\n"
 
-                    meter : String -> Int -> Int -> String
-                    meter label value bonusToCap =
-                        String.padRight 12 ' ' label
-                            ++ padNumber 2 value
-                            ++ "/"
+                    meter : String -> Int -> String
+                    meter label bonusToCap =
+                        String.padRight 15 ' ' label
                             ++ padNumber 2 (20 + 2 * bonusToCap)
 
                     meters : String
                     meters =
-                        [ meter "Stamina" persona.stamina 0
-                        , meter "Satiation" persona.satiation persona.ardor
-                        , meter "Craving" persona.craving persona.sanity
-                        , meter "Arousal" persona.arousal persona.prowess
-                        , meter "Sensitivity" persona.sensitivity persona.moxie
+                        [ meter "Max Stamina" 0
+                        , meter "Max Satiation" persona.ardor
+                        , meter "Max Craving" persona.sanity
+                        , meter "Max Arousal" persona.prowess
+                        , meter "Max Sensitivity" persona.moxie
                         , "Level bonus " ++ padNumber 5 (Persona.levelBonus persona)
                         ]
                             |> String.join "\n"
