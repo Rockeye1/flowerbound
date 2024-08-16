@@ -1,2 +1,3 @@
 - Settings
     - Disable animations
+- Log of actions
