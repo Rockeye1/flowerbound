@@ -16,6 +16,7 @@ import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer
+import Phosphor
 import Theme exposing (withHint)
 
 
@@ -392,13 +393,13 @@ viewStandardOrgans gendertropeRecord =
             -> (Organ -> Bool)
             -> Element msg
             -> Element.IndexedColumn Organ msg
-        boolColumn label prop icon =
+        boolColumn label prop img =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
             , view =
                 \index organ ->
                     if prop organ then
-                        wrap index (el [ centerX ] icon)
+                        wrap index (el [ centerX, Font.color Theme.purple ] img)
 
                     else
                         wrap index Element.none
@@ -421,14 +422,14 @@ viewStandardOrgans gendertropeRecord =
               }
             , intColumn "Cont" .contour
             , intColumn "Erog" .erogeny
-            , boolColumn "CS" .canSquish (text "\u{1FAF8}")
-            , boolColumn "CG" .canGrip (text "🤏")
-            , boolColumn "CP" .canPenetrate (text "☝️")
-            , boolColumn "CE" .canEnsheathe (text "👌")
-            , boolColumn "IS" .isSquishable (text "❤️")
-            , boolColumn "IG" .isGrippable (text "🕹️")
-            , boolColumn "IP" .isPenetrable (text "🕳️")
-            , boolColumn "IE" .isEnsheatheable (text "🍆")
+            , boolColumn "CS" .canSquish Icons.squish
+            , boolColumn "CG" .canGrip Icons.grip
+            , boolColumn "CP" .canPenetrate Icons.penetrate
+            , boolColumn "CE" .canEnsheathe Icons.ensheathe
+            , boolColumn "IS" .isSquishable Icons.squishable
+            , boolColumn "IG" .isGrippable Icons.grippable
+            , boolColumn "IP" .isPenetrable Icons.penetrable
+            , boolColumn "IE" .isEnsheatheable Icons.ensheatheable
             , spacer
             ]
         }
