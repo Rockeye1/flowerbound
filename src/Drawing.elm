@@ -132,7 +132,11 @@ drawTextNoWrap : Font -> Int -> Int -> String -> Image -> Image
 drawTextNoWrap font x y text image =
     String.foldl
         (\char ( currentX, imageAcc ) ->
-            ( currentX + font.width + 1
+            ( if char == '\u{2009}' then
+                currentX + (font.width + 1) // 2
+
+              else
+                currentX + font.width + 1
             , drawChar font currentX y char imageAcc
             )
         )

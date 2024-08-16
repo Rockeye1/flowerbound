@@ -310,11 +310,11 @@ toCard persona =
 
                     meters : String
                     meters =
-                        [ meter "Max Stamina" 0
-                        , meter "Max Satiation" persona.ardor
-                        , meter "Max Craving" persona.sanity
-                        , meter "Max Arousal" persona.prowess
-                        , meter "Max Sensitivity" persona.moxie
+                        [ meter "Max\u{2009}Stamina" 0
+                        , meter "Max\u{2009}Satiation" persona.ardor
+                        , meter "Max\u{2009}Craving" persona.sanity
+                        , meter "Max\u{2009}Arousal" persona.prowess
+                        , meter "Max\u{2009}Sensitivity" persona.moxie
                         , "Level bonus " ++ padNumber 5 (Persona.levelBonus persona)
                         ]
                             |> String.join "\n"
