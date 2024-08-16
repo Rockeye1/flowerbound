@@ -322,7 +322,16 @@ viewGendertrope ({ gendertrope } as persona) =
                 , text = gendertropeRecord.description
                 , spellcheck = True
                 }
-            , text "TODO - Features"
+            , Element.map
+                (\newOrgans ->
+                    { gendertropeRecord
+                        | organs = newOrgans
+                    }
+                        |> Custom
+                        |> Ok
+                )
+                (viewOrgans gendertropeRecord)
+            , viewFeatures persona gendertropeRecord
             ]
 
         _ ->
@@ -337,6 +346,96 @@ viewGendertrope ({ gendertrope } as persona) =
 
 viewStandardOrgans : GendertropeRecord -> Element msg
 viewStandardOrgans gendertropeRecord =
+    let
+        wrap : Int -> Element msg -> Element msg
+        wrap index child =
+            el
+                [ width fill
+                , height fill
+                , padding (Theme.rhythm // 2)
+                , Background.color
+                    (if modBy 2 index == 0 then
+                        Theme.lightGray
+
+                     else
+                        Theme.white
+                    )
+                ]
+                child
+
+        intColumn :
+            String
+            -> (Organ -> Int)
+            -> Element.IndexedColumn Organ msg
+        intColumn label prop =
+            { width = shrink
+            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , view =
+                \index organ ->
+                    wrap index
+                        -- (el
+                        --     [ Font.color Theme.purple
+                        --     , Font.size 24
+                        --     , centerX
+                        --     ]
+                        --     (text (intToDots (prop organ)))
+                        -- )
+                        (el
+                            [ centerX
+                            ]
+                            (text (String.fromInt (prop organ)))
+                        )
+            }
+
+        boolColumn :
+            String
+            -> (Organ -> Bool)
+            -> Element msg
+            -> Element.IndexedColumn Organ msg
+        boolColumn label prop icon =
+            { width = shrink
+            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , view =
+                \index organ ->
+                    if prop organ then
+                        wrap index (el [ centerX ] icon)
+
+                    else
+                        wrap index Element.none
+            }
+
+        spacer : Element.IndexedColumn organ msg
+        spacer =
+            { width = fill
+            , header = Element.none
+            , view = \_ _ -> Element.none
+            }
+    in
+    Element.indexedTable [ width fill ]
+        { data = gendertropeRecord.organs
+        , columns =
+            [ spacer
+            , { width = shrink
+              , header = Element.none
+              , view = \index { name } -> wrap index (text name)
+              }
+            , intColumn "Cont" .contour
+            , intColumn "Erog" .erogeny
+            , boolColumn "CS" .canSquish (text "\u{1FAF8}")
+            , boolColumn "CG" .canGrip (text "🤏")
+            , boolColumn "CP" .canPenetrate (text "☝️")
+            , boolColumn "CE" .canEnsheathe (text "👌")
+            , boolColumn "IS" .isSquishable (text "❤️")
+            , boolColumn "IG" .isGrippable (text "🕹️")
+            , boolColumn "IP" .isPenetrable (text "🕳️")
+            , boolColumn "IE" .isEnsheatheable (text "🍆")
+            , spacer
+            ]
+        }
+
+
+viewOrgans : GendertropeRecord -> Element msg
+viewOrgans gendertropeRecord =
     let
         wrap : Int -> Element msg -> Element msg
         wrap index child =
@@ -441,17 +540,14 @@ intToDots i =
         5 ->
             "⠷"
 
-        6 ->
-            "⠿"
-
-        7 ->
-            "⣷"
-
-        8 ->
-            "⣿"
-
+        -- 6 ->
+        --     "⠿"
+        -- 7 ->
+        --     "⣷"
+        -- 8 ->
+        --     "⣿"
         _ ->
-            String.fromInt i
+            "⠷" ++ intToDots (i - 5)
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
@@ -517,6 +613,72 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
     gendertropeRecord.features
         |> Dict.toList
         |> List.map viewStandardFeature
+        |> Theme.column [ width fill ]
+
+
+viewFeatures : Persona -> GendertropeRecord -> Element (Result (List Int) Gendertrope)
+viewFeatures ({ features } as persona) gendertropeRecord =
+    let
+        viewFeature : ( Int, Feature ) -> Element (Result (List Int) Gendertrope)
+        viewFeature ( level, feature ) =
+            let
+                selected : Bool
+                selected =
+                    level == 1 || List.member level features
+
+                canSelect : Bool
+                canSelect =
+                    selected || (persona.euphoriaPoints - usedEuphoriaPoints persona) >= 10 + level
+            in
+            Theme.button
+                [ Font.alignLeft
+                , padding 0
+                , Border.width 0
+                , width fill
+                ]
+                { onPress =
+                    if level == 1 || not canSelect then
+                        Nothing
+
+                    else if selected then
+                        Just (Err (List.Extra.remove level features))
+
+                    else
+                        Just (Err (level :: features))
+                , label =
+                    Theme.column
+                        [ Border.width 1
+                        , Theme.padding
+                        , width fill
+                        , Background.color
+                            (if selected then
+                                Theme.purple
+
+                             else if canSelect then
+                                Theme.white
+
+                             else
+                                Theme.gray
+                            )
+                        , Font.color
+                            (if selected then
+                                Theme.white
+
+                             else
+                                Theme.black
+                            )
+                        ]
+                        (paragraph [ Font.underline ]
+                            [ text ("Level " ++ String.fromInt level ++ " Feature: ")
+                            , el [ Font.bold ] (text feature.name)
+                            ]
+                            :: viewMarkdown feature.description
+                        )
+                }
+    in
+    gendertropeRecord.features
+        |> Dict.toList
+        |> List.map viewFeature
         |> Theme.column [ width fill ]
 
 
