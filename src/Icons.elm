@@ -1,7 +1,12 @@
-module Icons exposing (flip, minus, plus)
+module Icons exposing (checkmark, flip, minus, plus)
 
 import Element exposing (Element, el)
 import Phosphor
+
+
+checkmark : Element msg
+checkmark =
+    icon Phosphor.checkFat Phosphor.Bold
 
 
 plus : Element msg

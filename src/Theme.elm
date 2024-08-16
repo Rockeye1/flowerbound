@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, link, multiline, padding, purple, purpleHex, rhythm, row, spacing, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleHex, rhythm, row, spacing, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
@@ -76,6 +76,11 @@ button attrs config =
                     :: attrs
                 )
                 config.label
+
+
+lightGray : Element.Color
+lightGray =
+    Element.rgb 0.85 0.85 0.85
 
 
 gray : Element.Color

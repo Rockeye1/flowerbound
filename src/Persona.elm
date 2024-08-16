@@ -73,12 +73,28 @@ type alias GendertropeRecord =
     { name : String
     , description : String
     , features : Dict Int Feature
+    , organs : List Organ
     }
 
 
 type alias Feature =
     { name : String
     , description : String
+    }
+
+
+type alias Organ =
+    { name : String
+    , contour : Int
+    , erogeny : Int
+    , canSquish : Bool
+    , canGrip : Bool
+    , canPenetrate : Bool
+    , canEnsheathe : Bool
+    , isSquishable : Bool
+    , isGrippable : Bool
+    , isPenetrable : Bool
+    , isEnsheatheable : Bool
     }
 
 
@@ -314,8 +330,63 @@ viewGendertrope ({ gendertrope } as persona) =
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
+            , viewStandardOrgans gendertropeRecord
             , Element.map Err (viewStandardFeatures persona gendertropeRecord)
             ]
+
+
+viewStandardOrgans : GendertropeRecord -> Element msg
+viewStandardOrgans gendertropeRecord =
+    let
+        wrap : Int -> Element msg -> Element msg
+        wrap index child =
+            el
+                [ width fill
+                , height fill
+                , padding (Theme.rhythm // 2)
+                , Background.color
+                    (if modBy 2 index == 0 then
+                        Theme.lightGray
+
+                     else
+                        Theme.white
+                    )
+                ]
+                child
+
+        boolColumn :
+            String
+            -> (Organ -> Bool)
+            -> Element.IndexedColumn Organ msg
+        boolColumn label prop =
+            { width = shrink
+            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , view =
+                \index organ ->
+                    if prop organ then
+                        wrap index (el [ centerX ] Icons.checkmark)
+
+                    else
+                        wrap index Element.none
+            }
+    in
+    Element.indexedTable []
+        { data = gendertropeRecord.organs
+        , columns =
+            [ { width = shrink
+              , header = Element.none
+              , view = \index { name } -> wrap index (text name)
+              }
+            , boolColumn "CS" .canSquish
+            , boolColumn "CG" .canGrip
+            , boolColumn "CP" .canPenetrate
+            , boolColumn "CE" .canEnsheathe
+            , boolColumn "IS" .isSquishable
+            , boolColumn "IG" .isGrippable
+            , boolColumn "IP" .isPenetrable
+            , boolColumn "IE" .isEnsheatheable
+            ]
+        }
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
@@ -764,13 +835,21 @@ gendertropeToRecord gendertrope =
             , description =
                 "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
             , features =
-                [ ( 1, prehensileProficency )
+                [ ( 1, prehensileProficiency )
                 , ( 2, dominantExemplar )
                 , ( 3, ambrosia )
                 , ( 4, gardenKeeper )
                 , ( 5, fairyFlight )
                 ]
                     |> Dict.fromList
+            , organs =
+                [ prehensile "Sinuous Tentacle Tongue"
+                , hands "Slender Elegant Hands"
+                , breasts "Perky Marshmallow Tits"
+                , hips "Tight Supple Ass"
+                , phallic "Veiny Futa Phallus"
+                , legs "Long Shapely Legs"
+                ]
             }
 
         Flower ->
@@ -779,6 +858,9 @@ gendertropeToRecord gendertrope =
             , features =
                 -- TODO
                 Dict.empty
+            , organs =
+                -- TODO
+                []
             }
 
         Vixen ->
@@ -787,6 +869,9 @@ gendertropeToRecord gendertrope =
             , features =
                 -- TODO
                 Dict.empty
+            , organs =
+                -- TODO
+                []
             }
 
         Buck ->
@@ -795,6 +880,9 @@ gendertropeToRecord gendertrope =
             , features =
                 -- TODO
                 Dict.empty
+            , organs =
+                -- TODO
+                []
             }
 
         Fiend ->
@@ -803,6 +891,9 @@ gendertropeToRecord gendertrope =
             , features =
                 -- TODO
                 Dict.empty
+            , organs =
+                -- TODO
+                []
             }
 
         Doll ->
@@ -811,14 +902,135 @@ gendertropeToRecord gendertrope =
             , features =
                 -- TODO
                 Dict.empty
+            , organs =
+                -- TODO
+                []
             }
 
         Custom record ->
             record
 
 
-prehensileProficency : Feature
-prehensileProficency =
+emptyOrgan : Organ
+emptyOrgan =
+    { name = ""
+    , contour = 0
+    , erogeny = 0
+    , canSquish = False
+    , canGrip = False
+    , canPenetrate = False
+    , canEnsheathe = False
+    , isSquishable = False
+    , isGrippable = False
+    , isPenetrable = False
+    , isEnsheatheable = False
+    }
+
+
+mouth : String -> Organ
+mouth name =
+    { emptyOrgan
+        | name = name
+        , contour = 1
+        , erogeny = 2
+        , canSquish = True
+        , canEnsheathe = True
+        , isSquishable = True
+        , isPenetrable = True
+    }
+
+
+hands : String -> Organ
+hands name =
+    { emptyOrgan
+        | name = name
+        , contour = 0
+        , erogeny = 1
+        , canSquish = True
+        , canGrip = True
+        , canPenetrate = True
+        , isGrippable = True
+        , isEnsheatheable = True
+    }
+
+
+breasts : String -> Organ
+breasts name =
+    { emptyOrgan
+        | name = name
+        , contour = 5
+        , erogeny = 4
+        , canSquish = True
+        , isSquishable = True
+        , isGrippable = True
+    }
+
+
+hips : String -> Organ
+hips name =
+    { emptyOrgan
+        | name = name
+        , contour = 1
+        , erogeny = 4
+        , canSquish = True
+        , canEnsheathe = True
+        , isSquishable = True
+        , isGrippable = True
+        , isPenetrable = True
+    }
+
+
+legs : String -> Organ
+legs name =
+    { emptyOrgan
+        | name = name
+        , contour = 0
+        , erogeny = 1
+        , canSquish = True
+        , isGrippable = True
+    }
+
+
+phallic : String -> Organ
+phallic name =
+    { emptyOrgan
+        | name = name
+        , contour = 2
+        , erogeny = 7
+        , canPenetrate = True
+        , isGrippable = True
+        , isEnsheatheable = True
+    }
+
+
+yonic : String -> Organ
+yonic name =
+    { emptyOrgan
+        | name = name
+        , contour = 3
+        , erogeny = 6
+        , canSquish = True
+        , canEnsheathe = True
+        , isSquishable = True
+        , isPenetrable = True
+    }
+
+
+prehensile : String -> Organ
+prehensile name =
+    { emptyOrgan
+        | name = name
+        , contour = 4
+        , erogeny = 2
+        , canGrip = True
+        , canPenetrate = True
+        , isGrippable = True
+        , isEnsheatheable = True
+    }
+
+
+prehensileProficiency : Feature
+prehensileProficiency =
     { name = "Prehensile Proficiency"
     , description = "When using an Organ with both [CanGrip] and [CanPenetrate] to make a Prowess Roll, you may make the roll twice and take the superior result."
     }
@@ -901,12 +1113,13 @@ parseGendertrope =
             (\i ->
                 case i of
                     0 ->
-                        BitParser.map3
-                            (\name description features ->
+                        BitParser.map4
+                            (\name description features organs ->
                                 Custom
                                     { name = name
                                     , description = description
                                     , features = Dict.fromList features
+                                    , organs = organs
                                     }
                             )
                             BitParser.parseString
@@ -917,6 +1130,7 @@ parseGendertrope =
                                     parseFeature
                                 )
                             )
+                            (BitParser.parseList parseOrgan)
 
                     1 ->
                         BitParser.succeed Butterfly
@@ -951,7 +1165,7 @@ parseFeature =
 encodeGendertrope : Gendertrope -> List Bit
 encodeGendertrope gendertrope =
     case gendertrope of
-        Custom { name, description, features } ->
+        Custom { name, description, features, organs } ->
             [ BitParser.encodeNonnegativeInt 0
             , BitParser.encodeString name
             , BitParser.encodeString description
@@ -964,6 +1178,7 @@ encodeGendertrope gendertrope =
                         |> List.concat
                 )
                 (Dict.toList features)
+            , BitParser.encodeList encodeOrgan organs
             ]
                 |> List.concat
 
@@ -984,6 +1199,39 @@ encodeGendertrope gendertrope =
 
         Doll ->
             BitParser.encodeNonnegativeInt 6
+
+
+encodeOrgan : Organ -> List Bit
+encodeOrgan organ =
+    [ BitParser.encodeString organ.name
+    , BitParser.encodeNonnegativeInt organ.contour
+    , BitParser.encodeNonnegativeInt organ.erogeny
+    , BitParser.encodeBool organ.canSquish
+    , BitParser.encodeBool organ.canGrip
+    , BitParser.encodeBool organ.canPenetrate
+    , BitParser.encodeBool organ.canEnsheathe
+    , BitParser.encodeBool organ.isSquishable
+    , BitParser.encodeBool organ.isGrippable
+    , BitParser.encodeBool organ.isPenetrable
+    , BitParser.encodeBool organ.isEnsheatheable
+    ]
+        |> List.concat
+
+
+parseOrgan : BitParser.Parser Organ
+parseOrgan =
+    BitParser.succeed Organ
+        |> BitParser.andMap BitParser.parseString
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseNonnegativeInt
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
+        |> BitParser.andMap BitParser.parseBool
 
 
 encode : Persona -> List Bit
