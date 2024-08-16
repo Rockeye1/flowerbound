@@ -1,14 +1,17 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, personaFromSlug, route, toCard)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, personaFromSlug, route, toCard)
 
 import Array
 import BackendTask exposing (BackendTask)
 import Base64
+import Bit exposing (Bit)
 import BitParser
 import Bits
+import Bytes exposing (Bytes)
 import Drawing
 import Effect exposing (Effect)
 import ErrorPage exposing (ErrorPage(..))
 import FatalError exposing (FatalError)
+import Flate
 import Head
 import Head.Seo as Seo
 import Image
@@ -72,14 +75,37 @@ init app _ =
 
 personaFromSlug : String -> String -> Persona
 personaFromSlug name slug =
-    Maybe.Extra.andThen2 (\fixedName bytes -> BitParser.run (Persona.parser fixedName) (Bits.fromBytes bytes))
+    Maybe.Extra.andThen2
+        (\fixedName bytes ->
+            BitParser.run
+                (Persona.parser fixedName)
+                bytes
+        )
         (Url.percentDecode name)
         (slug
             |> String.replace "_" "/"
             |> String.replace "-" "+"
             |> Base64.toBytes
+            |> Maybe.map Bits.fromBytes
+            |> Maybe.map maybeDecompress
         )
         |> Maybe.withDefault Persona.default
+
+
+maybeDecompress : List Bit -> List Bit
+maybeDecompress input =
+    case input of
+        [] ->
+            input
+
+        Bit.O :: tail ->
+            List.drop 7 tail
+
+        Bit.I :: tail ->
+            List.drop 7 tail
+                |> BitParser.bitsToBytes
+                |> Flate.deflate
+                |> Bits.fromBytes
 
 
 personaToSlug : Persona -> String
@@ -87,10 +113,29 @@ personaToSlug persona =
     persona
         |> Persona.encode
         |> BitParser.bitsToBytes
+        |> maybeCompress
         |> Base64.fromBytes
         |> Maybe.withDefault ""
         |> String.replace "/" "_"
         |> String.replace "+" "-"
+
+
+maybeCompress : Bytes -> Bytes
+maybeCompress input =
+    let
+        compressed : Bytes
+        compressed =
+            Flate.deflate input
+
+        bits : List Bit
+        bits =
+            if Bytes.width compressed < Bytes.width input then
+                Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
+
+            else
+                Bit.O :: List.repeat 7 Bit.O ++ Bits.fromBytes input
+    in
+    BitParser.bitsToBytes bits
 
 
 update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg, Maybe Shared.Msg )
