@@ -354,6 +354,18 @@ viewStandardOrgans gendertropeRecord =
                 ]
                 child
 
+        intColumn :
+            String
+            -> (Organ -> Int)
+            -> Element.IndexedColumn Organ msg
+        intColumn label prop =
+            { width = shrink
+            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , view =
+                \index organ ->
+                    wrap index (el [ centerX ] (text (String.fromInt (prop organ))))
+            }
+
         boolColumn :
             String
             -> (Organ -> Bool)
@@ -385,6 +397,8 @@ viewStandardOrgans gendertropeRecord =
               , header = Element.none
               , view = \index { name } -> wrap index (text name)
               }
+            , intColumn "Cont" .contour
+            , intColumn "Erog" .erogeny
             , boolColumn "CS" .canSquish
             , boolColumn "CG" .canGrip
             , boolColumn "CP" .canPenetrate
