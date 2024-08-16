@@ -306,11 +306,7 @@ viewGendertrope ({ gendertrope } as persona) =
                 , text = gendertropeRecord.description
                 , spellcheck = True
                 }
-            , let
-                _ =
-                    Debug.todo
-              in
-              text "TODO - Features"
+            , text "TODO - Features"
             ]
 
         _ ->
@@ -671,10 +667,7 @@ progressionView persona =
 
 usedIchorPoints : Persona -> Int
 usedIchorPoints persona =
-    let
-        _ =
-            Debug.todo
-    in
+    --  TODO
     0
 
 
@@ -771,13 +764,11 @@ gendertropeToRecord gendertrope =
             , description =
                 "She is a creature of monstrous beauty and merciful power. Her amorous desires violate boundaries and overwhelm all resistance, rapacious and indomitable. But she is a nest-builder, a nurturer, one who cares for and cultivates that which her appetites have claimed as hers."
             , features =
-                let
-                    _ =
-                        Debug.todo
-                in
                 [ ( 1, prehensileProficency )
                 , ( 2, dominantExemplar )
                 , ( 3, ambrosia )
+                , ( 4, gardenKeeper )
+                , ( 5, fairyFlight )
                 ]
                     |> Dict.fromList
             }
@@ -786,55 +777,40 @@ gendertropeToRecord gendertrope =
             { name = "The Flower"
             , description = "She is an object of tempting beauty and creative growth, decorative and useful in equal measure. Her body is offered freely to any who would take her, for her longing to be plucked and kept and tended by a worthy gardener runs deep. But she is fearless, and is not one who trades herself for safety. Only for joy."
             , features =
-                let
-                    _ =
-                        Debug.todo
-                in
-                [] |> Dict.fromList
+                -- TODO
+                Dict.empty
             }
 
         Vixen ->
             { name = "The Vixen"
             , description = "She is one who embodies the predator, the explorer, and the protector all at once. Her whims and her primal hungers drive her to hunt and slake, to frolic and play, to guard and comfort, forever seeking excitement. But her mercurial heart is innocent and soft, gentle and always welcoming... just like her bosom."
             , features =
-                let
-                    _ =
-                        Debug.todo
-                in
-                [] |> Dict.fromList
+                -- TODO
+                Dict.empty
             }
 
         Buck ->
             { name = "The Buck"
             , description = "He is one who lives in the moment and is captivated by passion. His earnest whimsy and innocent fascinations lead to carefree nights and a fondness for the unexpected, even for the dangerous, ever delighted by the thrill. But he yearns most deeply to be safe in the arms of someone stronger and kinder than himself."
             , features =
-                let
-                    _ =
-                        Debug.todo
-                in
-                [] |> Dict.fromList
+                -- TODO
+                Dict.empty
             }
 
         Fiend ->
             { name = "The Fiend"
             , description = "He is a cruel being of meticulous obsession and exacting desires. His esoteric pleasures are often strange or abstract, and he will craft them himself if he must, or if he prefers. But his implacable single-minded pursuit of his strange joys is intrinsically entwined with the intense empathy and fascination he feels for his living toys."
             , features =
-                let
-                    _ =
-                        Debug.todo
-                in
-                [] |> Dict.fromList
+                -- TODO
+                Dict.empty
             }
 
         Doll ->
             { name = "The Doll"
             , description = "She is a blissful being of peaceful passivity and masochistic fatalism. Her only wish is to be treasured and tormented, teased and tantalized, in the hands of one worthy to own her, or even remake her. But her selfless wish to gratify her demanding master is tempered by her selfish wish for a life of mindless ecstasy."
             , features =
-                let
-                    _ =
-                        Debug.todo
-                in
-                [] |> Dict.fromList
+                -- TODO
+                Dict.empty
             }
 
         Custom record ->
@@ -878,7 +854,8 @@ During your partner's turn, you may spend **1 Dominance Point** to force them to
 
 ambrosia : Feature
 ambrosia =
-    { name = "Ambrosia", description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
+    { name = "Ambrosia"
+    , description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
 
 
 > **Fixation** _Passive_  
@@ -887,7 +864,34 @@ ambrosia =
 > At the beginning of your turn, you may roll a Sanity Check. If the result of the Check is greater than your Craving value, you may remove this effect.
 
 In addition, so long as the effect remains, you gain an extrasensory perception of their body and sexual state and may demand full access to all the information on their Persona Card and Organ Cards at any time.
-""" }
+"""
+    }
+
+
+gardenKeeper : Feature
+gardenKeeper =
+    -- TODO
+    { name = "Garden Keeper"
+    , description = """At the beginning of your turn, you may roll a **Fitness Check**. You may drain _up to_ that many points of **Craving** and add those points to your **Stamina Die**.
+
+You also permanently gain access to these two Moves:
+
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
+    }
+
+
+fairyFlight : Feature
+fairyFlight =
+    { name = "Fairy Flight"
+    , description = """Manifest at will ethereal butterfly wings that give you **+5** on all **Grace Check**s, both within and outside sexual encounters.
+
+These wings count as two Occupied Appendages that support your weight and stabilize you, while they exist.
+
+These wings also allow you to fly for a number of minutes equal to your Fitness score multiplied by 10. You recover flight-time at a rate of (1 + Fitness) minutes per minute of rest.
+"""
+    }
 
 
 parseGendertrope : BitParser.Parser Gendertrope
