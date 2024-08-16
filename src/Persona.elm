@@ -363,20 +363,28 @@ viewStandardOrgans gendertropeRecord =
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
             , view =
                 \index organ ->
-                    wrap index (el [ centerX ] (text (String.fromInt (prop organ))))
+                    wrap index
+                        (el
+                            [ Font.color Theme.purple
+                            , Font.size 24
+                            , centerX
+                            ]
+                            (text (intToDots (prop organ)))
+                        )
             }
 
         boolColumn :
             String
             -> (Organ -> Bool)
+            -> Element msg
             -> Element.IndexedColumn Organ msg
-        boolColumn label prop =
+        boolColumn label prop icon =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
             , view =
                 \index organ ->
                     if prop organ then
-                        wrap index (el [ centerX ] Icons.checkmark)
+                        wrap index (el [ centerX ] icon)
 
                     else
                         wrap index Element.none
@@ -399,17 +407,51 @@ viewStandardOrgans gendertropeRecord =
               }
             , intColumn "Cont" .contour
             , intColumn "Erog" .erogeny
-            , boolColumn "CS" .canSquish
-            , boolColumn "CG" .canGrip
-            , boolColumn "CP" .canPenetrate
-            , boolColumn "CE" .canEnsheathe
-            , boolColumn "IS" .isSquishable
-            , boolColumn "IG" .isGrippable
-            , boolColumn "IP" .isPenetrable
-            , boolColumn "IE" .isEnsheatheable
+            , boolColumn "CS" .canSquish (text "\u{1FAF8}")
+            , boolColumn "CG" .canGrip (text "🤏")
+            , boolColumn "CP" .canPenetrate (text "☝️")
+            , boolColumn "CE" .canEnsheathe (text "👌")
+            , boolColumn "IS" .isSquishable (text "❤️")
+            , boolColumn "IG" .isGrippable (text "🕹️")
+            , boolColumn "IP" .isPenetrable (text "🕳️")
+            , boolColumn "IE" .isEnsheatheable (text "🍆")
             , spacer
             ]
         }
+
+
+intToDots : Int -> String
+intToDots i =
+    case i of
+        0 ->
+            "⠀"
+
+        1 ->
+            "⠄"
+
+        2 ->
+            "⠤"
+
+        3 ->
+            "⠦"
+
+        4 ->
+            "⠶"
+
+        5 ->
+            "⠷"
+
+        6 ->
+            "⠿"
+
+        7 ->
+            "⣷"
+
+        8 ->
+            "⣿"
+
+        _ ->
+            String.fromInt i
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
