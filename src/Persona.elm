@@ -860,7 +860,13 @@ gendertropeToRecord gendertrope =
                 Dict.empty
             , organs =
                 -- TODO
-                []
+                [ mouth "Soft Rosen Lips"
+                , hands "Delicate Girly Hands"
+                , breasts "Soft Succulent Boobies"
+                , hips "Plush Bubble Butt"
+                , yonic "Yielding Silken Quim"
+                , legs "Cute Limber Legs"
+                ]
             }
 
         Vixen ->
