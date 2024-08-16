@@ -1,4 +1,4 @@
-module Persona exposing (Config, Feature, Gendertrope(..), GendertropeRecord, Persona, default, encode, gendertropeToRecord, levelBonus, parser, view)
+module Persona exposing (Config, Feature, Gendertrope(..), GendertropeRecord, Organ, Persona, default, encode, gendertropeToRecord, levelBonus, parser, view)
 
 import Bit exposing (Bit)
 import BitParser
@@ -369,11 +369,19 @@ viewStandardOrgans gendertropeRecord =
                     else
                         wrap index Element.none
             }
+
+        spacer : Element.IndexedColumn organ msg
+        spacer =
+            { width = fill
+            , header = Element.none
+            , view = \_ _ -> Element.none
+            }
     in
-    Element.indexedTable []
+    Element.indexedTable [ width fill ]
         { data = gendertropeRecord.organs
         , columns =
-            [ { width = shrink
+            [ spacer
+            , { width = shrink
               , header = Element.none
               , view = \index { name } -> wrap index (text name)
               }
@@ -385,6 +393,7 @@ viewStandardOrgans gendertropeRecord =
             , boolColumn "IG" .isGrippable
             , boolColumn "IP" .isPenetrable
             , boolColumn "IE" .isEnsheatheable
+            , spacer
             ]
         }
 
@@ -859,7 +868,6 @@ gendertropeToRecord gendertrope =
                 -- TODO
                 Dict.empty
             , organs =
-                -- TODO
                 [ mouth "Soft Rosen Lips"
                 , hands "Delicate Girly Hands"
                 , breasts "Soft Succulent Boobies"
@@ -876,8 +884,13 @@ gendertropeToRecord gendertrope =
                 -- TODO
                 Dict.empty
             , organs =
-                -- TODO
-                []
+                [ mouth "Hot Hungry Maw"
+                , hands "Deft Nimble Hands"
+                , breasts "Mamerous Milk Melons"
+                , hips "Bouncy Runner Rump"
+                , yonic "Juicy Nether Cleft"
+                , legs "Beastly Hunter Legs"
+                ]
             }
 
         Buck ->
@@ -887,8 +900,12 @@ gendertropeToRecord gendertrope =
                 -- TODO
                 Dict.empty
             , organs =
-                -- TODO
-                []
+                [ mouth "Pretty Princely Pout"
+                , hands "Clever Flexible Fingers"
+                , hips "Bitable Boy Butt"
+                , phallic "Throbbing Meat Pole"
+                , legs "Quick Springy Legs"
+                ]
             }
 
         Fiend ->
@@ -898,8 +915,12 @@ gendertropeToRecord gendertrope =
                 -- TODO
                 Dict.empty
             , organs =
-                -- TODO
-                []
+                [ mouth "Sensuous Knowing Lips"
+                , hands "Steady Dexterous Hands"
+                , hips "Chiseled Stately Ass"
+                , phallic "Darkly Dreaming Dick"
+                , legs "Fit Flexible Legs"
+                ]
             }
 
         Doll ->
@@ -910,7 +931,7 @@ gendertropeToRecord gendertrope =
                 Dict.empty
             , organs =
                 -- TODO
-                []
+                [ hips "Pliable Femme Hips" ]
             }
 
         Custom record ->
