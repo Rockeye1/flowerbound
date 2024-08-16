@@ -457,37 +457,46 @@ viewOrgans gendertropeRecord =
         intColumn :
             String
             -> (Organ -> Int)
+            -> (Int -> Organ -> Organ)
             -> Element.IndexedColumn Organ (List Organ)
-        intColumn label prop =
+        intColumn label prop setter =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
             , view =
                 \index organ ->
                     wrap index
-                        (el
-                            [ Font.color Theme.purple
-                            , Font.size 24
-                            , centerX
-                            ]
-                            (text (intToDots (prop organ)))
+                        (Input.text [ width <| px 60, Font.center ]
+                            { text = String.fromInt (prop organ)
+                            , onChange =
+                                \newValue ->
+                                    setter
+                                        (Maybe.withDefault (prop organ) (String.toInt newValue))
+                                        organ
+                            , placeholder = Just <| Input.placeholder [] (text "0")
+                            , label = Input.labelHidden label
+                            }
                         )
             }
 
         boolColumn :
             String
             -> (Organ -> Bool)
-            -> Element Organ
+            -> (Bool -> Organ -> Organ)
             -> Element.IndexedColumn Organ (List Organ)
-        boolColumn label prop icon =
+        boolColumn label prop setter =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (text label)
             , view =
                 \index organ ->
-                    if prop organ then
-                        wrap index (el [ centerX ] icon)
-
-                    else
-                        wrap index Element.none
+                    wrap index
+                        (el [ centerX, centerY ] <|
+                            Input.checkbox []
+                                { checked = prop organ
+                                , label = Input.labelHidden label
+                                , onChange = \newValue -> setter newValue organ
+                                , icon = Theme.purpleCheckbox
+                                }
+                        )
             }
 
         spacer : Element.IndexedColumn organ msg
@@ -514,16 +523,16 @@ viewOrgans gendertropeRecord =
                                 }
                             )
               }
-            , intColumn "Cont" .contour
-            , intColumn "Erog" .erogeny
-            , boolColumn "CS" .canSquish (text "\u{1FAF8}")
-            , boolColumn "CG" .canGrip (text "🤏")
-            , boolColumn "CP" .canPenetrate (text "☝️")
-            , boolColumn "CE" .canEnsheathe (text "👌")
-            , boolColumn "IS" .isSquishable (text "❤️")
-            , boolColumn "IG" .isGrippable (text "🕹️")
-            , boolColumn "IP" .isPenetrable (text "🕳️")
-            , boolColumn "IE" .isEnsheatheable (text "🍆")
+            , intColumn "Cont" .contour <| \value organ -> { organ | contour = value }
+            , intColumn "Erog" .erogeny <| \value organ -> { organ | erogeny = value }
+            , boolColumn "CS" .canSquish <| \value organ -> { organ | canSquish = value }
+            , boolColumn "CG" .canGrip <| \value organ -> { organ | canGrip = value }
+            , boolColumn "CP" .canPenetrate <| \value organ -> { organ | canPenetrate = value }
+            , boolColumn "CE" .canEnsheathe <| \value organ -> { organ | canEnsheathe = value }
+            , boolColumn "IS" .isSquishable <| \value organ -> { organ | isSquishable = value }
+            , boolColumn "IG" .isGrippable <| \value organ -> { organ | isGrippable = value }
+            , boolColumn "IP" .isPenetrable <| \value organ -> { organ | isPenetrable = value }
+            , boolColumn "IE" .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
             , spacer
             ]
         }

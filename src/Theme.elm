@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleHex, rhythm, row, spacing, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
@@ -161,3 +161,67 @@ multiline :
     -> Element msg
 multiline attrs config =
     Input.multiline (Font.color purple :: attrs) config
+
+
+purpleCheckbox : Bool -> Element msg
+purpleCheckbox checked =
+    Element.el
+        [ Element.htmlAttribute (Html.Attributes.class "focusable")
+        , Element.width
+            (Element.px 14)
+        , Element.height (Element.px 14)
+        , Font.color white
+        , Element.centerY
+        , Font.size 9
+        , Font.center
+        , Border.rounded 3
+        , Border.color <|
+            if checked then
+                purple
+
+            else
+                Element.rgb (211 / 255) (211 / 255) (211 / 255)
+        , Border.shadow
+            { offset = ( 0, 0 )
+            , blur = 1
+            , size = 1
+            , color =
+                if checked then
+                    Element.rgba (238 / 255) (238 / 255) (238 / 255) 0
+
+                else
+                    Element.rgb (238 / 255) (238 / 255) (238 / 255)
+            }
+        , Background.color <|
+            if checked then
+                purple
+
+            else
+                white
+        , Border.width <|
+            if checked then
+                0
+
+            else
+                1
+        , Element.inFront
+            (Element.el
+                [ Border.color white
+                , Element.height (Element.px 6)
+                , Element.width (Element.px 9)
+                , Element.rotate (degrees -45)
+                , Element.centerX
+                , Element.centerY
+                , Element.moveUp 1
+                , Element.transparent (not checked)
+                , Border.widthEach
+                    { top = 0
+                    , left = 2
+                    , bottom = 2
+                    , right = 0
+                    }
+                ]
+                Element.none
+            )
+        ]
+        Element.none
