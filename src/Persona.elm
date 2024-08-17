@@ -1509,7 +1509,7 @@ gendertropeRecordCodec =
     Codec.object GendertropeRecord
         |> Codec.field .name Codec.string
         |> Codec.field .description Codec.string
-        |> Codec.field .features (Codec.dict Codec.int featureCodec)
+        |> Codec.field .features (Codec.dict Codec.positiveInt featureCodec)
         |> Codec.field .organs (Codec.list organCodec)
         |> Codec.buildObject
 
@@ -1518,8 +1518,8 @@ organCodec : Codec e Organ
 organCodec =
     Codec.object Organ
         |> Codec.field .name Codec.string
-        |> Codec.field .contour Codec.int
-        |> Codec.field .erogeny Codec.int
+        |> Codec.field .contour Codec.nonNegativeInt
+        |> Codec.field .erogeny Codec.nonNegativeInt
         |> Codec.field .canSquish Codec.bool
         |> Codec.field .canGrip Codec.bool
         |> Codec.field .canPenetrate Codec.bool
