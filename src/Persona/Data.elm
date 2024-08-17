@@ -28,6 +28,79 @@ butterfly =
     }
 
 
+prehensileProficiency : Feature
+prehensileProficiency =
+    { name = "Prehensile Proficiency"
+    , description = "When using an Organ with both [CanGrip] and [CanPenetrate] to make a Prowess Roll, you may make the roll twice and take the superior result."
+    }
+
+
+dominantExemplar : Feature
+dominantExemplar =
+    { name = "Dominant Exemplar"
+    , description = """You now have a pool of **Dominance Points** with capacity: **3**. Dominance Points do not persist between Encounters and begin at **0**.
+
+You also permanently gain access to these three **Moves**:
+
+> **Assertive Grope** (Tease) [Grips] | CT **6** |  
+> If, and only if, the Stimulation dealt by this Move causes **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
+
+> **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |  
+If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
+
+> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |  
+> _You want that nectar, and it doesn't matter how deep you have to plunge in to taste it. Nowhere is safe from your tongue._
+>
+> If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **1 Craving**.
+
+During your partner's turn, you may spend **1 Dominance Point** to force them to take an action, or _not_ take an action, of your choice. You may only do this once per turn.
+
+> **Subspace** _Passive_  
+> You have disadvantage on all Grace Checks and Sanity Checks. You have advantage on all Ardor Checks and Moxie Checks.
+>
+> At the beginning of your turn, if you are not Having An Orgasm, you may roll a Moxie Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
+    }
+
+
+ambrosia : Feature
+ambrosia =
+    { name = "Ambrosia"
+    , description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
+
+
+> **Fixation** _Passive_  
+> You have disadvantage on all actions that do not target the Organ that inflicted this effect. You cannot volitionally Unpair from the Organ that inflicted this effect.
+>
+> At the beginning of your turn, you may roll a Sanity Check. If the result of the Check is greater than your Craving value, you may remove this effect.
+
+In addition, so long as the effect remains, you gain an extrasensory perception of their body and sexual state and may demand full access to all the information on their Persona Card and Organ Cards at any time."""
+    }
+
+
+gardenKeeper : Feature
+gardenKeeper =
+    { name = "Garden Keeper"
+    , description = """At the beginning of your turn, you may roll a **Fitness Check**. You may drain _up to_ that many points of **Craving** and add those points to your **Stamina Die**.
+
+You also permanently gain access to these two Moves:
+
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
+    }
+
+
+fairyFlight : Feature
+fairyFlight =
+    { name = "Fairy Flight"
+    , description = """Manifest at will ethereal butterfly wings that give you **+5** on all **Grace Check**s, both within and outside sexual encounters.
+
+These wings count as two Occupied Appendages that support your weight and stabilize you, while they exist.
+
+These wings also allow you to fly for a number of minutes equal to your Fitness score multiplied by 10. You recover flight-time at a rate of (1 + Fitness) minutes per minute of rest."""
+    }
+
+
 flower : GendertropeRecord
 flower =
     { name = "The Flower"
@@ -48,6 +121,80 @@ flower =
         , yonic "Yielding Silken Quim"
         , legs "Cute Limber Legs"
         ]
+    }
+
+
+sinfulNectar : Feature
+sinfulNectar =
+    { name = "Sinful Nectar"
+    , description = """When a partner's Organ is paired with an Organ belonging to this Flower that has [IsPenetrable], that partner's Organ receives a bonus to Erogeny equal to this Flower's Ardor."""
+    }
+
+
+preciousObject : Feature
+preciousObject =
+    { name = "Precious Object"
+    , description = """You permanently gain access to these two Moves:
+
+> **Irresistible Squirm** (Tease) [Squishes] | CT: **20** |  
+> If you have the **Subspace** effect, you may drain **10 Craving** from yourself to apply the **Shiver** effect to the target of this Move.
+
+> **Kegel Quiver** (Grind) [Ensheathes] | CT: **0** |  
+> If you have the **Fixation** effect, add **+1** to this Move's attempted Stimulation.
+>
+> If this Move deals Stimulation equal or greater than the Erogeny of the Organ using this Move, gain **1 Craving**.
+
+_Kegel Quiver_ does not require you to target the Organ you are Fixated on, or use the Organ that is Paired to said Fixation target.
+> **Shiver** _Passive_  
+> You have disadvantage on Prowess Rolls (but not Prowess Checks). When using a Move, you must spend _all_ of your available Stamina on the attempted Stimulation for that Move.
+>
+> At the beginning of your turn, you may roll a Prowess Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
+    }
+
+
+alchemicalWomb : Feature
+alchemicalWomb =
+    { name = "Alchemical Womb"
+    , description = """Your womb now possesses three (**3**) **Seed Cache**s.
+
+Once per Encounter, if your _Yielding Silken Quim_ is Paired with a penis or other Ensheatheable Organ, that is able to ejaculate, while the owner of that Organ is Having An Orgasm, you may fill one of your empty **Seed Caches** with their ejaculated fluid. Note the _source_ of each fluid since that will be important later.
+
+> Once per Encounter, if you have at least **1 Seed Cache** filled, you may empty **1** Seed Cache, destroying the contents, to give an **Ability Score** of your choice a **+10** bonus. This bonus ends when the Encounter ends.
+
+Once you have filled all three of your womb's Seed Caches, those contents combine to germinate and gestate an Egg. This takes one full round, from the start of your turn to the start of your following turn. See the __Womb Alchemy Crafting__ section for the Egg's possible Alchemical effect(s).
+
+Once you have gestated an Egg, it remains in your womb until the next time you are Having An Orgasm while your _Yielding Silken Quim_ is Unpaired. Once it emerges from your vagina, it can be interacted with as a plain [CS][IG][IE] Toy. It will not break unless it's Alchemical effect is triggered deliberately."""
+    }
+
+
+honeypot : Feature
+honeypot =
+    { name = "Honeypot"
+    , description = """When a partner successfully Pairs one of their Organs to one of your Organs with a **Firm Maneuver** or a **Violent Maneuver**, you gain **1 Craving**.
+
+You permanently gain access to these Moves:
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
+    }
+
+
+rootedPetals : Feature
+rootedPetals =
+    { name = "Rooted Petals"
+    , description = """Manifest a bushel of lush, slippery, floral vines from the nearest solid inanimate surface. These Root vines function as one Organ with a compatible Appendage for each of your bilateral Organ Appendages, and **10** Contour.
+
+Upon summoning, the vines attempt to bind all of your bilateral Organs in inescapable coils of twisting floral color. However, if any of those Organs have pre-existing Pairings at the time of summoning, the Roots will falter and fail to finish manifesting. To **Take Root**, you must first Unpair all Organs with 'Left' and 'Right' Appendages.
+
+Should the manifestation complete, you become bound into the presentation of a literal flower, with your body as the petals. When you unlock this Feature, choose and write down the specific pose in which your Roots will bind you.
+
+While you are bound in your Roots, you cannot resist any Pairing changes to those of your Organs that are not already Paired to the Root vines, and you cannot make any Pairing changes yourself, but you are also __completely immune to any status effect(s) that you do not wish to affect you__. In addition, the Root vines will resist any attempt to displace its Pairings, with Violent Maneuvers that use your Ability Scores and rolls but do _not_ cost you any Stamina.
+
+The limbs bound by your Roots count as Occupied.
+
+You may dismiss your Roots at the end of your turn, freeing yourself and allowing the Root vines to vanish.
+
+Outside an Encounter, these Roots can be summoned at any distance within line of sight, and will reach across the intervening distance to grab their petals and pull you through space to wherever they spawned from. This can be done a number of times per minute equal to your Moxie score."""
     }
 
 
@@ -74,6 +221,45 @@ vixen =
     }
 
 
+milkMommy : Feature
+milkMommy =
+    { name = "Milk Mommy"
+    , description = """You lactate during your orgasms.
+
+If your partner's mouth is paired with either or both of your _Mamerous Milk Melons_ at the time, they imbibe the resulting milk and become more compliant.
+
+As a consequence, your next Repositioning Maneuver succeeds automatically at 0 Stamina cost and cannot be resisted. Once used, this cannot be used again until your current orgasm ends and your next orgasm begins."""
+    }
+
+
+savageRavisher : Feature
+savageRavisher =
+    { name = "savageRavisher"
+    , description = """"""
+    }
+
+
+fluffyTale : Feature
+fluffyTale =
+    { name = "fluffyTale"
+    , description = """"""
+    }
+
+
+wildAbandon : Feature
+wildAbandon =
+    { name = "wildAbandon"
+    , description = """"""
+    }
+
+
+tittyPhysics : Feature
+tittyPhysics =
+    { name = "tittyPhysics"
+    , description = """"""
+    }
+
+
 buck : GendertropeRecord
 buck =
     { name = "The Buck"
@@ -93,6 +279,41 @@ buck =
         , phallic "Throbbing Meat Pole"
         , legs "Quick Springy Legs"
         ]
+    }
+
+
+insatiable : Feature
+insatiable =
+    { name = "insatiable"
+    , description = """"""
+    }
+
+
+recklessFool : Feature
+recklessFool =
+    { name = "recklessFool"
+    , description = """"""
+    }
+
+
+whiteFountain : Feature
+whiteFountain =
+    { name = "whiteFountain"
+    , description = """"""
+    }
+
+
+eagerPrey : Feature
+eagerPrey =
+    { name = "eagerPrey"
+    , description = """"""
+    }
+
+
+youth : Feature
+youth =
+    { name = "youth"
+    , description = """"""
     }
 
 
@@ -241,225 +462,4 @@ prehensile name =
         , canPenetrate = True
         , isGrippable = True
         , isEnsheatheable = True
-    }
-
-
-prehensileProficiency : Feature
-prehensileProficiency =
-    { name = "Prehensile Proficiency"
-    , description = "When using an Organ with both [CanGrip] and [CanPenetrate] to make a Prowess Roll, you may make the roll twice and take the superior result."
-    }
-
-
-dominantExemplar : Feature
-dominantExemplar =
-    { name = "Dominant Exemplar"
-    , description = """You now have a pool of **Dominance Points** with capacity: **3**. Dominance Points do not persist between Encounters and begin at **0**.
-
-You also permanently gain access to these three **Moves**:
-
-> **Assertive Grope** (Tease) [Grips] | CT **6** |  
-> If, and only if, the Stimulation dealt by this Move causes **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
-
-> **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |  
-If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
-
-> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |  
-> _You want that nectar, and it doesn't matter how deep you have to plunge in to taste it. Nowhere is safe from your tongue._
->
-> If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **1 Craving**.
-
-During your partner's turn, you may spend **1 Dominance Point** to force them to take an action, or _not_ take an action, of your choice. You may only do this once per turn.
-
-> **Subspace** _Passive_  
-> You have disadvantage on all Grace Checks and Sanity Checks. You have advantage on all Ardor Checks and Moxie Checks.
->
-> At the beginning of your turn, if you are not Having An Orgasm, you may roll a Moxie Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
-    }
-
-
-ambrosia : Feature
-ambrosia =
-    { name = "Ambrosia"
-    , description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
-
-
-> **Fixation** _Passive_  
-> You have disadvantage on all actions that do not target the Organ that inflicted this effect. You cannot volitionally Unpair from the Organ that inflicted this effect.
->
-> At the beginning of your turn, you may roll a Sanity Check. If the result of the Check is greater than your Craving value, you may remove this effect.
-
-In addition, so long as the effect remains, you gain an extrasensory perception of their body and sexual state and may demand full access to all the information on their Persona Card and Organ Cards at any time."""
-    }
-
-
-gardenKeeper : Feature
-gardenKeeper =
-    { name = "Garden Keeper"
-    , description = """At the beginning of your turn, you may roll a **Fitness Check**. You may drain _up to_ that many points of **Craving** and add those points to your **Stamina Die**.
-
-You also permanently gain access to these two Moves:
-
-> ((Coming Soon / TBD))
-
-> ((Coming Soon / TBD))"""
-    }
-
-
-fairyFlight : Feature
-fairyFlight =
-    { name = "Fairy Flight"
-    , description = """Manifest at will ethereal butterfly wings that give you **+5** on all **Grace Check**s, both within and outside sexual encounters.
-
-These wings count as two Occupied Appendages that support your weight and stabilize you, while they exist.
-
-These wings also allow you to fly for a number of minutes equal to your Fitness score multiplied by 10. You recover flight-time at a rate of (1 + Fitness) minutes per minute of rest."""
-    }
-
-
-sinfulNectar : Feature
-sinfulNectar =
-    { name = "Sinful Nectar"
-    , description = """When a partner's Organ is paired with an Organ belonging to this Flower that has [IsPenetrable], that partner's Organ receives a bonus to Erogeny equal to this Flower's Ardor."""
-    }
-
-
-preciousObject : Feature
-preciousObject =
-    { name = "Precious Object"
-    , description = """You permanently gain access to these two Moves:
-
-> **Irresistible Squirm** (Tease) [Squishes] | CT: **20** |  
-> If you have the **Subspace** effect, you may drain **10 Craving** from yourself to apply the **Shiver** effect to the target of this Move.
-
-> **Kegel Quiver** (Grind) [Ensheathes] | CT: **0** |  
-> If you have the **Fixation** effect, add **+1** to this Move's attempted Stimulation.
->
-> If this Move deals Stimulation equal or greater than the Erogeny of the Organ using this Move, gain **1 Craving**.
-
-_Kegel Quiver_ does not require you to target the Organ you are Fixated on, or use the Organ that is Paired to said Fixation target.
-> **Shiver** _Passive_  
-> You have disadvantage on Prowess Rolls (but not Prowess Checks). When using a Move, you must spend _all_ of your available Stamina on the attempted Stimulation for that Move.
->
-> At the beginning of your turn, you may roll a Prowess Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
-    }
-
-
-alchemicalWomb : Feature
-alchemicalWomb =
-    { name = "Alchemical Womb"
-    , description = """Your womb now possesses three (**3**) **Seed Cache**s.
-
-Once per Encounter, if your _Yielding Silken Quim_ is Paired with a penis or other Ensheatheable Organ, that is able to ejaculate, while the owner of that Organ is Having An Orgasm, you may fill one of your empty **Seed Caches** with their ejaculated fluid. Note the _source_ of each fluid since that will be important later.
-
-> Once per Encounter, if you have at least **1 Seed Cache** filled, you may empty **1** Seed Cache, destroying the contents, to give an **Ability Score** of your choice a **+10** bonus. This bonus ends when the Encounter ends.
-
-Once you have filled all three of your womb's Seed Caches, those contents combine to germinate and gestate an Egg. This takes one full round, from the start of your turn to the start of your following turn. See the __Womb Alchemy Crafting__ section for the Egg's possible Alchemical effect(s).
-
-Once you have gestated an Egg, it remains in your womb until the next time you are Having An Orgasm while your _Yielding Silken Quim_ is Unpaired. Once it emerges from your vagina, it can be interacted with as a plain [CS][IG][IE] Toy. It will not break unless it's Alchemical effect is triggered deliberately."""
-    }
-
-
-honeypot : Feature
-honeypot =
-    { name = "Honeypot"
-    , description = """When a partner successfully Pairs one of their Organs to one of your Organs with a **Firm Maneuver** or a **Violent Maneuver**, you gain **1 Craving**.
-
-You permanently gain access to these Moves:
-> ((Coming Soon / TBD))
-
-> ((Coming Soon / TBD))"""
-    }
-
-
-rootedPetals : Feature
-rootedPetals =
-    { name = "Rooted Petals"
-    , description = """Manifest a bushel of lush, slippery, floral vines from the nearest solid inanimate surface. These Root vines function as one Organ with a compatible Appendage for each of your bilateral Organ Appendages, and **10** Contour.
-
-Upon summoning, the vines attempt to bind all of your bilateral Organs in inescapable coils of twisting floral color. However, if any of those Organs have pre-existing Pairings at the time of summoning, the Roots will falter and fail to finish manifesting. To **Take Root**, you must first Unpair all Organs with 'Left' and 'Right' Appendages.
-
-Should the manifestation complete, you become bound into the presentation of a literal flower, with your body as the petals. When you unlock this Feature, choose and write down the specific pose in which your Roots will bind you.
-
-While you are bound in your Roots, you cannot resist any Pairing changes to those of your Organs that are not already Paired to the Root vines, and you cannot make any Pairing changes yourself, but you are also __completely immune to any status effect(s) that you do not wish to affect you__. In addition, the Root vines will resist any attempt to displace its Pairings, with Violent Maneuvers that use your Ability Scores and rolls but do _not_ cost you any Stamina.
-
-The limbs bound by your Roots count as Occupied.
-
-You may dismiss your Roots at the end of your turn, freeing yourself and allowing the Root vines to vanish.
-
-Outside an Encounter, these Roots can be summoned at any distance within line of sight, and will reach across the intervening distance to grab their petals and pull you through space to wherever they spawned from. This can be done a number of times per minute equal to your Moxie score."""
-    }
-
-
-milkMommy : Feature
-milkMommy =
-    { name = "Milk Mommy"
-    , description = """You lactate during your orgasms.
-
-If your partner's mouth is paired with either or both of your _Mamerous Milk Melons_ at the time, they imbibe the resulting milk and become more compliant.
-
-As a consequence, your next Repositioning Maneuver succeeds automatically at 0 Stamina cost and cannot be resisted. Once used, this cannot be used again until your current orgasm ends and your next orgasm begins."""
-    }
-
-
-savageRavisher : Feature
-savageRavisher =
-    { name = "savageRavisher"
-    , description = """"""
-    }
-
-
-fluffyTale : Feature
-fluffyTale =
-    { name = "fluffyTale"
-    , description = """"""
-    }
-
-
-wildAbandon : Feature
-wildAbandon =
-    { name = "wildAbandon"
-    , description = """"""
-    }
-
-
-tittyPhysics : Feature
-tittyPhysics =
-    { name = "tittyPhysics"
-    , description = """"""
-    }
-
-
-insatiable : Feature
-insatiable =
-    { name = "insatiable"
-    , description = """"""
-    }
-
-
-recklessFool : Feature
-recklessFool =
-    { name = "recklessFool"
-    , description = """"""
-    }
-
-
-whiteFountain : Feature
-whiteFountain =
-    { name = "whiteFountain"
-    , description = """"""
-    }
-
-
-eagerPrey : Feature
-eagerPrey =
-    { name = "eagerPrey"
-    , description = """"""
-    }
-
-
-youth : Feature
-youth =
-    { name = "youth"
-    , description = """"""
     }
