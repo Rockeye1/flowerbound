@@ -234,29 +234,69 @@ As a consequence, your next Repositioning Maneuver succeeds automatically at 0 S
 
 savageRavisher : Feature
 savageRavisher =
-    { name = "savageRavisher"
-    , description = """"""
+    { name = "Savage Ravisher"
+    , description = """You permanently gain access to these three Moves:
+
+> **Suckling Slam** (Thrust) [Ensheathes] | CT: **0**  |  
+> If the target of this Move is **Having An Orgasm**, they gain a number of additional **Intensity Points** equal to either your **Fitness**, or the **Erogeny** of the Organ this move is targeting, whichever is less. And you gain **1 Craving**.
+
+> **Nurturing Nuzzle** (Grind) [Squishes] | CT: **10** |  
+> Roll a **Moxie Check**. The **Sensitivity** of the target of this Move is immediately reduced by the result of the Check.
+
+> **Fey Tickle** (Tease) [Grips] | CT: **20** |  
+> You may demand to know the current **Sensitivity** of the target of this Move.
+>
+> If this Move is used to inflict pleasure (positive Stimulation), and if the attempted Stimulation is greater than or equal to the target's Sensitivity, add **+1** to the attempted Stimulation.
+>
+> If this Move is used to inflict pain (negative Stimulation), and if the (unsigned absolute value of the) attempted Stimulation is _less_ than the target's Sensitivity, apply the **Heartburst** effect to the target of this Move.
+
+In addition, while you are **Having An Orgasm**, you may roll a Fitness Check instead of a Moxie Check or a Moxie Check instead of a Fitness Check, interchangeably.
+
+> **Heartburst** _Trigger_
+> If you go from not Having An Orgasm to Having An Orgasm, immediately gain an additional **1d8 Intensity Points**.
+>
+> This effect is removed after triggering **1** time."""
     }
 
 
 fluffyTale : Feature
 fluffyTale =
-    { name = "fluffyTale"
-    , description = """"""
+    { name = "Fluffy Tale"
+    , description = """Once per Encounter, you may choose one of your partner's **Organs**.
+
+You may Occupy your _Hot Hungry Maw_ each turn with moaning and murmuring lustful and desirous compliments about that Organ into your partner's ear. Count each turn you do and have done this, and keep track of **that number**.
+
+If ever the owner of the chosen Organ attempts to **Unpair** that Organ from one of your Organs, they must first roll a **Sanity Check**. If the result of the Sanity Check is less than **that number**, they cannot make the attempt, and must immediately make a **Move** with the chosen Organ instead."""
     }
 
 
 wildAbandon : Feature
 wildAbandon =
-    { name = "wildAbandon"
-    , description = """"""
+    { name = "Wild Abandon"
+    , description = """At the beginning of your turn, you may roll an **Ardor Check**. You may drain _up to_ that many points of **Craving** and add those points to your **Arousal**.
+
+You also permanently gain access to these Moves:
+
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
     }
 
 
 tittyPhysics : Feature
 tittyPhysics =
-    { name = "tittyPhysics"
-    , description = """"""
+    { name = "Titty Physics"
+    , description = """Once per turn, you may transform your _Mamerous Milk Melons_ into **Mamerous Mana Melons** or back again.
+
+Your breasts become conduits and reservoirs of magical energy instead of milk, expanding to three times their previous size and granting you **varokinesis**, mental control over the inertial mass of your breast flesh.
+
+The connective tissue inside your breasts and the skin of your breasts is protected by the concentrated mana. Reduce any pain inflicted on your breasts by (10 + Fitness). Reduce any Overstimulation inflicted on your breasts by your Fitness.
+
+Your _Mamerous Mana Melons_ have an additional **+10** bonus to **Contour**.
+
+Pairing attempts made by your _Mamerous Mana Melons_ have disadvantage. However, if your _Mamerous Milk Melons_ are already Paired with another Organ at the time of transformation into _Mamerous Mana Melons_, the owner of that Organ gains **2 Craving** and must make a **Prowess Check**. If the result of their Prowess Check is less than your (5 + Fitness), then until the end of their turn their Moves can target only your _Mamerous Mana Melons_.
+
+Outside an Encounter, you may use the shiftable inertial mass of your breasts to double-jump, dash, and slow-fall."""
     }
 
 
