@@ -78,6 +78,7 @@ compressRoundtrip =
                         |> Route.Persona.Name_.Data__.maybeCompress
                         |> Bits.fromBytes
                         |> Route.Persona.Name_.Data__.maybeDecompress
+                        |> Maybe.withDefault []
             in
             actual
                 |> List.take (List.length bits)
