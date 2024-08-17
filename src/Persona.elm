@@ -840,7 +840,7 @@ abilitiesView persona =
             Theme.row
                 [ alignRight ]
                 [ text (String.fromInt value)
-                , Theme.button []
+                , Theme.button [ alignRight ]
                     { label = Icons.minus
                     , onPress =
                         if value > 2 then
@@ -849,7 +849,7 @@ abilitiesView persona =
                         else
                             Nothing
                     }
-                , Theme.button []
+                , Theme.button [ alignRight ]
                     { label = Icons.plus
                     , onPress =
                         if availablePoints > 0 && value < 20 then
