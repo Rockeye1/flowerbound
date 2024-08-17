@@ -1,4 +1,4 @@
-module CodecTest exposing (suite)
+module CodecTest exposing (roundtrips, suite)
 
 import Bits.Codec as Codec exposing (Codec)
 import Bits.Decode
