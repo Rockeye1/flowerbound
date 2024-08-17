@@ -224,7 +224,9 @@ title persona =
 
 toDescription : Persona -> String
 toDescription persona =
-    [ "FIT " ++ String.fromInt persona.fitness
+    [ persona.name
+    , (Persona.gendertropeToRecord persona.gendertrope).name
+    , "FIT " ++ String.fromInt persona.fitness
     , "GRC " ++ String.fromInt persona.grace
     , "ARD " ++ String.fromInt persona.ardor
     , "SAN " ++ String.fromInt persona.sanity
@@ -295,12 +297,12 @@ toCard persona =
 
                     description : String
                     description =
-                        [ "FIT " ++ padNumber 2 persona.fitness
-                        , "GRC " ++ padNumber 2 persona.grace
-                        , "ARD " ++ padNumber 2 persona.ardor
-                        , "SAN " ++ padNumber 2 persona.sanity
-                        , "PRW " ++ padNumber 2 persona.prowess
-                        , "MOX " ++ padNumber 2 persona.moxie
+                        [ "FIT\u{2009}" ++ padNumber 2 persona.fitness
+                        , "GRC\u{2009}" ++ padNumber 2 persona.grace
+                        , "ARD\u{2009}" ++ padNumber 2 persona.ardor
+                        , "SAN\u{2009}" ++ padNumber 2 persona.sanity
+                        , "PRW\u{2009}" ++ padNumber 2 persona.prowess
+                        , "MOX\u{2009}" ++ padNumber 2 persona.moxie
                         ]
                             |> String.join "\n"
 
@@ -318,7 +320,7 @@ toCard persona =
                         , meter "Craving" persona.sanity
                         , meter "Arousal" persona.prowess
                         , meter "Sensitivity" persona.moxie
-                        , "Level bonus " ++ padNumber 5 (Persona.levelBonus persona)
+                        , "Level\u{2009}bonus\u{2009} " ++ padNumber 5 (Persona.levelBonus persona)
                         ]
                             |> String.join "\n"
                 in
