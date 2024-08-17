@@ -78,11 +78,12 @@ personaFromSlug : String -> String -> Persona
 personaFromSlug name slug =
     Maybe.Extra.andThen2
         (\fixedName bytes ->
-            Bits.Decode.run
-                Persona.codec.decoder
-                bytes
-                |> Result.toMaybe
-                |> Maybe.map (Persona.fromPartial fixedName)
+            case Bits.Decode.run Persona.codec.decoder bytes of
+                Ok partial ->
+                    Just (Persona.fromPartial fixedName partial)
+
+                Err _ ->
+                    Nothing
         )
         (Url.percentDecode name)
         (slug

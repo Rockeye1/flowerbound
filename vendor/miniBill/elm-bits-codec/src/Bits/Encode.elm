@@ -1,5 +1,6 @@
-module Bits.Encode exposing (bool, int, list, nonNegativeInt, positiveInt, string)
+module Bits.Encode exposing (array, bool, int, list, nonNegativeInt, positiveInt, string)
 
+import Array exposing (Array)
 import Bit exposing (Bit)
 import Bits
 import Bytes.Encode
@@ -43,6 +44,11 @@ positiveIntHelper n acc =
                 ceiling (logBase 2 (toFloat n + 1))
         in
         positiveIntHelper (length - 1) (Bits.fromIntUnsigned length n ++ acc)
+
+
+array : (a -> Rope Bit) -> Array a -> Rope Bit
+array item input =
+    list item (Array.toList input)
 
 
 list : (a -> Rope Bit) -> List a -> Rope Bit

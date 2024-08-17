@@ -1,5 +1,6 @@
-module Bits.Decode exposing (Decoder, Error(..), Step(..), andMap, andThen, bit, bits, bool, bytes, fail, int, list, loop, map, map2, map3, map4, map5, nonNegativeInt, positiveInt, problem, run, string, succeed)
+module Bits.Decode exposing (Decoder, Error(..), Step(..), andMap, andThen, array, bit, bits, bool, bytes, fail, int, list, loop, map, map2, map3, map4, map5, nonNegativeInt, positiveInt, problem, run, string, succeed)
 
+import Array exposing (Array)
 import Bit exposing (Bit)
 import Bits
 import Bytes exposing (Bytes)
@@ -182,7 +183,7 @@ int =
                 n // 2
 
             else
-                -n // 2
+                -n // 2 - 1
         )
         nonNegativeInt
 
@@ -209,6 +210,11 @@ positiveInt =
                     )
         )
         1
+
+
+array : Decoder e a -> Decoder e (Array a)
+array item =
+    map Array.fromList (list item)
 
 
 list : Decoder e a -> Decoder e (List a)
