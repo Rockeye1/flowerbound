@@ -18,7 +18,8 @@ import Image
 import Maybe.Extra
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import Persona exposing (Persona)
+import Persona
+import Persona.Types exposing (Persona)
 import Rope
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
