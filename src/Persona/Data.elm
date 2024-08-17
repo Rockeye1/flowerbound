@@ -42,20 +42,24 @@ dominantExemplar =
 
 You also permanently gain access to these three **Moves**:
 
-> **Assertive Grope** (Tease) [Grips] | CT **6** |  
+> **Assertive Grope** (Tease) [Grips] | CT **6** |
+>
 > If, and only if, the Stimulation dealt by this Move causes **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
 
-> **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |  
+> **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |
+>
 If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
 
-> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |  
+> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
+>
 > _You want that nectar, and it doesn't matter how deep you have to plunge in to taste it. Nowhere is safe from your tongue._
 >
 > If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **1 Craving**.
 
 During your partner's turn, you may spend **1 Dominance Point** to force them to take an action, or _not_ take an action, of your choice. You may only do this once per turn.
 
-> **Subspace** _Passive_  
+> **Subspace** _Passive_
+>
 > You have disadvantage on all Grace Checks and Sanity Checks. You have advantage on all Ardor Checks and Moxie Checks.
 >
 > At the beginning of your turn, if you are not Having An Orgasm, you may roll a Moxie Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
@@ -68,7 +72,8 @@ ambrosia =
     , description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
 
 
-> **Fixation** _Passive_  
+> **Fixation** _Passive_
+>
 > You have disadvantage on all actions that do not target the Organ that inflicted this effect. You cannot volitionally Unpair from the Organ that inflicted this effect.
 >
 > At the beginning of your turn, you may roll a Sanity Check. If the result of the Check is greater than your Craving value, you may remove this effect.
@@ -136,16 +141,20 @@ preciousObject =
     { name = "Precious Object"
     , description = """You permanently gain access to these two Moves:
 
-> **Irresistible Squirm** (Tease) [Squishes] | CT: **20** |  
+> **Irresistible Squirm** (Tease) [Squishes] | CT: **20** |
+>
 > If you have the **Subspace** effect, you may drain **10 Craving** from yourself to apply the **Shiver** effect to the target of this Move.
 
-> **Kegel Quiver** (Grind) [Ensheathes] | CT: **0** |  
+> **Kegel Quiver** (Grind) [Ensheathes] | CT: **0** |
+>
 > If you have the **Fixation** effect, add **+1** to this Move's attempted Stimulation.
 >
 > If this Move deals Stimulation equal or greater than the Erogeny of the Organ using this Move, gain **1 Craving**.
 
 _Kegel Quiver_ does not require you to target the Organ you are Fixated on, or use the Organ that is Paired to said Fixation target.
-> **Shiver** _Passive_  
+
+> **Shiver** _Passive_
+>
 > You have disadvantage on Prowess Rolls (but not Prowess Checks). When using a Move, you must spend _all_ of your available Stamina on the attempted Stimulation for that Move.
 >
 > At the beginning of your turn, you may roll a Prowess Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
@@ -237,13 +246,16 @@ savageRavisher =
     { name = "Savage Ravisher"
     , description = """You permanently gain access to these three Moves:
 
-> **Suckling Slam** (Thrust) [Ensheathes] | CT: **0**  |  
+> **Suckling Slam** (Thrust) [Ensheathes] | CT: **0**  |
+>
 > If the target of this Move is **Having An Orgasm**, they gain a number of additional **Intensity Points** equal to either your **Fitness**, or the **Erogeny** of the Organ this move is targeting, whichever is less. And you gain **1 Craving**.
 
-> **Nurturing Nuzzle** (Grind) [Squishes] | CT: **10** |  
+> **Nurturing Nuzzle** (Grind) [Squishes] | CT: **10** |
+>
 > Roll a **Moxie Check**. The **Sensitivity** of the target of this Move is immediately reduced by the result of the Check.
 
-> **Fey Tickle** (Tease) [Grips] | CT: **20** |  
+> **Fey Tickle** (Tease) [Grips] | CT: **20** |
+>
 > You may demand to know the current **Sensitivity** of the target of this Move.
 >
 > If this Move is used to inflict pleasure (positive Stimulation), and if the attempted Stimulation is greater than or equal to the target's Sensitivity, add **+1** to the attempted Stimulation.
@@ -324,36 +336,66 @@ buck =
 
 insatiable : Feature
 insatiable =
-    { name = "insatiable"
-    , description = """"""
+    { name = "Insatiable"
+    , description = """Your Arousal can never drop below your Ardor Score."""
     }
 
 
 recklessFool : Feature
 recklessFool =
-    { name = "recklessFool"
-    , description = """"""
+    { name = "Reckless Fool"
+    , description = """You permanently gain access to these two Moves:
+
+> **Starving Tongue-Kiss** (Thrust) [Squishes] | CT: **5** |
+>
+> If this Move causes any Overstimulation, you may drain **5 Craving** from yourself to grant yourself the **Lucid Fugue** effect.
+
+> **Reckless Railing** (Thrust) [Penetrates] | CT: **0** |
+>
+> Roll an **Ardor Check**.
+> - If the result is greater than the Stimulation dealt by this Move, you gain additional **Arousal** equal to the result.
+> - If the result is less than or equal to the Stimulation dealt by this Move, the target of this move gains additional **Arousal** equal to the result.
+
+In addition, you may add half of your **Craving** value to the result of any **Grace Check**s. If you do so, but fail the Grace Check anyway, you immediately acquire the **Shiver** effect.
+
+> **Lucid Fugue** _Trigger_
+>
+> If you roll a standard **Orgasm Sanity Check**, and if you fail that Check, remove a number of **Intensity Points** equal to the result of the Check and add that many points to your **Craving**. This does not alter the outcome of the Check.
+>
+> This effect is removed after triggering **1** time."""
     }
 
 
 whiteFountain : Feature
 whiteFountain =
-    { name = "whiteFountain"
-    , description = """"""
+    { name = "White Fountain"
+    , description = """While your _Bitable Boy Butt_ is Paired with an Organ that [IsEnsheatheable], you have a **-10** Modifier to your Orgasm Threshold and a **+10** bonus to the Erogeny of your _Throbbing Meat Pole_. In addition, your semen becomes magically-charged:
+
+At the beginning of your turn, if you are **Having An Orgasm**, any Organ paired with your _Throbbing Meat Pole_ is soaked in your magically-charged semen, applying the **Epiphany** effect _both_ to the owner of that Organ as well as yourself.
+
+> **Epiphany** _Passive_
+>
+> If you have this effect when you end an Encounter by **satisfying** your partner, you gain **2** Euphoria Points instead of **1**."""
     }
 
 
 eagerPrey : Feature
 eagerPrey =
-    { name = "eagerPrey"
-    , description = """"""
+    { name = "Eager Prey"
+    , description = """When you gain **Intensity Point(s)**, you may convert those points in an amount _up to_ your **Level Bonus** directly into **Arousal** instead.
+
+You also permanently gain access to these Moves:
+
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
     }
 
 
 youth : Feature
 youth =
-    { name = "youth"
-    , description = """"""
+    { name = "Youth!"
+    , description = """You have advantage on all Fitness Checks, always."""
     }
 
 
