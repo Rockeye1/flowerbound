@@ -2,7 +2,7 @@ module Persona exposing (Config, codec, default, fromPartial, gendertropeToRecor
 
 import Bits.Codec as Codec exposing (Codec)
 import Dict
-import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, column, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -676,7 +676,11 @@ markdownRenderer =
                 , maybeTitle image.title
                 ]
                 { src = image.src, description = image.alt }
-    , unorderedList = \_ -> text "TODO: unorderedList"
+    , unorderedList =
+        \items ->
+            items
+                |> List.map viewUnorderedListItem
+                |> Theme.column []
     , orderedList = \_ _ -> text "TODO: orderedList"
     , codeBlock = \_ -> text "TODO: codeBlock"
     , thematicBreak = Element.none
@@ -687,6 +691,28 @@ markdownRenderer =
     , tableCell = \_ _ -> text "TODO: tableCell"
     , tableHeaderCell = \_ _ -> text "TODO: tableHeaderCell"
     }
+
+
+viewUnorderedListItem : Markdown.Block.ListItem (Element msg) -> Element msg
+viewUnorderedListItem (Markdown.Block.ListItem task children) =
+    case task of
+        Markdown.Block.NoTask ->
+            row []
+                [ el [ alignTop ] (text " - ")
+                , paragraph [] children
+                ]
+
+        Markdown.Block.IncompleteTask ->
+            row []
+                [ el [ alignTop ] (text " [ ] ")
+                , paragraph [] children
+                ]
+
+        Markdown.Block.CompletedTask ->
+            row []
+                [ el [ alignTop ] (text " [V] ")
+                , paragraph [] children
+                ]
 
 
 maybeTitle : Maybe String -> Attribute msg
