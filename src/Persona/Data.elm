@@ -1,6 +1,7 @@
 module Persona.Data exposing (buck, butterfly, doll, fiend, flower, vixen)
 
 import Dict
+import Element.Region exposing (description)
 import Persona.Types exposing (Feature, GendertropeRecord, Organ)
 
 
@@ -404,8 +405,13 @@ fiend =
     { name = "The Fiend"
     , description = "He is a cruel being of meticulous obsession and exacting desires. His esoteric pleasures are often strange or abstract, and he will craft them himself if he must, or if he prefers. But his implacable single-minded pursuit of his strange joys is intrinsically entwined with the intense empathy and fascination he feels for his living toys."
     , features =
-        -- TODO
-        Dict.empty
+        [ ( 1, dildonicSemblance )
+        , ( 2, devilishDominator )
+        , ( 3, bondageArtisan )
+        , ( 4, masterCollector )
+        , ( 5, theVoice )
+        ]
+            |> Dict.fromList
     , organs =
         [ mouth "Sensuous Knowing Lips"
         , hands "Steady Dexterous Hands"
@@ -416,16 +422,184 @@ fiend =
     }
 
 
+dildonicSemblance : Feature
+dildonicSemblance =
+    { name = "Dildonic Semblance"
+    , description = """Choose one **Toy**. You are now able to summon that Toy freely, at no cost, without access to a Toybox."""
+    }
+
+
+devilishDominator : Feature
+devilishDominator =
+    { name = "Devilish Dominator"
+    , description = """You permanently gain access to these three Moves:
+
+> **Coaxing Curl** (Grind) [Grips/Penetrates] | CT: **0** |
+>
+> You may immediately view the state of all **Status Meters** on the owner, as well as all information on the **Organ Card** of the Organ this Move is targeting. You may do this _before_ deciding how much attempted Stimulation this Move will deal.
+
+> **Pernicious Pump** (Thrust) [Penetrates] | CT : **5** |
+>
+> You have advantage on the **Prowess Roll** for this Move if this Move is used to inflict pain (negative Stimulation).
+>
+> If the 'Organ' using this Move is _not_ one of your Feature-granted Toys, drain **5 Craving** from yourself.
+
+> **Taste of Perfection** (Tease) [Squishes] | CT: **20** |
+>
+> Apply the **Perfectionism** effect to yourself.
+>
+> Drain **Stamina** from yourself equal to your **Level Bonus** _in addition to_ whatever you spend on Stimulation.
+
+In addition, once per turn, if and only if you have the Perfectionism effect, you may roll a **Prowess Check**. If the result is greater than the **Summoning Rank** of any of your **Marked Toys** from a Toybox, you may Summon that Toy at **0** cost. This _does_ trigger and consume the Perfectionism effect.
+
+> **Perfectionism** _Trigger_
+>
+> Your next **Prowess Roll** or **Prowess Check** acts as though your **Prowess Score** is __twice__ its current value.
+>
+> This effect is removed after triggering **1** time."""
+    }
+
+
+bondageArtisan : Feature
+bondageArtisan =
+    { name = "Bondage Artisan"
+    , description = """Choose another **Toy**. You are now also able to summon that Toy freely, at no cost, without access to a Toybox.
+
+Both this Toy and the Toy granted by _Dildonic Semblance_ now have an additional effect:
+
+If the owner of the Organ(s) that are Paired with either or both Toys is **Having An Orgasm**, and that owner is _not_ you, roll a **Sanity Check**. Gain **Satiation** equal to the result."""
+    }
+
+
+masterCollector : Feature
+masterCollector =
+    { name = "Master Collector"
+    , description = """At the beginning of your turn, you may roll a **Prowess Check**. You may move a number of points _up to_ the result of the Check from your **Arousal** to your **Craving**.
+
+You also permanently gain access to these Moves:
+
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
+    }
+
+
+theVoice : Feature
+theVoice =
+    { name = "The Voice"
+    , description = """Once per round, refreshing at the end of your turn, you may inflict **disadvantage** on any one **Ability Check** rolled by anyone within the reach of your voice.
+
+Both inside and outside of an Encounter, you may issue a one-word command to an inanimate object or a subsapient being. If the GM allows, if physically able, the target of this command will obey it."""
+    }
+
+
 doll : GendertropeRecord
 doll =
     { name = "The Doll"
     , description = "She is a blissful being of peaceful passivity and masochistic fatalism. Her only wish is to be treasured and tormented, teased and tantalized, in the hands of one worthy to own her, or even remake her. But her selfless wish to gratify her demanding master is tempered by her selfish wish for a life of mindless ecstasy."
     , features =
-        -- TODO
-        Dict.empty
+        [ ( 1, plugAndPlay )
+        , ( 2, proudPlaything )
+        , ( 3, exaltedPainslut )
+        , ( 4, eternalDevotion )
+        , ( 5, remoteNetworking )
+        ]
+            |> Dict.fromList
     , organs =
         -- TODO
         [ hips "Pliable Femme Hips" ]
+    }
+
+
+plugAndPlay : Feature
+plugAndPlay =
+    { name = "Plug And Play"
+    , description = """Despite being (mostly) made of flesh, your Organs may be seamlessly, painlessly, and bloodlessly detached and swapped out for different ones.
+
+__Sockets:__
+
+The rules for Sockets go by what makes sense physically. In general:
+- Any Organ that is Small can fit in any Socket.
+- Any Organ that is Medium can fit in Medium and Large Sockets.
+- Any Organ that is Large can only fit in in Large Sockets.
+
+Determining the size of an Organ bends to the narrative and what makes physical sense therein, but in general:
+- Mouths, Arms, and Genitals are Small.
+- Breasts are Medium.
+- Legs are Large.
+- Additional Hips/Butts are larger than Large and thus too Large to attach to any of your Sockets.
+
+You are not limited to bilateral Appendages in bilateral Sockets.
+
+__Face Socket:__
+
+You are not limited to Small Organs on your face.
+
+However, if you attach a Medium Organ to your face Socket, you lose the ability to breathe and must have some kind of narrative justification for why you can remain conscious. Suffocation is not deadly, in the Starheart Lodge, but it _is_ usually entirely incapacitating.
+
+If you attach a Large Organ to your face Socket, you lose both the ability to breathe and the ability to see. There are no mechanical rules for blindness, but narratively you do not have eyes.
+
+Swapping out an Organ during an Encounter costs **Stamina** equal to your **Level Bonus**. A detached Organ follows the same rules as a **Toy**."""
+    }
+
+
+proudPlaything : Feature
+proudPlaything =
+    { name = "Proud Plaything"
+    , description = """You permanently gain access to these two Moves:
+
+> **Blissful Service** (Tease) [Squishes/Ensheathes] | CT: **0** |
+>
+> If the **Understimulation** dealt by this move is non-zero but less than your **Ardor**, you may grant yourself the **Subspace** effect.
+
+> **Slavish Worship** (Grind) [Squishes/Grips] | CT: **15** |
+>
+> If you have the **Subspace** effect, and if this move deals non-zero positive Stimulation, you regain **Stamina** equal to the **Erogeny** of the Organ that this move is targeting.
+
+In addition, if, at the end of your turn, you have the **Subspace** effect, you gain **Satiation** equal to your **Level Bonus** in addition to the results of your Aftermath."""
+    }
+
+
+exaltedPainslut : Feature
+exaltedPainslut =
+    { name = "Exalted Painslut"
+    , description = """You permanently gain the **Masochism** effect, which cannot be removed.
+
+> **Masochism** _Passive_
+>
+> Take the absolute value, instead of the signed value, for any Stimulation you receive.
+>
+> Negative Stimulation you receive still counts as pain for any conditions that specify pain.
+
+When you receive pain, roll a **Moxie Check**. If the result is greater than the unsigned absolute value of the pain, you are granted the **Subspace** effect."""
+    }
+
+
+eternalDevotion : Feature
+eternalDevotion =
+    { name = "Eternal Devotion"
+    , description = """While you have the **Subspace** effect, your **Craving** can no longer fall lower than your **Satiation**. Keep your **Craving** filled such that it at least equals your **Satiation**.
+
+You also gain access to these two Moves:
+
+> ((Coming Soon / TBD))
+
+> ((Coming Soon / TBD))"""
+    }
+
+
+remoteNetworking : Feature
+remoteNetworking =
+    { name = "Remote Networking"
+    , description = """When you detach an Organ, you retain a connection to that Organ that allows you to continue feeling and acting through it.
+
+A detached Organ:
+- Keeps its Erogeny score and may receive Stimulation.
+- May not attempt Pairings (unless held and used like a Toy).
+- May resist attempted Pairings with disadvantage on the contested Grace Check and doubling of any Stamina costs.
+- May, if Paired, use Moves at twice the non-detached Stamina cost.
+
+If you do _not_ at the time have the **Subspace** effect, you may spend **1 Ichor Point** to sever your connection to one of your detached Organs."""
     }
 
 
