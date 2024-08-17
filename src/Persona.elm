@@ -839,7 +839,7 @@ abilitiesView persona =
         viewRow ( _, value, setter ) =
             Theme.row
                 [ alignRight ]
-                [ text (String.fromInt value)
+                [ el [ alignRight ] (text (String.fromInt value))
                 , Theme.button [ alignRight ]
                     { label = Icons.minus
                     , onPress =
