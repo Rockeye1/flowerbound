@@ -1,3 +1,4 @@
 - Settings
     - Disable animations
 - Log of actions
+    - Interspersed with chat log

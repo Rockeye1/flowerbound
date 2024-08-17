@@ -90,26 +90,30 @@ personaFromSlug name slug =
             |> String.replace "_" "/"
             |> String.replace "-" "+"
             |> Base64.toBytes
-            |> Maybe.map Bits.fromBytes
-            |> Maybe.map maybeDecompress
+            |> Maybe.andThen
+                (\bytes ->
+                    bytes
+                        |> Bits.fromBytes
+                        |> maybeDecompress
+                )
         )
         |> Maybe.withDefault Persona.default
 
 
-maybeDecompress : List Bit -> List Bit
+maybeDecompress : List Bit -> Maybe (List Bit)
 maybeDecompress input =
     case input of
         [] ->
-            input
+            Just input
 
         Bit.O :: tail ->
-            List.drop 7 tail
+            Just (List.drop 7 tail)
 
         Bit.I :: tail ->
             List.drop 7 tail
                 |> Bits.toBytes
-                |> Flate.deflate
-                |> Bits.fromBytes
+                |> Flate.inflate
+                |> Maybe.map Bits.fromBytes
 
 
 personaToSlug : Persona -> String
