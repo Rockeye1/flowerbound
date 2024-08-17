@@ -1,8 +1,125 @@
 module Persona.Data exposing (buck, butterfly, doll, fiend, flower, vixen)
 
 import Dict
-import Element.Region exposing (description)
 import Persona.Types exposing (Feature, GendertropeRecord, Organ)
+
+
+emptyOrgan : Organ
+emptyOrgan =
+    { name = ""
+    , contour = 0
+    , erogeny = 0
+    , canSquish = False
+    , canGrip = False
+    , canPenetrate = False
+    , canEnsheathe = False
+    , isSquishable = False
+    , isGrippable = False
+    , isPenetrable = False
+    , isEnsheatheable = False
+    }
+
+
+mouth : String -> Organ
+mouth name =
+    { emptyOrgan
+        | name = name
+        , contour = 1
+        , erogeny = 2
+        , canSquish = True
+        , canEnsheathe = True
+        , isSquishable = True
+        , isPenetrable = True
+    }
+
+
+hands : String -> Organ
+hands name =
+    { emptyOrgan
+        | name = name
+        , contour = 0
+        , erogeny = 1
+        , canSquish = True
+        , canGrip = True
+        , canPenetrate = True
+        , isGrippable = True
+        , isEnsheatheable = True
+    }
+
+
+breasts : String -> Organ
+breasts name =
+    { emptyOrgan
+        | name = name
+        , contour = 5
+        , erogeny = 4
+        , canSquish = True
+        , isSquishable = True
+        , isGrippable = True
+    }
+
+
+hips : String -> Organ
+hips name =
+    { emptyOrgan
+        | name = name
+        , contour = 1
+        , erogeny = 4
+        , canSquish = True
+        , canEnsheathe = True
+        , isSquishable = True
+        , isGrippable = True
+        , isPenetrable = True
+    }
+
+
+legs : String -> Organ
+legs name =
+    { emptyOrgan
+        | name = name
+        , contour = 0
+        , erogeny = 1
+        , canSquish = True
+        , isGrippable = True
+    }
+
+
+phallic : String -> Organ
+phallic name =
+    { emptyOrgan
+        | name = name
+        , contour = 2
+        , erogeny = 7
+        , canPenetrate = True
+        , isGrippable = True
+        , isEnsheatheable = True
+    }
+
+
+yonic : String -> Organ
+yonic name =
+    { emptyOrgan
+        | name = name
+        , contour = 3
+        , erogeny = 6
+        , canSquish = True
+        , canEnsheathe = True
+        , isSquishable = True
+        , isPenetrable = True
+    }
+
+
+prehensile : String -> Organ
+prehensile name =
+    { emptyOrgan
+        | name = name
+        , contour = 4
+        , erogeny = 2
+        , canGrip = True
+        , canPenetrate = True
+        , isGrippable = True
+        , isEnsheatheable = True
+    }
 
 
 butterfly : GendertropeRecord
@@ -600,122 +717,4 @@ A detached Organ:
 - May, if Paired, use Moves at twice the non-detached Stamina cost.
 
 If you do _not_ at the time have the **Subspace** effect, you may spend **1 Ichor Point** to sever your connection to one of your detached Organs."""
-    }
-
-
-emptyOrgan : Organ
-emptyOrgan =
-    { name = ""
-    , contour = 0
-    , erogeny = 0
-    , canSquish = False
-    , canGrip = False
-    , canPenetrate = False
-    , canEnsheathe = False
-    , isSquishable = False
-    , isGrippable = False
-    , isPenetrable = False
-    , isEnsheatheable = False
-    }
-
-
-mouth : String -> Organ
-mouth name =
-    { emptyOrgan
-        | name = name
-        , contour = 1
-        , erogeny = 2
-        , canSquish = True
-        , canEnsheathe = True
-        , isSquishable = True
-        , isPenetrable = True
-    }
-
-
-hands : String -> Organ
-hands name =
-    { emptyOrgan
-        | name = name
-        , contour = 0
-        , erogeny = 1
-        , canSquish = True
-        , canGrip = True
-        , canPenetrate = True
-        , isGrippable = True
-        , isEnsheatheable = True
-    }
-
-
-breasts : String -> Organ
-breasts name =
-    { emptyOrgan
-        | name = name
-        , contour = 5
-        , erogeny = 4
-        , canSquish = True
-        , isSquishable = True
-        , isGrippable = True
-    }
-
-
-hips : String -> Organ
-hips name =
-    { emptyOrgan
-        | name = name
-        , contour = 1
-        , erogeny = 4
-        , canSquish = True
-        , canEnsheathe = True
-        , isSquishable = True
-        , isGrippable = True
-        , isPenetrable = True
-    }
-
-
-legs : String -> Organ
-legs name =
-    { emptyOrgan
-        | name = name
-        , contour = 0
-        , erogeny = 1
-        , canSquish = True
-        , isGrippable = True
-    }
-
-
-phallic : String -> Organ
-phallic name =
-    { emptyOrgan
-        | name = name
-        , contour = 2
-        , erogeny = 7
-        , canPenetrate = True
-        , isGrippable = True
-        , isEnsheatheable = True
-    }
-
-
-yonic : String -> Organ
-yonic name =
-    { emptyOrgan
-        | name = name
-        , contour = 3
-        , erogeny = 6
-        , canSquish = True
-        , canEnsheathe = True
-        , isSquishable = True
-        , isPenetrable = True
-    }
-
-
-prehensile : String -> Organ
-prehensile name =
-    { emptyOrgan
-        | name = name
-        , contour = 4
-        , erogeny = 2
-        , canGrip = True
-        , canPenetrate = True
-        , isGrippable = True
-        , isEnsheatheable = True
     }
