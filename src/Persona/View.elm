@@ -247,11 +247,12 @@ organs input =
 
         intColumn :
             String
+            -> String
             -> (Organ -> Int)
             -> Element.IndexedColumn Organ msg
-        intColumn label prop =
+        intColumn label hint prop =
             { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
             , view =
                 \index organ ->
                     wrap index
@@ -271,12 +272,13 @@ organs input =
 
         boolColumn :
             String
+            -> String
             -> (Organ -> Bool)
             -> Element msg
             -> Element.IndexedColumn Organ msg
-        boolColumn label prop img =
+        boolColumn label hint prop img =
             { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
             , view =
                 \index organ ->
                     if prop organ then
@@ -301,16 +303,16 @@ organs input =
               , header = Element.none
               , view = \index { name } -> wrap index (text name)
               }
-            , intColumn "Cont" .contour
-            , intColumn "Erog" .erogeny
-            , boolColumn "CS" .canSquish Icons.squish
-            , boolColumn "CG" .canGrip Icons.grip
-            , boolColumn "CP" .canPenetrate Icons.penetrate
-            , boolColumn "CE" .canEnsheathe Icons.ensheathe
-            , boolColumn "IS" .isSquishable Icons.squishable
-            , boolColumn "IG" .isGrippable Icons.grippable
-            , boolColumn "IP" .isPenetrable Icons.penetrable
-            , boolColumn "IE" .isEnsheatheable Icons.ensheatheable
+            , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour
+            , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny
+            , boolColumn "CS" "Can Squish" .canSquish Icons.squish
+            , boolColumn "CG" "Can Grip" .canGrip Icons.grip
+            , boolColumn "CP" "Can Penetrate" .canPenetrate Icons.penetrate
+            , boolColumn "CE" "Can Ensheathe" .canEnsheathe Icons.ensheathe
+            , boolColumn "IS" "Is Squishable" .isSquishable Icons.squishable
+            , boolColumn "IG" "Is Grippable" .isGrippable Icons.grippable
+            , boolColumn "IP" "Is Penetrable" .isPenetrable Icons.penetrable
+            , boolColumn "IE" "Is Ensheatheable" .isEnsheatheable Icons.ensheatheable
             , spacer
             ]
         }

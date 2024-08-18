@@ -477,12 +477,13 @@ viewOrgans gendertropeRecord =
 
         intColumn :
             String
+            -> String
             -> (Organ -> Int)
             -> (Int -> Organ -> Organ)
             -> Element.IndexedColumn Organ (List Organ)
-        intColumn label prop setter =
+        intColumn label hint prop setter =
             { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
             , view =
                 \index organ ->
                     wrap index
@@ -501,12 +502,13 @@ viewOrgans gendertropeRecord =
 
         boolColumn :
             String
+            -> String
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
             -> Element.IndexedColumn Organ (List Organ)
-        boolColumn label prop setter =
+        boolColumn label hint prop setter =
             { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (text label)
+            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
             , view =
                 \index organ ->
                     wrap index
@@ -544,16 +546,16 @@ viewOrgans gendertropeRecord =
                                 }
                             )
               }
-            , intColumn "Cont." .contour <| \value organ -> { organ | contour = value }
-            , intColumn "Erog." .erogeny <| \value organ -> { organ | erogeny = value }
-            , boolColumn "CS" .canSquish <| \value organ -> { organ | canSquish = value }
-            , boolColumn "CG" .canGrip <| \value organ -> { organ | canGrip = value }
-            , boolColumn "CP" .canPenetrate <| \value organ -> { organ | canPenetrate = value }
-            , boolColumn "CE" .canEnsheathe <| \value organ -> { organ | canEnsheathe = value }
-            , boolColumn "IS" .isSquishable <| \value organ -> { organ | isSquishable = value }
-            , boolColumn "IG" .isGrippable <| \value organ -> { organ | isGrippable = value }
-            , boolColumn "IP" .isPenetrable <| \value organ -> { organ | isPenetrable = value }
-            , boolColumn "IE" .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
+            , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour <| \value organ -> { organ | contour = value }
+            , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny <| \value organ -> { organ | erogeny = value }
+            , boolColumn "CS" "Can Squish" .canSquish <| \value organ -> { organ | canSquish = value }
+            , boolColumn "CG" "Can Grip" .canGrip <| \value organ -> { organ | canGrip = value }
+            , boolColumn "CP" "Can Penetrate" .canPenetrate <| \value organ -> { organ | canPenetrate = value }
+            , boolColumn "CE" "Can Ensheathe" .canEnsheathe <| \value organ -> { organ | canEnsheathe = value }
+            , boolColumn "IS" "Is Squishable" .isSquishable <| \value organ -> { organ | isSquishable = value }
+            , boolColumn "IG" "Is Grippable" .isGrippable <| \value organ -> { organ | isGrippable = value }
+            , boolColumn "IP" "Is Penetrable" .isPenetrable <| \value organ -> { organ | isPenetrable = value }
+            , boolColumn "IE" "Is Ensheatheable" .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
             , spacer
             ]
         }
