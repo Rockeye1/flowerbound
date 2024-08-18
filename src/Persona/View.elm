@@ -11,6 +11,7 @@ import Persona
 import Persona.Codec
 import Persona.Data
 import Persona.Types exposing (Feature, GendertropeRecord, Organ, Persona)
+import Site
 import Theme
 
 
@@ -30,7 +31,7 @@ persona config input =
         ]
         ([ Theme.row [ width fill ]
             (Theme.input [ width fill ]
-                { text = Persona.Codec.toUrl input
+                { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input
                 , onChange =
                     \newUrl ->
                         Persona.Codec.fromUrl newUrl
