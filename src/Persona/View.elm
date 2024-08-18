@@ -122,7 +122,7 @@ statusView input =
             , 20 + 2 * bonusToCap
             )
     in
-    Element.table
+    Theme.table
         [ Theme.spacing
         , Border.widthEach
             { left = 1
@@ -207,7 +207,10 @@ viewStandardFeatures features gendertropeRecord =
                 , Theme.padding
                 , width fill
                 ]
-                (paragraph [ Font.underline ]
+                (paragraph
+                    [ Font.color Theme.purple
+                    , Font.underline
+                    ]
                     [ text ("Level " ++ String.fromInt level ++ " Feature: ")
                     , el [ Font.bold ] (text feature.name)
                     ]

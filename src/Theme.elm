@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, table, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
@@ -38,6 +38,14 @@ wrappedRow attrs children =
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
     Element.el (spacing :: Border.color purple :: attrs) child
+
+
+table :
+    List (Attribute msg)
+    -> { data : List records, columns : List (Element.Column records msg) }
+    -> Element msg
+table attrs child =
+    Element.table (spacing :: Border.color purple :: attrs) child
 
 
 spacing : Attribute msg
