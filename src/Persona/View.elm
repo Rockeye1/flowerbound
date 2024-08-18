@@ -26,22 +26,26 @@ persona config input =
         [ Border.width 1
         , Theme.padding
         , Font.color Theme.purple
+        , width <| Element.maximum 600 shrink
         ]
-        ([ Theme.input []
-            { text = Persona.Codec.toUrl input
-            , onChange =
-                \newUrl ->
-                    Persona.Codec.fromUrl newUrl
-                        |> Result.withDefault input
-                        |> config.update
-            , placeholder = Nothing
-            , label = Input.labelLeft [] (text "URL")
-            }
-         , Theme.row [ width fill ]
-            (Persona.Data.gendertropeIcon input.gendertrope
-                :: text input.name
+        ([ Theme.row [ width fill ]
+            (Theme.input [ width fill ]
+                { text = Persona.Codec.toUrl input
+                , onChange =
+                    \newUrl ->
+                        Persona.Codec.fromUrl newUrl
+                            |> Result.withDefault input
+                            |> config.update
+                , placeholder = Nothing
+                , label = Input.labelLeft [] (text "URL")
+                }
                 :: topButtons config
             )
+         , Theme.row [ centerX ]
+            [ Persona.Data.gendertropeIcon input.gendertrope
+            , el [ Font.bold ] (text input.name)
+            , Persona.Data.gendertropeIcon input.gendertrope
+            ]
          , Theme.row [ width fill ]
             [ abilitiesView input
             , statusView input
@@ -245,7 +249,10 @@ viewGendertrope ({ gendertrope } as input) =
         [ Persona.Data.gendertropeIcon gendertrope
         , text gendertropeRecord.name
         ]
-    , paragraph [ Font.italic ]
+    , paragraph
+        [ Font.italic
+        , width fill
+        ]
         [ text gendertropeRecord.description
         ]
     , organs gendertropeRecord.organs

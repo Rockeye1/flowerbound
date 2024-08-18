@@ -256,15 +256,16 @@ view _ _ model =
 
 viewPersona : PlayingModel -> Element Msg
 viewPersona model =
-    Persona.View.persona
-        { update =
-            \newPersona ->
-                newPersona
-                    |> UpdatePersona
-                    |> PlayingMsg
-        , upload = LoadFromFile
-        }
-        model.persona
+    el [ centerX ] <|
+        Persona.View.persona
+            { update =
+                \newPersona ->
+                    newPersona
+                        |> UpdatePersona
+                        |> PlayingMsg
+            , upload = LoadFromFile
+            }
+            model.persona
 
 
 viewPlaying : PlayingModel -> Element PlayingMsg

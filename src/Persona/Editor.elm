@@ -1,7 +1,7 @@
 module Persona.Editor exposing (Config, GendertropeMsg(..), view)
 
 import Dict
-import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, paragraph, px, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
