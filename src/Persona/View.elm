@@ -1,7 +1,7 @@
 module Persona.View exposing (Config, organs, persona, tallyGroup)
 
 import Dict
-import Element exposing (Element, alignBottom, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -31,7 +31,7 @@ persona config input =
     Theme.column
         [ Border.width 1
         , Theme.padding
-        , width <| Element.maximum 600 shrink
+        , width <| Element.maximum 640 shrink
         ]
         [ Theme.row [ width fill ]
             (Theme.input [ width fill ]
@@ -54,7 +54,7 @@ persona config input =
             , el [ Font.bold ] (text input.name)
             , Persona.Data.gendertropeIcon input.gendertrope
             ]
-        , Theme.row [ width fill ]
+        , Theme.row [ centerX ]
             [ abilitiesView input
             , statusView input
             ]
@@ -87,29 +87,30 @@ abilitiesView input =
                 [ el [ alignRight ] (text (String.fromInt value))
                 ]
     in
-    Theme.column [ height fill, width fill ]
-        [ text "Ability Scores"
-        , Element.table [ Theme.spacing ]
-            { data =
-                [ ( Theme.withHint "Fitness" (text "FIT"), input.fitness )
-                , ( Theme.withHint "Grace" (text "GRC"), input.grace )
-                , ( Theme.withHint "Ardor" (text "ARD"), input.ardor )
-                , ( Theme.withHint "Sanity" (text "SAN"), input.sanity )
-                , ( Theme.withHint "Prowess" (text "PRW"), input.prowess )
-                , ( Theme.withHint "Moxie" (text "MOX"), input.moxie )
-                ]
-            , columns =
-                [ { width = fill
-                  , header = Element.none
-                  , view = \( label, _ ) -> el [ centerY ] label
-                  }
-                , { width = shrink
-                  , header = Element.none
-                  , view = viewRow
-                  }
-                ]
-            }
+    Element.table
+        [ height fill
+        , width fill
+        , Theme.spacing
         ]
+        { data =
+            [ ( text "Fitness", input.fitness )
+            , ( text "Grace", input.grace )
+            , ( text "Ardor", input.ardor )
+            , ( text "Sanity", input.sanity )
+            , ( text "Prowess", input.prowess )
+            , ( text "Moxie", input.moxie )
+            ]
+        , columns =
+            [ { width = fill
+              , header = Element.none
+              , view = \( label, _ ) -> el [ centerY ] label
+              }
+            , { width = shrink
+              , header = Element.none
+              , view = viewRow
+              }
+            ]
+        }
 
 
 statusView : Persona -> Element msg
@@ -121,8 +122,9 @@ statusView input =
             , 20 + 2 * bonusToCap
             )
     in
-    Theme.column
-        [ Border.widthEach
+    Element.table
+        [ Theme.spacing
+        , Border.widthEach
             { left = 1
             , top = 0
             , bottom = 0
@@ -137,48 +139,25 @@ statusView input =
         , height fill
         , width fill
         ]
-        [ text "Status meters"
-        , Element.table
-            [ Theme.spacing
+        { data =
+            [ statusRow "Max Stamina" 0
+            , statusRow "Max Satiation" input.ardor
+            , statusRow "Max Craving" input.sanity
+            , statusRow "Max Arousal" input.prowess
+            , statusRow "Max Sensitivity" input.moxie
+            , ( "Level Bonus", Persona.levelBonus input )
             ]
-            { data =
-                [ statusRow "Max Stamina" 0
-                , statusRow "Max Satiation" input.ardor
-                , statusRow "Max Craving" input.sanity
-                , statusRow "Max Arousal" input.prowess
-                , statusRow "Max Sensitivity" input.moxie
-                ]
-            , columns =
-                [ { header = Element.none
-                  , width = fill
-                  , view = \( label, _ ) -> text label
-                  }
-                , { header = Element.none
-                  , width = shrink
-                  , view = \( _, maximum ) -> text (String.fromInt maximum)
-                  }
-                ]
-            }
-        , Theme.row
-            [ alignBottom
-            , Border.widthEach
-                { left = 0
-                , top = 1
-                , bottom = 0
-                , right = 0
-                }
-            , Element.paddingEach
-                { left = 0
-                , top = Theme.rhythm
-                , bottom = 0
-                , right = 0
-                }
-            , width fill
+        , columns =
+            [ { header = Element.none
+              , width = fill
+              , view = \( label, _ ) -> text label
+              }
+            , { header = Element.none
+              , width = shrink
+              , view = \( _, value ) -> el [ Font.alignRight ] (text (String.fromInt value))
+              }
             ]
-            [ text "Level Bonus"
-            , el [ alignRight ] (text (String.fromInt (Persona.levelBonus input)))
-            ]
-        ]
+        }
 
 
 tallyGroup : Int -> Element msg

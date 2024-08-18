@@ -208,12 +208,12 @@ abilitiesView persona =
         [ text "Ability Scores"
         , Element.table [ Theme.spacing ]
             { data =
-                [ ( Theme.withHint "Fitness" (text "FIT"), persona.fitness, \newValue -> { persona | fitness = newValue } )
-                , ( Theme.withHint "Grace" (text "GRC"), persona.grace, \newValue -> { persona | grace = newValue } )
-                , ( Theme.withHint "Ardor" (text "ARD"), persona.ardor, \newValue -> { persona | ardor = newValue } )
-                , ( Theme.withHint "Sanity" (text "SAN"), persona.sanity, \newValue -> { persona | sanity = newValue } )
-                , ( Theme.withHint "Prowess" (text "PRW"), persona.prowess, \newValue -> { persona | prowess = newValue } )
-                , ( Theme.withHint "Moxie" (text "MOX"), persona.moxie, \newValue -> { persona | moxie = newValue } )
+                [ ( text "Fitness", persona.fitness, \newValue -> { persona | fitness = newValue } )
+                , ( text "Grace", persona.grace, \newValue -> { persona | grace = newValue } )
+                , ( text "Ardor", persona.ardor, \newValue -> { persona | ardor = newValue } )
+                , ( text "Sanity", persona.sanity, \newValue -> { persona | sanity = newValue } )
+                , ( text "Prowess", persona.prowess, \newValue -> { persona | prowess = newValue } )
+                , ( text "Moxie", persona.moxie, \newValue -> { persona | moxie = newValue } )
                 ]
             , columns =
                 [ { width = fill
