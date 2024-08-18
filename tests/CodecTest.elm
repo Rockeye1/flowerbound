@@ -1,12 +1,13 @@
 module CodecTest exposing (roundtrips, suite)
 
+import Bit
 import Bits.Codec as Codec exposing (Codec)
 import Bits.Decode
 import Dict
 import Expect
 import Fuzz exposing (Fuzzer)
 import Rope
-import Test exposing (Test, describe, fuzz, test)
+import Test exposing (Test, describe, fuzz2, test)
 
 
 suite : Test
@@ -40,12 +41,23 @@ suite =
 
 roundtrips : Fuzzer a -> Codec e a -> Test
 roundtrips fuzzer codec =
-    fuzz fuzzer "is a roundtrip" <|
-        \value ->
-            codec.encoder value
-                |> Rope.toList
-                |> Bits.Decode.run codec.decoder
-                |> Expect.equal (Ok value)
+    fuzz2 fuzzer (Fuzz.list (Fuzz.oneOfValues [ Bit.I, Bit.O ])) "is a roundtrip" <|
+        \value tail ->
+            Expect.all
+                [ \_ ->
+                    codec.encoder value
+                        |> Rope.toList
+                        |> Bits.Decode.run codec.decoder
+                        |> Expect.equal (Ok value)
+                , \_ ->
+                    codec.encoder value
+                        |> Rope.toList
+                        -- Check that random additional bits are ignored
+                        |> (\l -> l ++ tail)
+                        |> Bits.Decode.run codec.decoder
+                        |> Expect.equal (Ok value)
+                ]
+                ()
 
 
 
