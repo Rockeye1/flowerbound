@@ -78,8 +78,8 @@ standardGendertropes =
 type alias GendertropeRecord =
     { name : String
     , description : String
-    , features : Dict Int Feature
     , organs : List Organ
+    , features : Dict Int Feature
     }
 
 
