@@ -270,7 +270,7 @@ viewPersona model =
 
 viewPlaying : PlayingModel -> Element PlayingMsg
 viewPlaying model =
-    Theme.column []
+    Theme.column [ width fill ]
         [ el [ Font.bold ] (text "Stimulation")
         , text "Choose a stamina cost by clicking the table below."
         , staminaTable model
@@ -284,13 +284,7 @@ staminaTable model =
         nameColumn =
             { width = shrink
             , header = Element.none
-            , view =
-                \( label, _ ) ->
-                    el
-                        [ Theme.padding
-                        , Font.center
-                        ]
-                        (text label)
+            , view = \( label, _ ) -> el [ Theme.padding ] (text label)
             }
 
         costColumn : Int -> Element.Column ( String, Int -> String ) PlayingMsg
@@ -338,7 +332,7 @@ staminaTable model =
               )
             ]
     in
-    Theme.column []
+    Theme.column [ centerX ]
         [ Element.table []
             { data = rows
             , columns = nameColumn :: List.map costColumn (List.range 1 9)
