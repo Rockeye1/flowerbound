@@ -1,21 +1,52 @@
-module UploadTest exposing (roundtrip)
+module UploadTest exposing (partialRoundtrip, roundtrip)
 
+import Bits.Decode
 import Effect
 import Expect
 import Parser
 import Persona
 import Persona.Codec
-import Persona.Types exposing (Persona)
+import Persona.Types exposing (PartialPersona, Persona)
 import Result.Extra
+import Rope
 import Route
 import Route.Persona.Name_.Data__
 import Test exposing (Test, test)
 import Url
 
 
+partialRoundtrip : Test
+partialRoundtrip =
+    test "Roundtrips (PartialPersona)" <|
+        \_ ->
+            case Parser.run Persona.Codec.personaParser ishaza of
+                Err e ->
+                    Expect.fail (Debug.toString e)
+
+                Ok loaded ->
+                    let
+                        partial : PartialPersona
+                        partial =
+                            Persona.toPartial loaded
+
+                        decoded : Result (Bits.Decode.Error e) PartialPersona
+                        decoded =
+                            partial
+                                |> Persona.Codec.partialPersona.encoder
+                                |> Rope.toList
+                                |> Bits.Decode.run Persona.Codec.partialPersona.decoder
+                    in
+                    case decoded of
+                        Err e ->
+                            Expect.fail (Debug.toString e)
+
+                        Ok actual ->
+                            actual |> Expect.equal partial
+
+
 roundtrip : Test
 roundtrip =
-    test "Roundtrips" <|
+    test "Roundtrips (Persona)" <|
         \_ ->
             case Parser.run Persona.Codec.personaParser ishaza of
                 Err e ->
@@ -72,7 +103,7 @@ roundtrip =
                                     case Route.Persona.Name_.Data__.partialPersonaFromSlug data of
                                         Err e ->
                                             Err
-                                                ("Could not get persona from slug ("
+                                                ("Could not get partial persona from slug ("
                                                     ++ data
                                                     ++ "): "
                                                     ++ e
