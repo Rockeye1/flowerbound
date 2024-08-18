@@ -9,6 +9,7 @@ import Pages.Flags
 import Pages.PageUrl exposing (PageUrl)
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
+import Theme
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -84,7 +85,23 @@ view :
     -> { body : List (Html msg), title : String }
 view _ _ _ _ pageView =
     { body =
-        [ Element.layout [] pageView.body
+        [ Element.layoutWith
+            { options =
+                [ Element.focusStyle
+                    { backgroundColor = Nothing
+                    , borderColor = Nothing
+                    , shadow =
+                        Just
+                            { color = Theme.purple
+                            , offset = ( 0, 0 )
+                            , blur = 0
+                            , size = 3
+                            }
+                    }
+                ]
+            }
+            []
+            pageView.body
         ]
     , title = pageView.title
     }

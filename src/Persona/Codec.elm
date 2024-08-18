@@ -1,13 +1,186 @@
-module Persona.Codec exposing (gendertropeRecord, partialPersona, personaParser, toString)
+module Persona.Codec exposing (fragmentToGendertropeRecord, fromUrl, gendertropeRecord, gendertropeToHash, partialPersona, partialPersonaFromSlug, partialPersonaToSlug, personaParser, toString)
 
+import Base64
+import Bit exposing (Bit)
+import Bits
 import Bits.Codec as Codec exposing (Codec)
+import Bits.Decode
+import Bytes exposing (Bytes)
 import Dict
+import Flate
 import List.Extra
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Workaround
 import Persona
 import Persona.Data as Data
 import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona)
+import Rope
+import Route
+import Url
+
+
+fromUrl : String -> Result String Persona
+fromUrl url =
+    Url.fromString url
+        |> Result.fromMaybe "Cannot parse URL"
+        |> Result.andThen
+            (\parsedUrl ->
+                case Route.urlToRoute parsedUrl of
+                    Just (Route.Persona__Name___Data__ { name, data }) ->
+                        case data of
+                            Nothing ->
+                                Err "URL does not include enough data"
+
+                            Just d ->
+                                Ok
+                                    { name = name
+                                    , data = d
+                                    , fragment = parsedUrl.fragment
+                                    }
+
+                    _ ->
+                        Err "Wrong URL"
+            )
+        |> Result.andThen
+            (\{ name, data, fragment } ->
+                Result.map3 Persona.fromPartial
+                    (Url.percentDecode name
+                        |> Result.fromMaybe "Could not decode name "
+                    )
+                    (Result.map Just (partialPersonaFromSlug data))
+                    (case fragment of
+                        Nothing ->
+                            Ok Nothing
+
+                        Just f ->
+                            case fragmentToGendertropeRecord f of
+                                Nothing ->
+                                    Err "Could not decode gendertrope data"
+
+                                Just record ->
+                                    Ok (Just record)
+                    )
+            )
+
+
+partialPersonaFromSlug : String -> Result String PartialPersona
+partialPersonaFromSlug slug =
+    slugToBytes slug
+        |> Result.andThen
+            (\slugBytes ->
+                slugBytes
+                    |> Bits.Decode.run partialPersona.decoder
+                    |> Result.mapError errorToString
+            )
+
+
+partialPersonaToSlug : PartialPersona -> String
+partialPersonaToSlug input =
+    input
+        |> partialPersona.encoder
+        |> Rope.toList
+        |> Bits.toBytes
+        |> bytesToSlug
+
+
+bytesToSlug : Bytes -> String
+bytesToSlug bytes =
+    bytes
+        |> maybeCompress
+        |> Base64.fromBytes
+        |> Maybe.withDefault ""
+        |> String.replace "/" "_"
+        |> String.replace "+" "-"
+
+
+errorToString : Bits.Decode.Error String -> String
+errorToString error =
+    case error of
+        Bits.Decode.Problem e ->
+            e
+
+        Bits.Decode.EndOfInput ->
+            "End of input"
+
+        Bits.Decode.StringParsingError ->
+            "String parsing error"
+
+        Bits.Decode.VariantNotRecognized n ->
+            "Variant not recognized " ++ String.fromInt n
+
+
+slugToBytes : String -> Result String (List Bit)
+slugToBytes slug =
+    slug
+        |> String.replace "_" "/"
+        |> String.replace "-" "+"
+        |> Base64.toBytes
+        |> Result.fromMaybe "Failed to base64 decode"
+        |> Result.andThen
+            (\bytes ->
+                bytes
+                    |> Bits.fromBytes
+                    |> maybeDecompress
+                    |> Result.fromMaybe "Could not decompress"
+            )
+
+
+gendertropeToHash : Gendertrope -> String
+gendertropeToHash gendertrope =
+    case gendertrope of
+        Persona.Types.Custom record ->
+            gendertropeRecord.encoder record
+                |> Rope.toList
+                |> Bits.toBytes
+                |> bytesToSlug
+
+        _ ->
+            ""
+
+
+maybeCompress : Bytes -> Bytes
+maybeCompress input =
+    let
+        -- compressed : Bytes
+        -- compressed =
+        --     Flate.deflate input
+        bits : List Bit
+        bits =
+            -- if Bytes.width compressed < Bytes.width input then
+            --     Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
+            -- else
+            Bit.O :: Bits.fromBytes input
+    in
+    Bits.toBytes bits
+
+
+maybeDecompress : List Bit -> Maybe (List Bit)
+maybeDecompress input =
+    case input of
+        [] ->
+            Just input
+
+        Bit.O :: tail ->
+            Just tail
+
+        Bit.I :: tail ->
+            tail
+                |> List.drop 7
+                |> Bits.toBytes
+                |> Flate.inflate
+                |> Maybe.map Bits.fromBytes
+
+
+fragmentToGendertropeRecord : String -> Maybe GendertropeRecord
+fragmentToGendertropeRecord fragment =
+    fragment
+        |> slugToBytes
+        |> Result.toMaybe
+        |> Maybe.andThen
+            (\bytes ->
+                Bits.Decode.run gendertropeRecord.decoder bytes
+                    |> Result.toMaybe
+            )
 
 
 personaParser : Parser Persona

@@ -1,14 +1,7 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, fragmentToGendertropeRecord, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, setPersona, toCard)
-
--- import Flate
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, route, setPersona, toCard)
 
 import Array
 import BackendTask exposing (BackendTask)
-import Base64
-import Bit exposing (Bit)
-import Bits
-import Bits.Decode
-import Bytes exposing (Bytes)
 import Drawing
 import Effect exposing (Effect)
 import Element
@@ -16,26 +9,21 @@ import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import File exposing (File)
 import File.Download
-import File.Select
-import Flate
 import Head
 import Head.Seo as Seo
 import Image
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import Parser
 import Persona
 import Persona.Codec
 import Persona.Editor
-import Persona.Types exposing (Gendertrope, GendertropeRecord, PartialPersona, Persona)
-import Rope
+import Persona.Types exposing (GendertropeRecord, PartialPersona, Persona)
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
 import Site
-import Task
 import Theme
 import Url
 import UrlPath exposing (UrlPath)
@@ -51,7 +39,7 @@ type Msg
     | Upload
     | Update Persona
     | Picked File
-    | Loaded String
+    | Loaded (Result String Persona)
     | Download
 
 
@@ -91,118 +79,11 @@ init app _ =
         maybeGendertrope =
             app.url
                 |> Maybe.andThen .fragment
-                |> Maybe.andThen fragmentToGendertropeRecord
+                |> Maybe.andThen Persona.Codec.fragmentToGendertropeRecord
     in
     ( Persona.fromPartial name partialPersona maybeGendertrope
     , Effect.none
     )
-
-
-fragmentToGendertropeRecord : String -> Maybe GendertropeRecord
-fragmentToGendertropeRecord fragment =
-    fragment
-        |> slugToBytes
-        |> Result.toMaybe
-        |> Maybe.andThen
-            (\bytes ->
-                Bits.Decode.run Persona.Codec.gendertropeRecord.decoder bytes
-                    |> Result.toMaybe
-            )
-
-
-partialPersonaFromSlug : String -> Result String PartialPersona
-partialPersonaFromSlug slug =
-    slugToBytes slug
-        |> Result.andThen
-            (\slugBytes ->
-                slugBytes
-                    |> Bits.Decode.run Persona.Codec.partialPersona.decoder
-                    |> Result.mapError errorToString
-            )
-
-
-errorToString : Bits.Decode.Error String -> String
-errorToString error =
-    case error of
-        Bits.Decode.Problem e ->
-            e
-
-        Bits.Decode.EndOfInput ->
-            "End of input"
-
-        Bits.Decode.StringParsingError ->
-            "String parsing error"
-
-        Bits.Decode.VariantNotRecognized n ->
-            "Variant not recognized " ++ String.fromInt n
-
-
-slugToBytes : String -> Result String (List Bit)
-slugToBytes slug =
-    slug
-        |> String.replace "_" "/"
-        |> String.replace "-" "+"
-        |> Base64.toBytes
-        |> Result.fromMaybe "Failed to base64 decode"
-        |> Result.andThen
-            (\bytes ->
-                bytes
-                    |> Bits.fromBytes
-                    |> maybeDecompress
-                    |> Result.fromMaybe "Could not decompress"
-            )
-
-
-maybeDecompress : List Bit -> Maybe (List Bit)
-maybeDecompress input =
-    case input of
-        [] ->
-            Just input
-
-        Bit.O :: tail ->
-            Just tail
-
-        Bit.I :: tail ->
-            tail
-                |> List.drop 7
-                |> Bits.toBytes
-                |> Flate.inflate
-                |> Maybe.map Bits.fromBytes
-
-
-partialPersonaToSlug : PartialPersona -> String
-partialPersonaToSlug partialPersona =
-    partialPersona
-        |> Persona.Codec.partialPersona.encoder
-        |> Rope.toList
-        |> Bits.toBytes
-        |> bytesToSlug
-
-
-bytesToSlug : Bytes -> String
-bytesToSlug bytes =
-    bytes
-        |> maybeCompress
-        |> Base64.fromBytes
-        |> Maybe.withDefault ""
-        |> String.replace "/" "_"
-        |> String.replace "+" "-"
-
-
-maybeCompress : Bytes -> Bytes
-maybeCompress input =
-    let
-        -- compressed : Bytes
-        -- compressed =
-        --     Flate.deflate input
-        bits : List Bit
-        bits =
-            -- if Bytes.width compressed < Bytes.width input then
-            --     Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
-            -- else
-            Bit.O :: Bits.fromBytes input
-    in
-    Bits.toBytes bits
 
 
 update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg, Maybe Shared.Msg )
@@ -216,36 +97,25 @@ update _ _ msg model =
 
         Upload ->
             ( model
-            , Effect.fromCmd
-                (File.Select.file
-                    [ ".md"
-                    , "text/plain"
-                    ]
-                    Picked
-                )
+            , Effect.PickMarkdown Picked
             , Nothing
             )
 
         Picked file ->
             ( model
-            , Effect.fromCmd
-                (File.toString file
-                    |> Task.perform Loaded
-                )
+            , Effect.ReadPersonaFromMarkdown file Loaded
             , Nothing
             )
 
-        Loaded file ->
-            case Parser.run Persona.Codec.personaParser file of
-                Err _ ->
-                    -- let
-                    --     _ =
-                    --         Debug.log "Error loading file" e
-                    -- in
-                    ( model, Effect.none, Nothing )
+        Loaded (Ok persona) ->
+            setPersona persona
 
-                Ok persona ->
-                    setPersona persona
+        Loaded (Err _) ->
+            -- let
+            --     _ =
+            --         Debug.log "Error loading file" e
+            -- in
+            ( model, Effect.none, Nothing )
 
         Download ->
             ( model
@@ -261,31 +131,20 @@ update _ _ msg model =
 
 setPersona : Persona -> ( Model, Effect Msg, Maybe Shared.Msg )
 setPersona persona =
-    let
-        newRoute : Route
-        newRoute =
-            Route.Persona__Name___Data__
-                { name = Url.percentEncode persona.name
-                , data = Just (partialPersonaToSlug (Persona.toPartial persona))
-                }
-    in
     ( persona
-    , Effect.SetRoute newRoute (gendertropeToHash persona.gendertrope)
+    , Effect.SetRoute
+        (personaToRoute persona)
+        (Persona.Codec.gendertropeToHash persona.gendertrope)
     , Nothing
     )
 
 
-gendertropeToHash : Gendertrope -> String
-gendertropeToHash gendertrope =
-    case gendertrope of
-        Persona.Types.Custom record ->
-            Persona.Codec.gendertropeRecord.encoder record
-                |> Rope.toList
-                |> Bits.toBytes
-                |> bytesToSlug
-
-        _ ->
-            ""
+personaToRoute : Persona -> Route
+personaToRoute persona =
+    Route.Persona__Name___Data__
+        { name = Url.percentEncode persona.name
+        , data = Just (Persona.Codec.partialPersonaToSlug (Persona.toPartial persona))
+        }
 
 
 type alias Data =
@@ -303,7 +162,7 @@ data params _ =
     , Maybe.andThen
         (\d ->
             d
-                |> partialPersonaFromSlug
+                |> Persona.Codec.partialPersonaFromSlug
                 |> Result.toMaybe
         )
         params.data
@@ -339,7 +198,7 @@ cardImage ( name, persona ) =
             [ "card"
             , "persona"
             , Url.percentEncode name
-            , partialPersonaToSlug persona
+            , Persona.Codec.partialPersonaToSlug persona
             ]
     , alt = "Card for " ++ name
     , dimensions = Just cardImageSize

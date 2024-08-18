@@ -2,13 +2,22 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, shrink, text, width)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
+import Element.Input as Input
 import FatalError exposing (FatalError)
+import File exposing (File)
 import Head
 import Head.Seo as Seo
+import Icons
 import MimeType
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import RouteBuilder exposing (StatelessRoute)
+import Persona.Codec
+import Persona.Types exposing (Persona)
+import RouteBuilder exposing (StatefulRoute)
 import Shared
 import Site
 import Theme
@@ -16,12 +25,32 @@ import UrlPath exposing (UrlPath)
 import View exposing (View)
 
 
-type alias Msg =
-    ()
+type Msg
+    = LoadFromUrl String
+    | LoadFromFile
+    | PlayingMsg PlayingMsg
+    | PickedFile File
+    | LoadedFromFile (Result String Persona)
 
 
-type alias Model =
-    {}
+type PlayingMsg
+    = StimulationCost Int
+
+
+type Model
+    = WaitingForPersona String
+    | Playing PlayingModel
+
+
+type alias PlayingModel =
+    { persona : Persona
+    , stimulationCost : Int
+    , sensitivity : Int
+    , arousal : Int
+    , craving : Int
+    , satiation : Int
+    , stamina : Int
+    }
 
 
 type alias RouteParams =
@@ -36,7 +65,7 @@ type alias ActionData =
     {}
 
 
-route : StatelessRoute RouteParams Data ActionData
+route : StatefulRoute RouteParams Data ActionData Model Msg
 route =
     RouteBuilder.single
         { head = head
@@ -52,12 +81,77 @@ route =
 
 init : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect msg )
 init _ _ =
-    ( {}, Effect.none )
+    ( WaitingForPersona "", Effect.none )
 
 
-update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect msg )
+update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update _ _ msg model =
-    ( model, Effect.none )
+    case msg of
+        LoadFromUrl url ->
+            case Persona.Codec.fromUrl url of
+                Err _ ->
+                    case model of
+                        WaitingForPersona _ ->
+                            ( WaitingForPersona url, Effect.none )
+
+                        Playing _ ->
+                            ( model, Effect.none )
+
+                Ok persona ->
+                    case model of
+                        WaitingForPersona _ ->
+                            ( Playing (initPlayingModel persona), Effect.none )
+
+                        Playing playingModel ->
+                            ( Playing { playingModel | persona = persona }, Effect.none )
+
+        LoadedFromFile (Ok persona) ->
+            case model of
+                WaitingForPersona _ ->
+                    ( Playing (initPlayingModel persona), Effect.none )
+
+                Playing playingModel ->
+                    ( Playing { playingModel | persona = persona }, Effect.none )
+
+        LoadedFromFile (Err _) ->
+            ( model, Effect.none )
+
+        LoadFromFile ->
+            ( model, Effect.PickMarkdown PickedFile )
+
+        PlayingMsg playingMsg ->
+            case model of
+                WaitingForPersona _ ->
+                    ( model, Effect.none )
+
+                Playing playingModel ->
+                    let
+                        ( newModel, effect ) =
+                            innerUpdate playingMsg playingModel
+                    in
+                    ( Playing newModel, effect )
+
+        PickedFile file ->
+            ( model, Effect.ReadPersonaFromMarkdown file LoadedFromFile )
+
+
+innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect msg )
+innerUpdate msg model =
+    case msg of
+        StimulationCost stimulationCost ->
+            ( { model | stimulationCost = stimulationCost }, Effect.none )
+
+
+initPlayingModel : Persona -> PlayingModel
+initPlayingModel persona =
+    { persona = persona
+    , stimulationCost = 1
+    , sensitivity = 0
+    , arousal = 0
+    , craving = 0
+    , satiation = 0
+    , stamina = 0
+    }
 
 
 subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg
@@ -93,12 +187,134 @@ data =
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Model -> View (PagesMsg Msg)
-view _ _ _ =
+view _ _ model =
     { title = Site.manifest.name
     , body =
-        Theme.column [ Theme.padding ]
-            (Theme.viewMarkdown """
-## Temperaments
+        case model of
+            WaitingForPersona url ->
+                Theme.column
+                    [ Theme.padding
+                    , centerX
+                    , centerY
+                    ]
+                    [ Theme.row
+                        [ Font.color Theme.purple
+                        , centerX
+                        , Font.center
+                        ]
+                        [ Icons.flower
+                        , text "Welcome to Flowerbound"
+                        , Icons.flower
+                        ]
+                    , Theme.el
+                        [ Border.width 1
+                        , Theme.padding
+                        , width fill
+                        ]
+                        (Theme.input [ width <| Element.minimum 300 fill ]
+                            { label = Input.labelAbove [] (text "URL")
+                            , text = url
+                            , onChange = LoadFromUrl
+                            , placeholder = Just (Input.placeholder [] (text "Paste the Persona URL here"))
+                            }
+                        )
+                    , el
+                        [ centerX
+                        , Font.color Theme.purple
+                        ]
+                        (text "or")
+                    , Theme.row
+                        [ Border.width 1
+                        , Theme.padding
+                        , width fill
+                        ]
+                        [ text "Load from a Markdown file"
+                        , Theme.button [ alignRight ]
+                            { onPress = Just LoadFromFile
+                            , label = Icons.upload
+                            }
+                        ]
+                    ]
+                    |> Element.map PagesMsg.fromMsg
+
+            Playing playingModel ->
+                (Theme.viewMarkdown cheatSheet
+                    ++ [ viewPlaying playingModel
+                            |> Element.map PlayingMsg
+                       ]
+                )
+                    |> Theme.column [ Theme.padding ]
+                    |> Element.map PagesMsg.fromMsg
+    }
+
+
+viewPlaying : PlayingModel -> Element PlayingMsg
+viewPlaying model =
+    let
+        nameColumn : Element.Column ( String, Int -> String ) msg
+        nameColumn =
+            { width = shrink
+            , header = Element.none
+            , view =
+                \( label, _ ) ->
+                    el
+                        [ Theme.padding
+                        , Font.center
+                        ]
+                        (text label)
+            }
+
+        costColumn : Int -> Element.Column ( String, Int -> String ) PlayingMsg
+        costColumn c =
+            { width = shrink
+            , header = Element.none
+            , view =
+                \( _, toValue ) ->
+                    Theme.button
+                        [ Font.center
+                        , if c == model.stimulationCost then
+                            Background.color Theme.purple
+
+                          else
+                            Background.color Theme.gray
+                        , if c == model.stimulationCost then
+                            Theme.noAttribute
+
+                          else
+                            Font.color Theme.black
+                        ]
+                        { onPress = Just (StimulationCost c)
+                        , label = text (toValue c)
+                        }
+            }
+    in
+    Element.table []
+        { data =
+            [ ( "Stamina Cost", \c -> String.fromInt c )
+            , ( "Stimulation"
+              , \c ->
+                    if c == 1 then
+                        "0"
+
+                    else
+                        String.fromInt (c * 2)
+              )
+            , ( "Dice type"
+              , \c ->
+                    if c == 1 then
+                        "No Roll"
+
+                    else
+                        "d" ++ String.fromInt (c * 2)
+              )
+            ]
+        , columns = nameColumn :: List.map costColumn (List.range 1 18)
+        }
+
+
+cheatSheet : String
+cheatSheet =
+    """## Temperaments
 
 **Innocent**: You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.
 - Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**.
@@ -122,8 +338,4 @@ Once you know your **Orgasm Threshold**, you simply compare it to your **Arousal
 `AROUSAL > ORGASM THRESHOLD`
 
 ## Stimulation
-`Stamina = max(1, Stimulation / 2)`
-
-`Dice = Stimulation`
-""")
-    }
+Choose a stamina cost by clicking the table below."""

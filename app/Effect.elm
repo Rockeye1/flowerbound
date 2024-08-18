@@ -7,7 +7,13 @@ module Effect exposing (Effect(..), batch, fromCmd, map, none, perform)
 -}
 
 import Browser.Navigation
+import File exposing (File)
+import File.Select
+import Parser
+import Persona.Codec
+import Persona.Types exposing (Persona)
 import Route exposing (Route)
+import Task
 
 
 {-| -}
@@ -16,6 +22,8 @@ type Effect msg
     | Cmd (Cmd msg)
     | Batch (List (Effect msg))
     | SetRoute Route String
+    | PickMarkdown (File -> msg)
+    | ReadPersonaFromMarkdown File (Result String Persona -> msg)
 
 
 {-| -}
@@ -52,6 +60,22 @@ map fn effect =
         Batch list ->
             Batch (List.map (map fn) list)
 
+        PickMarkdown toMsg ->
+            PickMarkdown
+                (\file ->
+                    file
+                        |> toMsg
+                        |> fn
+                )
+
+        ReadPersonaFromMarkdown file toMsg ->
+            ReadPersonaFromMarkdown file
+                (\result ->
+                    result
+                        |> toMsg
+                        |> fn
+                )
+
 
 {-| -}
 perform :
@@ -80,3 +104,25 @@ perform ({ fromPageMsg, key } as helpers) effect =
 
         Batch list ->
             Cmd.batch (List.map (perform helpers) list)
+
+        PickMarkdown toMsg ->
+            File.Select.file
+                [ ".md"
+                , "text/plain"
+                ]
+                (\file -> fromPageMsg (toMsg file))
+
+        ReadPersonaFromMarkdown file toMsg ->
+            File.toString file
+                |> Task.perform
+                    (\markdown ->
+                        Parser.run Persona.Codec.personaParser markdown
+                            |> Result.mapError (parserErrorToString markdown)
+                            |> toMsg
+                            |> fromPageMsg
+                    )
+
+
+parserErrorToString : String -> List Parser.DeadEnd -> String
+parserErrorToString _ _ =
+    "TODO: parserErrorToString"

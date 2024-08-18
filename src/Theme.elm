@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
@@ -326,7 +326,7 @@ toAlignAttribute : Maybe Markdown.Block.Alignment -> Attribute msg
 toAlignAttribute alignment =
     case alignment of
         Nothing ->
-            Element.htmlAttribute (Html.Attributes.classList [])
+            noAttribute
 
         Just Markdown.Block.AlignLeft ->
             Font.alignLeft
@@ -407,4 +407,9 @@ maybeTitle title =
             Element.htmlAttribute (Html.Attributes.title t)
 
         Nothing ->
-            Element.htmlAttribute (Html.Attributes.classList [])
+            noAttribute
+
+
+noAttribute : Attribute msg
+noAttribute =
+    Element.htmlAttribute (Html.Attributes.classList [])

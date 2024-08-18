@@ -5,6 +5,7 @@ import BackendTask exposing (BackendTask)
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Pages.Manifest as Manifest
+import Persona.Codec
 import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Site
@@ -19,7 +20,7 @@ routes :
 routes getStaticRoutes {- htmlToString -} _ =
     [ ApiRoute.succeed
         (\name data _ ->
-            case Persona.partialPersonaFromSlug data of
+            case Persona.Codec.partialPersonaFromSlug data of
                 Ok partialPersona ->
                     Persona.toCard (Maybe.withDefault name <| Url.percentDecode name) partialPersona
 
