@@ -133,15 +133,17 @@ nameRow config persona =
             }
         , width fill
         ]
-        (Theme.input [ width fill ]
-            { label = Input.labelHidden "Name"
-            , text = persona.name
-            , onChange = \newValue -> config.update { persona | name = newValue }
-            , placeholder =
-                Just <|
-                    Input.placeholder [] <|
-                        text "Name"
-            }
+        (el [ Font.color Theme.purple ]
+            (Persona.Data.gendertropeIcon persona.gendertrope)
+            :: Theme.input [ width fill ]
+                { label = Input.labelHidden "Name"
+                , text = persona.name
+                , onChange = \newValue -> config.update { persona | name = newValue }
+                , placeholder =
+                    Just <|
+                        Input.placeholder [] <|
+                            text "Name"
+                }
             :: topButtons config
         )
 
