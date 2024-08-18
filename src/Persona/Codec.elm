@@ -476,25 +476,7 @@ gendertropeRecordParser name =
             , end = ""
             , separator = ""
             , spaces = Parser.spaces
-            , item =
-                Parser.succeed identity
-                    |. Parser.symbol "-"
-                    |. Parser.spaces
-                    |= Parser.oneOf
-                        [ Parser.succeed Data.mouth |. Parser.keyword "Mouth"
-                        , Parser.succeed Data.hands |. Parser.keyword "Hands"
-                        , Parser.succeed Data.breasts |. Parser.keyword "Breasts"
-                        , Parser.succeed Data.hips |. Parser.keyword "Hips"
-                        , Parser.succeed Data.legs |. Parser.keyword "Legs"
-                        , Parser.succeed Data.phallic |. Parser.keyword "Phallic"
-                        , Parser.succeed Data.yonic |. Parser.keyword "Yonic"
-                        , Parser.succeed Data.prehensile |. Parser.keyword "Prehensile"
-                        ]
-                    |. Parser.spaces
-                    |. Parser.symbol ":"
-                    |. Parser.spaces
-                    |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
-                    |. Parser.spaces
+            , item = organParser
             , trailing = Parser.Optional
             }
         |= (Parser.sequence
@@ -519,6 +501,113 @@ gendertropeRecordParser name =
                 }
                 |> Parser.map Dict.fromList
            )
+
+
+organParser : Parser Organ
+organParser =
+    let
+        simple : (String -> Organ) -> String -> Parser Organ
+        simple ctor name =
+            Parser.succeed ctor
+                |. Parser.symbol name
+                |. Parser.spaces
+                |. Parser.symbol ":"
+                |. Parser.spaces
+                |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
+
+        item inner =
+            Parser.succeed identity
+                |. Parser.spaces
+                |. Parser.symbol "-"
+                |. Parser.spaces
+                |= inner
+                |. Parser.spaces
+
+        group label options =
+            Parser.oneOf
+                [ Parser.succeed identity
+                    |. Parser.backtrackable (Parser.symbol "-")
+                    |. Parser.backtrackable Parser.spaces
+                    |. Parser.keyword label
+                    |. Parser.commit ()
+                    |. Parser.spaces
+                    |. Parser.symbol ":"
+                    |. Parser.spaces
+                    |= Parser.sequence
+                        { start = ""
+                        , end = ""
+                        , separator = ""
+                        , spaces = Parser.spaces
+                        , item =
+                            Parser.succeed identity
+                                |. Parser.backtrackable (Parser.symbol "-")
+                                |. Parser.backtrackable Parser.spaces
+                                |= Parser.getChompedString
+                                    (options
+                                        |> List.map Parser.keyword
+                                        |> Parser.oneOf
+                                    )
+                                |. Parser.commit ()
+                        , trailing = Parser.Optional
+                        }
+                , Parser.succeed []
+                ]
+    in
+    Parser.succeed identity
+        |. Parser.symbol "-"
+        |. Parser.spaces
+        |= Parser.oneOf
+            [ simple Data.mouth "Mouth"
+            , simple Data.hands "Hands"
+            , simple Data.breasts "Breasts"
+            , simple Data.hips "Hips"
+            , simple Data.legs "Legs"
+            , simple Data.phallic "Phallic"
+            , simple Data.yonic "Yonic"
+            , simple Data.prehensile "Prehensile"
+            , Parser.succeed
+                (\name contour erogeny can is ->
+                    { name = name
+                    , contour = contour
+                    , erogeny = erogeny
+                    , canSquish = List.member "Squish" can
+                    , canGrip = List.member "Grip" can
+                    , canPenetrate = List.member "Penetrate" can
+                    , canEnsheathe = List.member "Ensheathe" can
+                    , isSquishable = List.member "Squishable" is
+                    , isGrippable = List.member "Grippable" is
+                    , isPenetrable = List.member "Penetrable" is
+                    , isEnsheatheable = List.member "Ensheatheable" is
+                    }
+                )
+                |. Parser.keyword "Custom"
+                |. Parser.spaces
+                |. Parser.symbol ":"
+                |. Parser.spaces
+                |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
+                |. item (Parser.keyword "Contour")
+                |. Parser.symbol ":"
+                |. Parser.spaces
+                |= Parser.int
+                |. item (Parser.keyword "Erogeny")
+                |. Parser.symbol ":"
+                |. Parser.spaces
+                |= Parser.int
+                |. Parser.spaces
+                |= group "Can"
+                    [ "Squish"
+                    , "Grip"
+                    , "Penetrate"
+                    , "Ensheathe"
+                    ]
+                |= group "Is"
+                    [ "Squishable"
+                    , "Grippable"
+                    , "Penetrable"
+                    , "Ensheatheable"
+                    ]
+            ]
+        |. Parser.spaces
 
 
 featureParser : Parser Feature
