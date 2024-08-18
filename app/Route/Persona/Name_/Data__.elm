@@ -25,6 +25,7 @@ import PagesMsg exposing (PagesMsg)
 import Parser
 import Persona
 import Persona.Codec
+import Persona.Editor
 import Persona.Types exposing (Gendertrope, GendertropeRecord, PartialPersona, Persona)
 import Rope
 import Route exposing (Route)
@@ -359,7 +360,7 @@ view :
 view app shared model =
     { title = title (Tuple.first app.data)
     , body =
-        Persona.view
+        Persona.Editor.view
             { update = Update
             , flip = Flip
             , upload = Upload

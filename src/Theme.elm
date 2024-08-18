@@ -1,11 +1,16 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, shrink, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Html
 import Html.Attributes
+import Markdown.Block
+import Markdown.Html
+import Markdown.Parser
+import Markdown.Renderer
 import Route
 
 
@@ -220,3 +225,108 @@ purpleCheckbox checked =
             )
         ]
         Element.none
+
+
+viewMarkdown : String -> List (Element msg)
+viewMarkdown markdown =
+    case Markdown.Parser.parse markdown of
+        Ok blocks ->
+            viewMarkdownBlocks blocks
+
+        Err _ ->
+            [ Element.text "Could not parse Markdown" ]
+
+
+viewMarkdownBlocks : List Markdown.Block.Block -> List (Element msg)
+viewMarkdownBlocks blocks =
+    case Markdown.Renderer.render markdownRenderer blocks of
+        Ok elem ->
+            elem
+
+        Err e ->
+            [ Element.text e ]
+
+
+markdownRenderer : Markdown.Renderer.Renderer (Element msg)
+markdownRenderer =
+    { heading = \_ -> Element.text "TODO: heading"
+    , paragraph = Element.paragraph [ spacing ]
+    , blockQuote =
+        column
+            [ padding
+            , Border.width 1
+            ]
+    , html = Markdown.Html.oneOf []
+    , text = Element.text
+    , codeSpan = \_ -> Element.text "TODO: codeSpan"
+    , strong = row [ Font.bold ]
+    , emphasis = row [ Font.italic ]
+    , strikethrough = row [ Font.strike ]
+    , hardLineBreak = Html.br [] [] |> Element.html
+    , link =
+        \{ title, destination } body ->
+            Element.newTabLink
+                [ maybeTitle title
+                , Element.htmlAttribute (Html.Attributes.style "display" "inline-flex")
+                , Element.htmlAttribute (Html.Attributes.attribute "elm-pages:prefetch" "")
+                ]
+                { url = destination
+                , label =
+                    Element.paragraph
+                        [ Font.color (Element.rgb255 0 0 255)
+                        ]
+                        body
+                }
+    , image =
+        \image ->
+            Element.image
+                [ Element.width Element.fill
+                , maybeTitle image.title
+                ]
+                { src = image.src, description = image.alt }
+    , unorderedList =
+        \items ->
+            items
+                |> List.map viewUnorderedListItem
+                |> column []
+    , orderedList = \_ _ -> Element.text "TODO: orderedList"
+    , codeBlock = \_ -> Element.text "TODO: codeBlock"
+    , thematicBreak = Element.none
+    , table = \_ -> Element.text "TODO: table"
+    , tableHeader = \_ -> Element.text "TODO: tableHeader"
+    , tableBody = \_ -> Element.text "TODO: tableBody"
+    , tableRow = \_ -> Element.text "TODO: tableRow"
+    , tableCell = \_ _ -> Element.text "TODO: tableCell"
+    , tableHeaderCell = \_ _ -> Element.text "TODO: tableHeaderCell"
+    }
+
+
+viewUnorderedListItem : Markdown.Block.ListItem (Element msg) -> Element msg
+viewUnorderedListItem (Markdown.Block.ListItem task children) =
+    let
+        mark : String
+        mark =
+            case task of
+                Markdown.Block.NoTask ->
+                    "-"
+
+                Markdown.Block.IncompleteTask ->
+                    "[ ]"
+
+                Markdown.Block.CompletedTask ->
+                    "[V]"
+    in
+    row []
+        [ Element.el [ Element.alignTop ] (Element.text (" " ++ mark ++ " "))
+        , Element.paragraph [] children
+        ]
+
+
+maybeTitle : Maybe String -> Attribute msg
+maybeTitle title =
+    case title of
+        Just t ->
+            Element.htmlAttribute (Html.Attributes.title t)
+
+        Nothing ->
+            Element.htmlAttribute (Html.Attributes.classList [])

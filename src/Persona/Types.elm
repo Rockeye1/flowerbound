@@ -33,7 +33,7 @@ type alias Persona =
     , prowess : Int
     , moxie : Int
 
-    --
+    -- These are kept as the total ever gained
     , euphoriaPoints : Int
     , ichorPoints : Int
     , numinousPoints : Int

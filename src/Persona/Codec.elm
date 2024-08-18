@@ -4,6 +4,7 @@ import Bits.Codec as Codec exposing (Codec)
 import Dict
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Workaround
+import Persona
 import Persona.Data as Data
 import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona)
 
@@ -41,6 +42,16 @@ personaParser =
         |. Parser.spaces
         |= gendertropeParser
         |. Parser.end
+        |> Parser.map fixupPersona
+
+
+fixupPersona : Persona -> Persona
+fixupPersona persona =
+    { persona
+        | euphoriaPoints = persona.euphoriaPoints + Persona.usedEuphoriaPoints persona
+        , ichorPoints = persona.ichorPoints + Persona.usedIchorPoints persona
+        , numinousPoints = persona.numinousPoints + Persona.usedNuminousPoints persona
+    }
 
 
 toString : Persona -> String
@@ -60,9 +71,9 @@ toString persona =
      , block 2
         "Progression Tally"
         (numericUl
-            [ ( "Euphoria Points", persona.euphoriaPoints )
-            , ( "Ichor Points", persona.ichorPoints )
-            , ( "Numinous Points", persona.numinousPoints )
+            [ ( "Euphoria Points", persona.euphoriaPoints - Persona.usedEuphoriaPoints persona )
+            , ( "Ichor Points", persona.ichorPoints - Persona.usedIchorPoints persona )
+            , ( "Numinous Points", persona.numinousPoints - Persona.usedNuminousPoints persona )
             ]
         )
      , block 2
