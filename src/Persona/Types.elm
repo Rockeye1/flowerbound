@@ -1,4 +1,4 @@
-module Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialPersona, Persona, standardGendertropes)
+module Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona, standardGendertropes)
 
 import Dict exposing (Dict)
 
@@ -18,7 +18,7 @@ type alias PartialPersona =
 
     --
     , features : List Int
-    , gendertrope : Gendertrope
+    , gendertrope : PartialGendertrope
     }
 
 
@@ -52,6 +52,16 @@ type Gendertrope
     | Fiend
     | Doll
     | Custom GendertropeRecord
+
+
+type PartialGendertrope
+    = PartialButterfly
+    | PartialFlower
+    | PartialVixen
+    | PartialBuck
+    | PartialFiend
+    | PartialDoll
+    | PartialCustom String
 
 
 standardGendertropes : List Gendertrope

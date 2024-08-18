@@ -15,7 +15,7 @@ type Effect msg
     = None
     | Cmd (Cmd msg)
     | Batch (List (Effect msg))
-    | SetRoute Route
+    | SetRoute Route String
 
 
 {-| -}
@@ -43,8 +43,8 @@ map fn effect =
         None ->
             None
 
-        SetRoute route ->
-            SetRoute route
+        SetRoute route hash ->
+            SetRoute route hash
 
         Cmd cmd ->
             Cmd (Cmd.map fn cmd)
@@ -66,8 +66,14 @@ perform ({ fromPageMsg, key } as helpers) effect =
         None ->
             Cmd.none
 
-        SetRoute route ->
-            Browser.Navigation.replaceUrl key (Route.toString route)
+        SetRoute route hash ->
+            Browser.Navigation.replaceUrl key
+                (if String.isEmpty hash then
+                    Route.toString route
+
+                 else
+                    Route.toString route ++ "#" ++ hash
+                )
 
         Cmd cmd ->
             Cmd.map fromPageMsg cmd

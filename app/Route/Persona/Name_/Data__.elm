@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, personaFromSlug, route, toCard)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, toCard)
 
 import Array
 import BackendTask exposing (BackendTask)
@@ -15,11 +15,10 @@ import Flate
 import Head
 import Head.Seo as Seo
 import Image
-import Maybe.Extra
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona
-import Persona.Types exposing (Persona)
+import Persona.Types exposing (PartialPersona, Persona)
 import Rope
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
@@ -65,40 +64,46 @@ route =
 
 action : RouteParams -> Request -> BackendTask FatalError (Response ActionData ErrorPage)
 action _ _ =
-    BackendTask.succeed (Response.errorPage (InternalError "Go away"))
+    BackendTask.succeed (Response.errorPage ErrorPage.InvalidRequest)
 
 
 init : App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect Msg )
 init app _ =
-    ( app.data
+    let
+        ( name, partialPersona ) =
+            app.data
+    in
+    ( Persona.fromPartial name partialPersona Nothing
     , Effect.none
     )
 
 
-personaFromSlug : String -> String -> Persona
-personaFromSlug name slug =
-    Maybe.Extra.andThen2
-        (\fixedName bytes ->
-            case Bits.Decode.run Persona.codec.decoder bytes of
-                Ok partial ->
-                    Just (Persona.fromPartial fixedName partial)
+partialPersonaFromSlug : String -> Maybe PartialPersona
+partialPersonaFromSlug slug =
+    slugToBytes slug
+        |> Maybe.andThen
+            (\slugBytes ->
+                case Bits.Decode.run Persona.codec.decoder slugBytes of
+                    Ok partial ->
+                        Just partial
 
-                Err _ ->
-                    Nothing
-        )
-        (Url.percentDecode name)
-        (slug
-            |> String.replace "_" "/"
-            |> String.replace "-" "+"
-            |> Base64.toBytes
-            |> Maybe.andThen
-                (\bytes ->
-                    bytes
-                        |> Bits.fromBytes
-                        |> maybeDecompress
-                )
-        )
-        |> Maybe.withDefault Persona.default
+                    Err _ ->
+                        Nothing
+            )
+
+
+slugToBytes : String -> Maybe (List Bit)
+slugToBytes slug =
+    slug
+        |> String.replace "_" "/"
+        |> String.replace "-" "+"
+        |> Base64.toBytes
+        |> Maybe.andThen
+            (\bytes ->
+                bytes
+                    |> Bits.fromBytes
+                    |> maybeDecompress
+            )
 
 
 maybeDecompress : List Bit -> Maybe (List Bit)
@@ -108,22 +113,27 @@ maybeDecompress input =
             Just input
 
         Bit.O :: tail ->
-            Just (List.drop 7 tail)
+            Just tail
 
         Bit.I :: tail ->
-            List.drop 7 tail
+            tail
                 |> Bits.toBytes
                 |> Flate.inflate
                 |> Maybe.map Bits.fromBytes
 
 
-personaToSlug : Persona -> String
-personaToSlug persona =
-    persona
-        |> Persona.toPartial
+partialPersonaToSlug : PartialPersona -> String
+partialPersonaToSlug partialPersona =
+    partialPersona
         |> Persona.codec.encoder
         |> Rope.toList
         |> Bits.toBytes
+        |> bytesToSlug
+
+
+bytesToSlug : Bytes -> String
+bytesToSlug bytes =
+    bytes
         |> maybeCompress
         |> Base64.fromBytes
         |> Maybe.withDefault ""
@@ -141,10 +151,10 @@ maybeCompress input =
         bits : List Bit
         bits =
             if Bytes.width compressed < Bytes.width input then
-                Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
+                Bit.I :: Bits.fromBytes compressed
 
             else
-                Bit.O :: List.repeat 7 Bit.O ++ Bits.fromBytes input
+                Bit.O :: Bits.fromBytes input
     in
     Bits.toBytes bits
 
@@ -158,11 +168,11 @@ update _ _ msg model =
                 newRoute =
                     Route.Persona__Name___Data__
                         { name = Url.percentEncode persona.name
-                        , data = Just (personaToSlug persona)
+                        , data = Just (partialPersonaToSlug (Persona.toPartial persona))
                         }
             in
             ( persona
-            , newRoute |> Effect.SetRoute
+            , Effect.SetRoute newRoute (gendertropeToHash persona.gendertrope)
             , Nothing
             )
 
@@ -170,8 +180,21 @@ update _ _ msg model =
             ( model, Effect.none, Just Shared.Flip )
 
 
+gendertropeToHash : Persona.Types.Gendertrope -> String
+gendertropeToHash gendertrope =
+    case gendertrope of
+        Persona.Types.Custom record ->
+            Persona.gendertropeRecordCodec.encoder record
+                |> Rope.toList
+                |> Bits.toBytes
+                |> bytesToSlug
+
+        _ ->
+            ""
+
+
 type alias Data =
-    Persona
+    ( String, Maybe PartialPersona )
 
 
 type alias ActionData =
@@ -180,63 +203,64 @@ type alias ActionData =
 
 data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
 data params _ =
-    params.data
-        |> Maybe.withDefault ""
-        |> personaFromSlug params.name
+    ( Url.percentDecode params.name
+        |> Maybe.withDefault params.name
+    , Maybe.andThen partialPersonaFromSlug params.data
+    )
         |> Response.render
         |> BackendTask.succeed
 
 
 head :
-    App Persona ActionData RouteParams
+    App Data ActionData RouteParams
     -> List Head.Tag
 head app =
-    let
-        persona : Persona
-        persona =
-            app.data
-    in
-    Seo.summaryLarge
-        { canonicalUrlOverride = Nothing
-        , siteName = Site.manifest.name
-        , image = cardImage persona
-        , description = toDescription persona
-        , locale = Nothing
-        , title = title persona
-        }
-        |> Seo.website
+    case app.data of
+        ( _, Nothing ) ->
+            []
+
+        ( name, Just partialPersona ) ->
+            Seo.summaryLarge
+                { canonicalUrlOverride = Nothing
+                , siteName = Site.manifest.name
+                , image = cardImage ( name, partialPersona )
+                , description = toDescription ( name, partialPersona )
+                , locale = Nothing
+                , title = title name
+                }
+                |> Seo.website
 
 
-cardImage : Persona -> Seo.Image
-cardImage persona =
+cardImage : ( String, PartialPersona ) -> Seo.Image
+cardImage ( name, persona ) =
     { url =
         Pages.Url.fromPath
             [ "card"
             , "persona"
-            , persona.name
-            , personaToSlug persona
+            , Url.percentEncode name
+            , partialPersonaToSlug persona
             ]
-    , alt = "Card for " ++ persona.name
+    , alt = "Card for " ++ name
     , dimensions = Just cardImageSize
     , mimeType = Nothing
     }
 
 
-title : Persona -> String
-title persona =
-    persona.name ++ " - " ++ Site.manifest.name
+title : String -> String
+title name =
+    name ++ " - " ++ Site.manifest.name
 
 
-toDescription : Persona -> String
-toDescription persona =
-    [ persona.name
-    , (Persona.gendertropeToRecord persona.gendertrope).name
-    , "FIT " ++ String.fromInt persona.fitness
-    , "GRC " ++ String.fromInt persona.grace
-    , "ARD " ++ String.fromInt persona.ardor
-    , "SAN " ++ String.fromInt persona.sanity
-    , "PRW " ++ String.fromInt persona.prowess
-    , "MOX " ++ String.fromInt persona.moxie
+toDescription : ( String, PartialPersona ) -> String
+toDescription ( name, partialPersona ) =
+    [ name
+    , Persona.partialGendertropeName partialPersona.gendertrope
+    , "FIT " ++ String.fromInt partialPersona.fitness
+    , "GRC " ++ String.fromInt partialPersona.grace
+    , "ARD " ++ String.fromInt partialPersona.ardor
+    , "SAN " ++ String.fromInt partialPersona.sanity
+    , "PRW " ++ String.fromInt partialPersona.prowess
+    , "MOX " ++ String.fromInt partialPersona.moxie
     ]
         |> String.join " "
 
@@ -262,7 +286,7 @@ view :
     -> Model
     -> View (PagesMsg Msg)
 view app shared model =
-    { title = title app.data
+    { title = title (Tuple.first app.data)
     , body =
         Theme.el [ Theme.padding ] <|
             Persona.view
@@ -284,8 +308,8 @@ subscriptions _ _ _ _ =
 -- CARD --
 
 
-toCard : Persona -> BackendTask FatalError (Response.Response Never Never)
-toCard persona =
+toCard : String -> PartialPersona -> BackendTask FatalError (Response.Response Never Never)
+toCard name partialPersona =
     Drawing.getFont
         |> BackendTask.map
             (\font ->
@@ -302,12 +326,12 @@ toCard persona =
 
                     description : String
                     description =
-                        [ "FIT\u{2009}" ++ padNumber 2 persona.fitness
-                        , "GRC\u{2009}" ++ padNumber 2 persona.grace
-                        , "ARD\u{2009}" ++ padNumber 2 persona.ardor
-                        , "SAN\u{2009}" ++ padNumber 2 persona.sanity
-                        , "PRW\u{2009}" ++ padNumber 2 persona.prowess
-                        , "MOX\u{2009}" ++ padNumber 2 persona.moxie
+                        [ "FIT\u{2009}" ++ padNumber 2 partialPersona.fitness
+                        , "GRC\u{2009}" ++ padNumber 2 partialPersona.grace
+                        , "ARD\u{2009}" ++ padNumber 2 partialPersona.ardor
+                        , "SAN\u{2009}" ++ padNumber 2 partialPersona.sanity
+                        , "PRW\u{2009}" ++ padNumber 2 partialPersona.prowess
+                        , "MOX\u{2009}" ++ padNumber 2 partialPersona.moxie
                         ]
                             |> String.join "\n"
 
@@ -321,19 +345,19 @@ toCard persona =
                     meters : String
                     meters =
                         [ meter "Stamina" 0
-                        , meter "Satiation" persona.ardor
-                        , meter "Craving" persona.sanity
-                        , meter "Arousal" persona.prowess
-                        , meter "Sensitivity" persona.moxie
-                        , "Level\u{2009}bonus\u{2009} " ++ padNumber 5 (Persona.levelBonus persona)
+                        , meter "Satiation" partialPersona.ardor
+                        , meter "Craving" partialPersona.sanity
+                        , meter "Arousal" partialPersona.prowess
+                        , meter "Sensitivity" partialPersona.moxie
+                        , "Level\u{2009}bonus\u{2009} " ++ padNumber 5 (Persona.levelBonus partialPersona)
                         ]
                             |> String.join "\n"
                 in
                 image
                     |> Drawing.drawImage 1 1 Drawing.flower
                     |> Drawing.drawImage (cardImageSize.width - 6) 1 Drawing.flower
-                    |> Drawing.drawTextCenter font 1 persona.name
-                    |> Drawing.drawTextCenter font (font.height + 2) (Persona.gendertropeToRecord persona.gendertrope).name
+                    |> Drawing.drawTextCenter font 1 name
+                    |> Drawing.drawTextCenter font (font.height + 2) (Persona.partialGendertropeName partialPersona.gendertrope)
                     |> Drawing.drawText font 1 (font.height * 2 + 3) description
                     |> Drawing.drawText font 30 (font.height * 2 + 3) meters
                     |> Drawing.scaleBy (800 // cardImageSize.width)

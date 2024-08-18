@@ -1,4 +1,4 @@
-module Persona exposing (Config, codec, default, fromPartial, gendertropeToRecord, levelBonus, toPartial, view)
+module Persona exposing (Config, codec, default, fromPartial, gendertropeRecordCodec, levelBonus, partialGendertropeName, toPartial, view)
 
 import Bits.Codec as Codec exposing (Codec)
 import Dict
@@ -16,7 +16,7 @@ import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer
 import Persona.Data
-import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialPersona, Persona, standardGendertropes)
+import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona, standardGendertropes)
 import Theme exposing (withHint)
 
 
@@ -47,7 +47,17 @@ type alias Config msg =
     { update : Persona -> msg, flip : msg }
 
 
-levelBonus : Persona -> Int
+levelBonus :
+    { a
+        | fitness : Int
+        , grace : Int
+        , ardor : Int
+        , sanity : Int
+        , prowess : Int
+        , moxie : Int
+        , features : List Int
+    }
+    -> Int
 levelBonus persona =
     let
         highestSum : Int
@@ -1046,7 +1056,7 @@ codec =
         |> Codec.field .ichorPoints Codec.nonNegativeInt
         |> Codec.field .numinousPoints Codec.nonNegativeInt
         |> Codec.field .features (Codec.list (Codec.intWithMinimum 2))
-        |> Codec.field .gendertrope gendertropeCodec
+        |> Codec.field .gendertrope partialGendertropeCodec
         |> Codec.buildObject
 
 
@@ -1058,39 +1068,39 @@ featureCodec =
         |> Codec.buildObject
 
 
-gendertropeCodec : Codec e Gendertrope
-gendertropeCodec =
+partialGendertropeCodec : Codec e PartialGendertrope
+partialGendertropeCodec =
     Codec.custom
         (\fCustom fButterfly fFlower fVixen fBuck fFiend fDoll value ->
             case value of
-                Custom record ->
-                    fCustom record
+                PartialCustom name ->
+                    fCustom name
 
-                Butterfly ->
+                PartialButterfly ->
                     fButterfly
 
-                Flower ->
+                PartialFlower ->
                     fFlower
 
-                Vixen ->
+                PartialVixen ->
                     fVixen
 
-                Buck ->
+                PartialBuck ->
                     fBuck
 
-                Fiend ->
+                PartialFiend ->
                     fFiend
 
-                Doll ->
+                PartialDoll ->
                     fDoll
         )
-        |> Codec.variant1 Custom gendertropeRecordCodec
-        |> Codec.variant0 Butterfly
-        |> Codec.variant0 Flower
-        |> Codec.variant0 Vixen
-        |> Codec.variant0 Buck
-        |> Codec.variant0 Fiend
-        |> Codec.variant0 Doll
+        |> Codec.variant1 PartialCustom Codec.string
+        |> Codec.variant0 PartialButterfly
+        |> Codec.variant0 PartialFlower
+        |> Codec.variant0 PartialVixen
+        |> Codec.variant0 PartialBuck
+        |> Codec.variant0 PartialFiend
+        |> Codec.variant0 PartialDoll
         |> Codec.buildCustom
 
 
@@ -1121,27 +1131,73 @@ organCodec =
         |> Codec.buildObject
 
 
-fromPartial : String -> PartialPersona -> Persona
-fromPartial name persona =
+fromPartial : String -> Maybe PartialPersona -> Maybe GendertropeRecord -> Persona
+fromPartial name partialPersona maybeGendertrope =
+    let
+        defaulted : PartialPersona
+        defaulted =
+            case partialPersona of
+                Just persona ->
+                    persona
+
+                Nothing ->
+                    toPartial default
+
+        gendertrope : Gendertrope
+        gendertrope =
+            partialGendertropeToGendertrope defaulted.gendertrope maybeGendertrope
+    in
     { name = name
 
     --
-    , fitness = persona.fitness
-    , grace = persona.grace
-    , ardor = persona.ardor
-    , sanity = persona.sanity
-    , prowess = persona.prowess
-    , moxie = persona.moxie
+    , fitness = defaulted.fitness
+    , grace = defaulted.grace
+    , ardor = defaulted.ardor
+    , sanity = defaulted.sanity
+    , prowess = defaulted.prowess
+    , moxie = defaulted.moxie
 
     --
-    , euphoriaPoints = persona.euphoriaPoints
-    , ichorPoints = persona.ichorPoints
-    , numinousPoints = persona.numinousPoints
+    , euphoriaPoints = defaulted.euphoriaPoints
+    , ichorPoints = defaulted.ichorPoints
+    , numinousPoints = defaulted.numinousPoints
 
     --
-    , features = persona.features
-    , gendertrope = persona.gendertrope
+    , features = defaulted.features
+    , gendertrope = gendertrope
     }
+
+
+partialGendertropeToGendertrope : PartialGendertrope -> Maybe GendertropeRecord -> Gendertrope
+partialGendertropeToGendertrope gendertrope maybeGendertrope =
+    case gendertrope of
+        PartialButterfly ->
+            Butterfly
+
+        PartialFlower ->
+            Flower
+
+        PartialVixen ->
+            Vixen
+
+        PartialBuck ->
+            Buck
+
+        PartialFiend ->
+            Fiend
+
+        PartialDoll ->
+            Doll
+
+        PartialCustom name ->
+            maybeGendertrope
+                |> Maybe.withDefault
+                    { name = name
+                    , description = ""
+                    , features = Dict.empty
+                    , organs = []
+                    }
+                |> Custom
 
 
 toPartial : Persona -> PartialPersona
@@ -1160,5 +1216,37 @@ toPartial persona =
 
     --
     , features = persona.features
-    , gendertrope = persona.gendertrope
+    , gendertrope = gendertropeToPartial persona.gendertrope
     }
+
+
+gendertropeToPartial : Gendertrope -> PartialGendertrope
+gendertropeToPartial gendertrope =
+    case gendertrope of
+        Butterfly ->
+            PartialButterfly
+
+        Flower ->
+            PartialFlower
+
+        Vixen ->
+            PartialVixen
+
+        Buck ->
+            PartialBuck
+
+        Fiend ->
+            PartialFiend
+
+        Doll ->
+            PartialDoll
+
+        Custom { name } ->
+            PartialCustom name
+
+
+partialGendertropeName : Persona.Types.PartialGendertrope -> String
+partialGendertropeName partial =
+    (partialGendertropeToGendertrope partial Nothing
+        |> gendertropeToRecord
+    ).name

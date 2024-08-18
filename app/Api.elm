@@ -5,7 +5,6 @@ import BackendTask exposing (BackendTask)
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Pages.Manifest as Manifest
-import Persona.Types exposing (Persona)
 import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Site
@@ -19,12 +18,12 @@ routes :
 routes getStaticRoutes {- htmlToString -} _ =
     [ ApiRoute.succeed
         (\name data _ ->
-            let
-                persona : Persona
-                persona =
-                    Persona.personaFromSlug name data
-            in
-            Persona.toCard persona
+            case Persona.partialPersonaFromSlug data of
+                Just partialPersona ->
+                    Persona.toCard name partialPersona
+
+                Nothing ->
+                    BackendTask.fail (FatalError.fromString "Invalid input")
         )
         |> ApiRoute.literal "card"
         |> ApiRoute.slash
