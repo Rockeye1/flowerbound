@@ -23,13 +23,17 @@ type alias Config msg =
 
 persona : Config msg -> Persona -> Element msg
 persona config input =
+    let
+        gendertropeRecord : GendertropeRecord
+        gendertropeRecord =
+            Persona.Data.gendertropeToRecord input.gendertrope
+    in
     Theme.column
         [ Border.width 1
         , Theme.padding
-        , Font.color Theme.purple
         , width <| Element.maximum 600 shrink
         ]
-        ([ Theme.row [ width fill ]
+        [ Theme.row [ width fill ]
             (Theme.input [ width fill ]
                 { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input
                 , onChange =
@@ -42,19 +46,35 @@ persona config input =
                 }
                 :: topButtons config
             )
-         , Theme.row [ centerX ]
+        , Theme.row
+            [ centerX
+            , Font.color Theme.purple
+            ]
             [ Persona.Data.gendertropeIcon input.gendertrope
             , el [ Font.bold ] (text input.name)
             , Persona.Data.gendertropeIcon input.gendertrope
             ]
-         , Theme.row [ width fill ]
+        , Theme.row [ width fill ]
             [ abilitiesView input
             , statusView input
             ]
-         , progressionView input
-         ]
-            ++ viewGendertrope input
-        )
+        , Theme.row
+            [ centerX
+            , Font.color Theme.purple
+            ]
+            [ Persona.Data.gendertropeIcon input.gendertrope
+            , el [ Font.bold ] (text gendertropeRecord.name)
+            , Persona.Data.gendertropeIcon input.gendertrope
+            ]
+        , paragraph
+            [ Font.italic
+            , width fill
+            ]
+            [ text gendertropeRecord.description
+            ]
+        , organs gendertropeRecord.organs
+        , viewStandardFeatures input.features gendertropeRecord
+        ]
 
 
 abilitiesView : Persona -> Element msg
@@ -161,48 +181,6 @@ statusView input =
         ]
 
 
-progressionView : Persona -> Element msg
-progressionView input =
-    Theme.column
-        [ Border.widthEach
-            { top = 1
-            , left = 0
-            , right = 0
-            , bottom = 0
-            }
-        , Element.paddingEach
-            { top = Theme.rhythm
-            , left = 0
-            , right = 0
-            , bottom = 0
-            }
-        , width fill
-        ]
-        [ el [ centerX ] <| text "Progression Tally"
-        , Theme.wrappedRow [ width fill ]
-            [ viewPoints "EP" "Euphoria Points" input.euphoriaPoints (Persona.usedEuphoriaPoints input)
-            , viewPoints "IP" "Ichor Points" input.ichorPoints (Persona.usedIchorPoints input)
-            , viewPoints "NP" "Numinous Points" input.numinousPoints (Persona.usedNuminousPoints input)
-            ]
-        ]
-
-
-viewPoints : String -> String -> Int -> Int -> Element msg
-viewPoints label fullName value used =
-    let
-        unused : Int
-        unused =
-            value - used
-    in
-    Theme.row [ width fill ]
-        [ Theme.withHint fullName (text label)
-        , Theme.wrappedRow [ width <| px (Theme.rhythm * 8) ]
-            (List.repeat (unused // 5) (tallyGroup 5)
-                ++ [ tallyGroup (modBy 5 unused) ]
-            )
-        ]
-
-
 tallyGroup : Int -> Element msg
 tallyGroup count =
     if count <= 0 then
@@ -237,28 +215,6 @@ tallyGroup count =
 tallyMark : Element msg
 tallyMark =
     el [ Border.width 1, height <| px 16 ] Element.none
-
-
-viewGendertrope : Persona -> List (Element msg)
-viewGendertrope ({ gendertrope } as input) =
-    let
-        gendertropeRecord : GendertropeRecord
-        gendertropeRecord =
-            Persona.Data.gendertropeToRecord gendertrope
-    in
-    [ Theme.row []
-        [ Persona.Data.gendertropeIcon gendertrope
-        , text gendertropeRecord.name
-        ]
-    , paragraph
-        [ Font.italic
-        , width fill
-        ]
-        [ text gendertropeRecord.description
-        ]
-    , organs gendertropeRecord.organs
-    , viewStandardFeatures input.features gendertropeRecord
-    ]
 
 
 viewStandardFeatures : List Int -> GendertropeRecord -> Element msg

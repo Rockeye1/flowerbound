@@ -270,6 +270,15 @@ viewPersona model =
 
 viewPlaying : PlayingModel -> Element PlayingMsg
 viewPlaying model =
+    Theme.column []
+        [ el [ Font.bold ] (text "Stimulation")
+        , text "Choose a stamina cost by clicking the table below."
+        , staminaTable model
+        ]
+
+
+staminaTable : PlayingModel -> Element PlayingMsg
+staminaTable model =
     let
         nameColumn : Element.Column ( String, Int -> String ) msg
         nameColumn =
@@ -285,26 +294,26 @@ viewPlaying model =
             }
 
         costColumn : Int -> Element.Column ( String, Int -> String ) PlayingMsg
-        costColumn c =
+        costColumn cost =
             { width = shrink
             , header = Element.none
             , view =
                 \( _, toValue ) ->
                     Theme.button
                         [ Font.center
-                        , if c == model.stimulationCost then
+                        , if cost == model.stimulationCost then
                             Background.color Theme.purple
 
                           else
                             Background.color Theme.gray
-                        , if c == model.stimulationCost then
+                        , if cost == model.stimulationCost then
                             Theme.noAttribute
 
                           else
                             Font.color Theme.black
                         ]
-                        { onPress = Just (StimulationCost c)
-                        , label = text (toValue c)
+                        { onPress = Just (StimulationCost cost)
+                        , label = text (toValue cost)
                         }
             }
     in
@@ -355,7 +364,4 @@ ORGASM THRESHOLD = SENSITIVITY + SATIATION (+ MODIFIERS)
 
 Once you know your **Orgasm Threshold**, you simply compare it to your **Arousal**. If your **Arousal** is greater than your **Orgasm Threshold**, you are **Having An Orgasm**.
 
-`AROUSAL > ORGASM THRESHOLD`
-
-## Stimulation
-Choose a stamina cost by clicking the table below."""
+`AROUSAL > ORGASM THRESHOLD`"""
