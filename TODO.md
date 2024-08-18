@@ -2,3 +2,4 @@
     - Disable animations
 - Log of actions
     - Interspersed with chat log
+- Share as picture with embedded metadata
