@@ -87,11 +87,7 @@ abilitiesView input =
                 [ el [ alignRight ] (text (String.fromInt value))
                 ]
     in
-    Element.table
-        [ height fill
-        , width fill
-        , Theme.spacing
-        ]
+    Theme.table []
         { data =
             [ ( text "Fitness", input.fitness )
             , ( text "Grace", input.grace )
@@ -123,8 +119,7 @@ statusView input =
             )
     in
     Theme.table
-        [ Theme.spacing
-        , Border.widthEach
+        [ Border.widthEach
             { left = 1
             , top = 0
             , bottom = 0
@@ -136,8 +131,6 @@ statusView input =
             , bottom = 0
             , right = 0
             }
-        , height fill
-        , width fill
         ]
         { data =
             [ statusRow "Max Stamina" 0

@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, shrink, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -333,11 +333,11 @@ staminaTable model =
             ]
     in
     Theme.column [ centerX ]
-        [ Element.table []
+        [ Theme.table [ spacing 4 ]
             { data = rows
             , columns = nameColumn :: List.map costColumn (List.range 1 9)
             }
-        , Element.table []
+        , Theme.table [ spacing 4 ]
             { data = rows
             , columns = nameColumn :: List.map costColumn (List.range 10 18)
             }
