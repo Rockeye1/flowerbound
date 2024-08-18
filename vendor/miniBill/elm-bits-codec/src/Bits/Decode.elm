@@ -13,7 +13,6 @@ type Error e
     | EndOfInput
     | StringParsingError
     | VariantNotRecognized Int
-    | OneOfError (List (Error e))
 
 
 type Decoder e a

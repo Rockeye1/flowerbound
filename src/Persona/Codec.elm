@@ -1,4 +1,4 @@
-module Persona.Codec exposing (feature, gendertropeRecord, organ, partialGendertrope, partialPersona)
+module Persona.Codec exposing (gendertropeRecord, partialPersona)
 
 import Bits.Codec as Codec exposing (Codec)
 import Persona.Types exposing (Feature, GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona)

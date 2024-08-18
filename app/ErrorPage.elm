@@ -27,7 +27,6 @@ update _ _ model =
 
 type ErrorPage
     = NotFound
-    | InvalidInput
     | InvalidRequest
     | InternalError String
 
@@ -54,9 +53,6 @@ view error _ =
                     InternalError string ->
                         "Something went wrong.\n" ++ string
 
-                    InvalidInput ->
-                        "Invalid input."
-
                     InvalidRequest ->
                         "Invalid request."
             ]
@@ -67,9 +63,6 @@ view error _ =
 
             InternalError _ ->
                 "Unexpected Error"
-
-            InvalidInput ->
-                "Invalid Input"
 
             InvalidRequest ->
                 "Invalid Request"
@@ -84,9 +77,6 @@ statusCode error =
 
         InternalError _ ->
             500
-
-        InvalidInput ->
-            400
 
         InvalidRequest ->
             400
