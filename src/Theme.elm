@@ -5,6 +5,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Element.Region
 import Html
 import Html.Attributes
 import Markdown.Block
@@ -249,7 +250,7 @@ viewMarkdownBlocks blocks =
 
 markdownRenderer : Markdown.Renderer.Renderer (Element msg)
 markdownRenderer =
-    { heading = \_ -> Element.text "TODO: heading"
+    { heading = viewHeading
     , paragraph = Element.paragraph [ spacing ]
     , blockQuote =
         column
@@ -258,7 +259,7 @@ markdownRenderer =
             ]
     , html = Markdown.Html.oneOf []
     , text = Element.text
-    , codeSpan = \_ -> Element.text "TODO: codeSpan"
+    , codeSpan = \code -> el [ Font.family [ Font.monospace ] ] (Element.text code)
     , strong = row [ Font.bold ]
     , emphasis = row [ Font.italic ]
     , strikethrough = row [ Font.strike ]
@@ -299,6 +300,38 @@ markdownRenderer =
     , tableCell = \_ _ -> Element.text "TODO: tableCell"
     , tableHeaderCell = \_ _ -> Element.text "TODO: tableHeaderCell"
     }
+
+
+viewHeading : { level : Markdown.Block.HeadingLevel, rawText : String, children : List (Element msg) } -> Element msg
+viewHeading { level, rawText, children } =
+    Element.paragraph
+        [ Font.size
+            (case level of
+                Markdown.Block.H1 ->
+                    36
+
+                Markdown.Block.H2 ->
+                    24
+
+                _ ->
+                    20
+            )
+        , Font.bold
+        , Element.Region.heading (Markdown.Block.headingLevelToInt level)
+        , Element.htmlAttribute
+            (Html.Attributes.attribute "name" (rawTextToId rawText))
+        , Element.htmlAttribute
+            (Html.Attributes.id (rawTextToId rawText))
+        ]
+        children
+
+
+rawTextToId : String -> String
+rawTextToId rawText =
+    rawText
+        |> String.split " "
+        |> String.join "-"
+        |> String.toLower
 
 
 viewUnorderedListItem : Markdown.Block.ListItem (Element msg) -> Element msg
