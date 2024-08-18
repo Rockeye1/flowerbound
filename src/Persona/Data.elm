@@ -1,4 +1,4 @@
-module Persona.Data exposing (breasts, buck, butterfly, doll, fiend, flower, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, vixen, yonic)
+module Persona.Data exposing (breasts, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, yonic)
 
 import Dict
 import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
