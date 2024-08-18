@@ -4,13 +4,14 @@ import CodecTest
 import Dict
 import Fuzz exposing (Fuzzer)
 import Persona
+import Persona.Codec
 import Persona.Types as Persona
 import Test exposing (Test, describe)
 
 
 persona : Test
 persona =
-    describe "Persona" [ CodecTest.roundtrips partialPersonaFuzzer Persona.codec ]
+    describe "Persona" [ CodecTest.roundtrips partialPersonaFuzzer Persona.Codec.partialPersona ]
 
 
 partialPersonaFuzzer : Fuzzer Persona.PartialPersona
@@ -48,8 +49,8 @@ gendertropeRecordFuzzer =
     Fuzz.map4 Persona.GendertropeRecord
         Fuzz.string
         Fuzz.string
-        (Fuzz.map Dict.fromList (Fuzz.list (Fuzz.pair (Fuzz.intAtLeast 1) featureFuzzer)))
         (Fuzz.list organFuzzer)
+        (Fuzz.map Dict.fromList (Fuzz.list (Fuzz.pair (Fuzz.intAtLeast 1) featureFuzzer)))
 
 
 featureFuzzer : Fuzzer Persona.Feature

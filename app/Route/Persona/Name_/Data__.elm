@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, toCard)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, setPersona, toCard)
 
 -- import Flate
 
@@ -17,6 +17,7 @@ import FatalError exposing (FatalError)
 import File exposing (File)
 import File.Download
 import File.Select
+import Flate
 import Head
 import Head.Seo as Seo
 import Image
@@ -90,7 +91,7 @@ init app _ =
         maybeGendertrope =
             app.url
                 |> Maybe.andThen .fragment
-                |> Maybe.andThen slugToBytes
+                |> Maybe.andThen (\d -> d |> slugToBytes |> Result.toMaybe)
                 |> Maybe.andThen
                     (\bytes ->
                         Bits.Decode.run Persona.Codec.gendertropeRecord.decoder bytes
@@ -102,48 +103,63 @@ init app _ =
     )
 
 
-partialPersonaFromSlug : String -> Maybe PartialPersona
+partialPersonaFromSlug : String -> Result String PartialPersona
 partialPersonaFromSlug slug =
     slugToBytes slug
-        |> Maybe.andThen
+        |> Result.andThen
             (\slugBytes ->
-                case Bits.Decode.run Persona.Codec.partialPersona.decoder slugBytes of
-                    Ok partial ->
-                        Just partial
-
-                    Err _ ->
-                        Nothing
+                Bits.Decode.run Persona.Codec.partialPersona.decoder slugBytes
+                    |> Result.mapError errorToString
             )
 
 
-slugToBytes : String -> Maybe (List Bit)
+errorToString : Bits.Decode.Error String -> String
+errorToString error =
+    case error of
+        Bits.Decode.Problem e ->
+            e
+
+        Bits.Decode.EndOfInput ->
+            "End of input"
+
+        Bits.Decode.StringParsingError ->
+            "String parsing error"
+
+        Bits.Decode.VariantNotRecognized n ->
+            "Variant not recognized " ++ String.fromInt n
+
+
+slugToBytes : String -> Result String (List Bit)
 slugToBytes slug =
     slug
         |> String.replace "_" "/"
         |> String.replace "-" "+"
         |> Base64.toBytes
-        |> Maybe.andThen
+        |> Result.fromMaybe "Failed to base64 decode"
+        |> Result.andThen
             (\bytes ->
                 bytes
                     |> Bits.fromBytes
                     |> maybeDecompress
+                    |> Result.fromMaybe "Could not decompress"
             )
 
 
 maybeDecompress : List Bit -> Maybe (List Bit)
 maybeDecompress input =
-    -- case input of
-    --     [] ->
-    --         Just input
-    --     Bit.O :: tail ->
-    --         Just tail
-    --     Bit.I :: tail ->
-    --         tail
-    --             |> List.drop 7
-    --             |> Bits.toBytes
-    --             |> Flate.inflate
-    --             |> Maybe.map Bits.fromBytes
-    Just input
+    case input of
+        [] ->
+            Just input
+
+        Bit.O :: tail ->
+            Just tail
+
+        Bit.I :: tail ->
+            tail
+                |> List.drop 7
+                |> Bits.toBytes
+                |> Flate.inflate
+                |> Maybe.map Bits.fromBytes
 
 
 partialPersonaToSlug : PartialPersona -> String
@@ -167,19 +183,18 @@ bytesToSlug bytes =
 
 maybeCompress : Bytes -> Bytes
 maybeCompress input =
-    -- let
-    --     compressed : Bytes
-    --     compressed =
-    --         Flate.deflate input
-    --     bits : List Bit
-    --     bits =
-    --         if Bytes.width compressed < Bytes.width input then
-    --             Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
-    --         else
-    --             Bit.O :: Bits.fromBytes input
-    -- in
-    -- Bits.toBytes bits
-    input
+    let
+        -- compressed : Bytes
+        -- compressed =
+        --     Flate.deflate input
+        bits : List Bit
+        bits =
+            -- if Bytes.width compressed < Bytes.width input then
+            --     Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
+            -- else
+            Bit.O :: Bits.fromBytes input
+    in
+    Bits.toBytes bits
 
 
 update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg, Maybe Shared.Msg )
@@ -277,7 +292,13 @@ data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage
 data params _ =
     ( Url.percentDecode params.name
         |> Maybe.withDefault params.name
-    , Maybe.andThen partialPersonaFromSlug params.data
+    , Maybe.andThen
+        (\d ->
+            d
+                |> partialPersonaFromSlug
+                |> Result.toMaybe
+        )
+        params.data
     )
         |> Response.render
         |> BackendTask.succeed

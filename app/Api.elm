@@ -20,11 +20,11 @@ routes getStaticRoutes {- htmlToString -} _ =
     [ ApiRoute.succeed
         (\name data _ ->
             case Persona.partialPersonaFromSlug data of
-                Just partialPersona ->
+                Ok partialPersona ->
                     Persona.toCard (Maybe.withDefault name <| Url.percentDecode name) partialPersona
 
-                Nothing ->
-                    BackendTask.fail (FatalError.fromString "Invalid input")
+                Err e ->
+                    BackendTask.fail (FatalError.fromString e)
         )
         |> ApiRoute.literal "card"
         |> ApiRoute.slash
