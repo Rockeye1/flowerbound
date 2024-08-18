@@ -1,4 +1,27 @@
-module Icons exposing (buck, butterfly, custom, doll, ensheathe, ensheatheable, fiend, flip, flower, grip, grippable, minus, penetrable, penetrate, plus, squish, squishable, vixen)
+module Icons exposing
+    ( flip, load, minus, plus
+    , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
+    , buck, butterfly, custom, doll, fiend, flower, vixen
+    )
+
+{-|
+
+
+## Actions
+
+@docs flip, load, minus, plus
+
+
+## Moves
+
+@docs ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
+
+
+## Gendertropes
+
+@docs buck, butterfly, custom, doll, fiend, flower, vixen
+
+-}
 
 import Element exposing (Element, el)
 import Phosphor
@@ -129,3 +152,8 @@ doll =
 custom : Element msg
 custom =
     icon Phosphor.pencil Phosphor.Duotone
+
+
+load : Element msg
+load =
+    icon Phosphor.upload Phosphor.Duotone

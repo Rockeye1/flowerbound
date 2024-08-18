@@ -43,7 +43,10 @@ default =
 
 
 type alias Config msg =
-    { update : Persona -> msg, flip : msg }
+    { update : Persona -> msg
+    , flip : msg
+    , load : msg
+    }
 
 
 levelBonus :
@@ -153,12 +156,9 @@ view config { flipped, persona } =
                 )
             )
             (Theme.row [ width fill ]
-                [ text "Gendertrope"
-                , Theme.button [ alignRight ]
-                    { onPress = Just config.flip
-                    , label = Icons.flip
-                    }
-                ]
+                (text "Gendertrope"
+                    :: topButtons config
+                )
                 :: List.map
                     (Element.map
                         (\msg ->
@@ -173,6 +173,19 @@ view config { flipped, persona } =
                     (viewGendertrope persona)
             )
         ]
+
+
+topButtons : Config msg -> List (Element msg)
+topButtons config =
+    [ Theme.button [ alignRight ]
+        { onPress = Just config.load
+        , label = Icons.load
+        }
+    , Theme.button [ alignRight ]
+        { onPress = Just config.flip
+        , label = Icons.flip
+        }
+    ]
 
 
 type GendertropeMsg
@@ -816,7 +829,7 @@ nameRow config persona =
             }
         , width fill
         ]
-        [ Theme.input [ width fill ]
+        (Theme.input [ width fill ]
             { label = Input.labelHidden "Name"
             , text = persona.name
             , onChange = \newValue -> config.update { persona | name = newValue }
@@ -825,11 +838,8 @@ nameRow config persona =
                     Input.placeholder [] <|
                         text "Name"
             }
-        , Theme.button []
-            { onPress = Just config.flip
-            , label = Icons.flip
-            }
-        ]
+            :: topButtons config
+        )
 
 
 abilitiesView : Persona -> Element Persona

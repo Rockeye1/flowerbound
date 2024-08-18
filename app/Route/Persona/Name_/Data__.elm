@@ -11,13 +11,17 @@ import Bits.Decode
 import Bytes exposing (Bytes)
 import Drawing
 import Effect exposing (Effect)
+import Element
 import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
+import File exposing (File)
+import File.Select
 import Head
 import Head.Seo as Seo
 import Image
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
+import Parser
 import Persona
 import Persona.Codec
 import Persona.Types exposing (Gendertrope, GendertropeRecord, PartialPersona, Persona)
@@ -28,6 +32,7 @@ import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
 import Site
+import Task
 import Theme
 import Url
 import UrlPath exposing (UrlPath)
@@ -40,7 +45,10 @@ type alias Model =
 
 type Msg
     = Flip
+    | Load
     | Update Persona
+    | Picked File
+    | Loaded String
 
 
 type alias RouteParams =
@@ -191,6 +199,39 @@ update _ _ msg model =
         Flip ->
             ( model, Effect.none, Just Shared.Flip )
 
+        Load ->
+            ( model
+            , Effect.fromCmd
+                (File.Select.file
+                    [ ".md"
+                    , "text/plain"
+                    ]
+                    Picked
+                )
+            , Nothing
+            )
+
+        Picked file ->
+            ( model
+            , Effect.fromCmd
+                (File.toString file
+                    |> Task.perform Loaded
+                )
+            , Nothing
+            )
+
+        Loaded file ->
+            case Parser.run Persona.Codec.personaParser file of
+                Err e ->
+                    let
+                        _ =
+                            Debug.log "Error loading file" e
+                    in
+                    ( model, Effect.none, Nothing )
+
+                Ok persona ->
+                    ( persona, Effect.none, Nothing )
+
 
 gendertropeToHash : Gendertrope -> String
 gendertropeToHash gendertrope =
@@ -300,14 +341,16 @@ view :
 view app shared model =
     { title = title (Tuple.first app.data)
     , body =
-        Theme.el [ Theme.padding ] <|
-            Persona.view
-                { update = PagesMsg.fromMsg << Update
-                , flip = PagesMsg.fromMsg Flip
-                }
-                { persona = model
-                , flipped = shared.flipped
-                }
+        Persona.view
+            { update = Update
+            , flip = Flip
+            , load = Load
+            }
+            { persona = model
+            , flipped = shared.flipped
+            }
+            |> Theme.el [ Theme.padding ]
+            |> Element.map PagesMsg.fromMsg
     }
 
 

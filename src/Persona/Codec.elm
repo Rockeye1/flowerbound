@@ -40,6 +40,7 @@ personaParser =
             }
         |. Parser.spaces
         |= gendertropeParser
+        |. Parser.end
 
 
 gendertropeParser : Parser Gendertrope
@@ -90,7 +91,7 @@ gendertropeRecordParser name =
         |= Parser.sequence
             { start = ""
             , end = ""
-            , separator = "\n"
+            , separator = ""
             , spaces = Parser.spaces
             , item =
                 Parser.succeed identity
@@ -110,12 +111,13 @@ gendertropeRecordParser name =
                     |. Parser.symbol ":"
                     |. Parser.spaces
                     |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
+                    |. Parser.spaces
             , trailing = Parser.Optional
             }
         |= (Parser.sequence
                 { start = ""
                 , end = ""
-                , separator = "\n"
+                , separator = ""
                 , spaces = Parser.spaces
                 , item =
                     Parser.succeed Tuple.pair
@@ -124,6 +126,7 @@ gendertropeRecordParser name =
                                 |. Parser.keyword "Level"
                                 |. Parser.spaces
                                 |= Parser.int
+                                |. Parser.spaces
                                 |. Parser.keyword "Feature"
                                 |. Parser.spaces
                                 |. Parser.symbol ":"
