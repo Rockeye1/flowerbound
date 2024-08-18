@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, moveDown, padding, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -37,6 +37,7 @@ type Msg
 type PlayingMsg
     = StimulationCost Int
     | UpdatePersona Persona
+    | UpdateMeters Meters
 
 
 type Model
@@ -47,7 +48,12 @@ type Model
 type alias PlayingModel =
     { persona : Persona
     , stimulationCost : Int
-    , sensitivity : Int
+    , meters : Meters
+    }
+
+
+type alias Meters =
+    { sensitivity : Int
     , arousal : Int
     , craving : Int
     , satiation : Int
@@ -146,16 +152,21 @@ innerUpdate msg model =
         UpdatePersona persona ->
             ( { model | persona = persona }, Effect.none )
 
+        UpdateMeters meters ->
+            ( { model | meters = meters }, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
     { persona = persona
     , stimulationCost = 1
-    , sensitivity = 0
-    , arousal = 0
-    , craving = 0
-    , satiation = 0
-    , stamina = 0
+    , meters =
+        { sensitivity = 0
+        , arousal = 0
+        , craving = 0
+        , satiation = 0
+        , stamina = 0
+        }
     }
 
 
@@ -269,12 +280,88 @@ viewPersona model =
 
 
 viewPlaying : PlayingModel -> Element PlayingMsg
-viewPlaying model =
+viewPlaying ({ meters, persona } as model) =
     Theme.column [ width fill ]
-        [ el [ Font.bold ] (text "Stimulation")
+        [ el [ Font.bold ] (text "Status meters")
+        , Theme.table [ width fill ]
+            { data =
+                [ statusMeter "Stamina" meters.stamina 0 <| \newValue -> UpdateMeters { meters | stamina = newValue }
+                , statusMeter "Satiation" meters.satiation persona.ardor <| \newValue -> UpdateMeters { meters | satiation = newValue }
+                , statusMeter "Craving" meters.craving persona.sanity <| \newValue -> UpdateMeters { meters | craving = newValue }
+                , statusMeter "Sensitivity" meters.sensitivity persona.moxie <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
+                , statusMeter "Arousal" meters.arousal persona.prowess <| \newValue -> UpdateMeters { meters | arousal = newValue }
+                ]
+            , columns =
+                [ { width = shrink
+                  , header = Element.none
+                  , view = Tuple.first
+                  }
+                , { width = fill
+                  , header = Element.none
+                  , view = Tuple.second
+                  }
+                ]
+            }
+        , el
+            [ Font.bold ]
+            (text "Stimulation")
         , text "Choose a stamina cost by clicking the table below."
         , staminaTable model
         ]
+
+
+statusMeter : String -> Int -> Int -> (Int -> msg) -> ( Element msg, Element msg )
+statusMeter label value bonus setter =
+    let
+        cap : Int
+        cap =
+            20 + 2 * bonus
+    in
+    ( text label
+    , Input.slider
+        [ height (px 30)
+        , Element.behindContent
+            (Theme.el
+                [ width fill
+                , height (px 2)
+                , centerY
+                , Background.color Theme.gray
+                , Border.rounded 2
+                ]
+                Element.none
+            )
+        , Element.behindContent
+            (List.range 0 cap
+                |> List.map
+                    (\v ->
+                        el
+                            [ width (px 1)
+                            , height (px 8)
+                            , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+                            , Element.behindContent
+                                (el
+                                    [ centerX
+                                    , moveDown 11
+                                    ]
+                                    (text (String.fromInt v))
+                                )
+                            ]
+                            Element.none
+                    )
+                |> List.intersperse (el [ width fill ] Element.none)
+                |> (\l -> el [ width (px 8) ] Element.none :: l ++ [ el [ width (px 8) ] Element.none ])
+                |> row [ width fill, height fill ]
+            )
+        ]
+        { onChange = \v -> setter (round v)
+        , label = Input.labelHidden label
+        , min = 0
+        , max = toFloat cap
+        , step = Nothing
+        , value = toFloat value
+        , thumb = Input.defaultThumb
+        }
+    )
 
 
 staminaTable : PlayingModel -> Element PlayingMsg
