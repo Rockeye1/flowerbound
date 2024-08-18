@@ -115,7 +115,8 @@ partialPersonaFromSlug slug =
     slugToBytes slug
         |> Result.andThen
             (\slugBytes ->
-                Bits.Decode.run Persona.Codec.partialPersona.decoder slugBytes
+                slugBytes
+                    |> Bits.Decode.run Persona.Codec.partialPersona.decoder
                     |> Result.mapError errorToString
             )
 
@@ -236,11 +237,11 @@ update _ _ msg model =
 
         Loaded file ->
             case Parser.run Persona.Codec.personaParser file of
-                Err e ->
-                    let
-                        _ =
-                            Debug.log "Error loading file" e
-                    in
+                Err _ ->
+                    -- let
+                    --     _ =
+                    --         Debug.log "Error loading file" e
+                    -- in
                     ( model, Effect.none, Nothing )
 
                 Ok persona ->
