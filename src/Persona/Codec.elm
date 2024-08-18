@@ -105,7 +105,18 @@ gendertropeRecordToString gendertrope =
 
 featureToString : ( Int, Feature ) -> String
 featureToString ( level, value ) =
-    block 3 ("Level " ++ String.fromInt level ++ " Feature: " ++ value.name) [ value.description ]
+    block 3
+        ("Level "
+            ++ String.fromInt level
+            ++ " Feature: "
+            ++ (if String.isEmpty value.name then
+                    "-"
+
+                else
+                    value.name
+               )
+        )
+        [ value.description ]
 
 
 organToString : Organ -> ( String, String )
@@ -149,6 +160,7 @@ block level name children =
 numericUl : List ( String, Int ) -> List String
 numericUl children =
     let
+        li : ( String, Int ) -> String
         li ( key, value ) =
             "- " ++ key ++ ": " ++ String.fromInt value
     in
@@ -158,6 +170,7 @@ numericUl children =
 ul : List ( String, String ) -> List String
 ul children =
     let
+        li : ( String, String ) -> String
         li ( key, value ) =
             "- " ++ key ++ ": " ++ value
     in
