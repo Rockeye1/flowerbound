@@ -2,6 +2,7 @@ module Persona.Codec exposing (gendertropeRecord, partialPersona, personaParser,
 
 import Bits.Codec as Codec exposing (Codec)
 import Dict
+import List.Extra
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Workaround
 import Persona
@@ -25,20 +26,22 @@ personaParser =
         |= ulParser "Ichor Points" Parser.int
         |= ulParser "Numinous Points" Parser.int
         |. headerParser 2 (Parser.keyword "Unlocked features")
-        |= Parser.sequence
-            { start = ""
-            , end = ""
-            , separator = "\n"
-            , spaces = Parser.spaces
-            , item =
-                Parser.succeed identity
-                    |. Parser.symbol "-"
-                    |. Parser.spaces
-                    |. Parser.keyword "Level"
-                    |. Parser.spaces
-                    |= Parser.int
-            , trailing = Parser.Optional
-            }
+        |= (Parser.sequence
+                { start = ""
+                , end = ""
+                , separator = "\n"
+                , spaces = Parser.spaces
+                , item =
+                    Parser.succeed identity
+                        |. Parser.symbol "-"
+                        |. Parser.spaces
+                        |. Parser.keyword "Level"
+                        |. Parser.spaces
+                        |= Parser.int
+                , trailing = Parser.Optional
+                }
+                |> Parser.map (List.Extra.remove 1)
+           )
         |. Parser.spaces
         |= gendertropeParser
         |. Parser.end
@@ -330,7 +333,7 @@ partialPersona =
         |> Codec.field .euphoriaPoints Codec.nonNegativeInt
         |> Codec.field .ichorPoints Codec.nonNegativeInt
         |> Codec.field .numinousPoints Codec.nonNegativeInt
-        |> Codec.field .features (Codec.list (Codec.intWithMinimum 2))
+        |> Codec.field (.features >> List.Extra.remove 1) (Codec.list (Codec.intWithMinimum 2))
         |> Codec.field .gendertrope partialGendertrope
         |> Codec.buildObject
 
