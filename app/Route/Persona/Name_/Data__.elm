@@ -9,7 +9,7 @@ import Bits.Decode
 import Bytes exposing (Bytes)
 import Drawing
 import Effect exposing (Effect)
-import ErrorPage exposing (ErrorPage(..))
+import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import Flate
 import Head
@@ -18,7 +18,7 @@ import Image
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona
-import Persona.Types exposing (PartialPersona, Persona)
+import Persona.Types exposing (Gendertrope, GendertropeRecord, PartialPersona, Persona)
 import Rope
 import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
@@ -72,8 +72,19 @@ init app _ =
     let
         ( name, partialPersona ) =
             app.data
+
+        maybeGendertrope : Maybe GendertropeRecord
+        maybeGendertrope =
+            app.url
+                |> Maybe.andThen .fragment
+                |> Maybe.andThen slugToBytes
+                |> Maybe.andThen
+                    (\bytes ->
+                        Bits.Decode.run Persona.gendertropeRecordCodec.decoder bytes
+                            |> Result.toMaybe
+                    )
     in
-    ( Persona.fromPartial name partialPersona Nothing
+    ( Persona.fromPartial name partialPersona maybeGendertrope
     , Effect.none
     )
 
@@ -180,7 +191,7 @@ update _ _ msg model =
             ( model, Effect.none, Just Shared.Flip )
 
 
-gendertropeToHash : Persona.Types.Gendertrope -> String
+gendertropeToHash : Gendertrope -> String
 gendertropeToHash gendertrope =
     case gendertrope of
         Persona.Types.Custom record ->

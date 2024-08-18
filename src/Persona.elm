@@ -1,4 +1,4 @@
-module Persona exposing (Config, codec, default, fromPartial, gendertropeRecordCodec, levelBonus, partialGendertropeName, toPartial, view)
+module Persona exposing (Config, codec, default, fromPartial, gendertropeRecordCodec, gendertropeToPartial, levelBonus, partialGendertropeName, toPartial, view)
 
 import Bits.Codec as Codec exposing (Codec)
 import Dict

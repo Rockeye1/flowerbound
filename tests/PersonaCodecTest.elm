@@ -4,6 +4,7 @@ import CodecTest
 import Dict
 import Fuzz exposing (Fuzzer)
 import Persona
+import Persona.Types as Persona
 import Test exposing (Test, describe)
 
 
@@ -23,7 +24,7 @@ partialPersonaFuzzer =
     Fuzz.map
         (\gendertrope ->
             { default
-                | gendertrope = gendertrope
+                | gendertrope = Persona.gendertropeToPartial gendertrope
             }
         )
         gendertropeFuzzer
