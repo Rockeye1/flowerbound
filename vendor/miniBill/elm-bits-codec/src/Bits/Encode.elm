@@ -26,7 +26,7 @@ nonNegativeInt n =
 positiveInt : Int -> Rope Bit
 positiveInt i =
     if i < 1 then
-        Rope.empty
+        Rope.singleton Bit.O
 
     else
         positiveIntHelper i [ Bit.O ]
