@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, moveDown, padding, px, row, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -318,48 +318,12 @@ statusMeter label value bonus setter =
             20 + 2 * bonus
     in
     ( text label
-    , Input.slider
-        [ height (px 30)
-        , Element.behindContent
-            (Theme.el
-                [ width fill
-                , height (px 2)
-                , centerY
-                , Background.color Theme.gray
-                , Border.rounded 2
-                ]
-                Element.none
-            )
-        , Element.behindContent
-            (List.range 0 cap
-                |> List.map
-                    (\v ->
-                        el
-                            [ width (px 1)
-                            , height (px 8)
-                            , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
-                            , Element.behindContent
-                                (el
-                                    [ centerX
-                                    , moveDown 11
-                                    ]
-                                    (text (String.fromInt v))
-                                )
-                            ]
-                            Element.none
-                    )
-                |> List.intersperse (el [ width fill ] Element.none)
-                |> (\l -> el [ width (px 8) ] Element.none :: l ++ [ el [ width (px 8) ] Element.none ])
-                |> row [ width fill, height fill ]
-            )
-        ]
-        { onChange = \v -> setter (round v)
-        , label = Input.labelHidden label
-        , min = 0
-        , max = toFloat cap
-        , step = Nothing
-        , value = toFloat value
-        , thumb = Input.defaultThumb
+    , Theme.slider []
+        { min = 0
+        , max = cap
+        , value = value
+        , onChange = setter
+        , label = label
         }
     )
 

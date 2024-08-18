@@ -1,6 +1,6 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, spacing, table, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, slider, spacing, table, viewMarkdown, white, withHint, wrappedRow)
 
-import Element exposing (Attribute, Element, shrink, width)
+import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -75,7 +75,7 @@ button attrs config =
                     :: Font.center
                     :: Font.color white
                     :: Border.color black
-                    :: width (Element.minimum 38 shrink)
+                    :: Element.width (Element.minimum 38 Element.shrink)
                     :: attrs
                 )
                 config
@@ -86,7 +86,7 @@ button attrs config =
                     :: padding
                     :: Font.center
                     :: Background.color gray
-                    :: width (Element.minimum 38 shrink)
+                    :: Element.width (Element.minimum 38 Element.shrink)
                     :: attrs
                 )
                 config.label
@@ -421,3 +421,63 @@ maybeTitle title =
 noAttribute : Attribute msg
 noAttribute =
     Element.htmlAttribute (Html.Attributes.classList [])
+
+
+slider :
+    List (Attribute msg)
+    ->
+        { min : Int
+        , max : Int
+        , onChange : Int -> msg
+        , label : String
+        , value : Int
+        }
+    -> Element msg
+slider attrs config =
+    Input.slider
+        (Element.height (Element.px 30)
+            :: Element.behindContent
+                (Element.el
+                    [ Element.width Element.fill
+                    , Element.height (Element.px 2)
+                    , Element.centerY
+                    , Background.color gray
+                    , Border.rounded 2
+                    ]
+                    Element.none
+                )
+            :: Element.behindContent
+                (List.range config.min config.max
+                    |> List.map
+                        (\v ->
+                            el
+                                [ Element.width (Element.px 1)
+                                , Element.height (Element.px 8)
+                                , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+                                , Element.behindContent
+                                    (el
+                                        [ Element.centerX
+                                        , Element.moveDown 11
+                                        ]
+                                        (Element.text (String.fromInt v))
+                                    )
+                                ]
+                                Element.none
+                        )
+                    |> List.intersperse (el [ Element.width Element.fill ] Element.none)
+                    |> row
+                        [ Element.width Element.fill
+                        , Element.height Element.fill
+                        , paddingXY 8 0
+                        ]
+                )
+            :: attrs
+        )
+        { onChange = \v -> config.onChange (round v)
+        , label = Input.labelHidden config.label
+        , min = toFloat config.min
+        , max = toFloat config.max
+        , step = Nothing
+        , value = toFloat config.value
+        , thumb = Input.defaultThumb
+        }
