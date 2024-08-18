@@ -1,16 +1,16 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
-import ErrorPage exposing (ErrorPage)
+import Element
 import FatalError exposing (FatalError)
 import Head
+import Head.Seo as Seo
+import MimeType
+import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import Persona
-import Route
 import RouteBuilder exposing (StatelessRoute)
-import Server.Request exposing (Request)
-import Server.Response as Response exposing (Response)
 import Shared
+import Site
 import View exposing (View)
 
 
@@ -27,19 +27,18 @@ type alias RouteParams =
 
 
 type alias Data =
-    Never
+    {}
 
 
 type alias ActionData =
-    Never
+    {}
 
 
 route : StatelessRoute RouteParams Data ActionData
 route =
-    RouteBuilder.serverRender
+    RouteBuilder.single
         { head = head
         , data = data
-        , action = action
         }
         |> RouteBuilder.buildNoState
             { view = view
@@ -47,29 +46,34 @@ route =
 
 
 head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
-head app =
-    never app.data
+head _ =
+    let
+        image : Seo.Image
+        image =
+            { url = Pages.Url.fromPath [ "/android-chrome-192x192.png" ]
+            , alt = "An orchid"
+            , dimensions = Nothing
+            , mimeType = Just (MimeType.Image MimeType.Png)
+            }
+    in
+    Seo.summary
+        { canonicalUrlOverride = Nothing
+        , siteName = Site.manifest.name
+        , image = image
+        , description = Site.manifest.description
+        , locale = Nothing
+        , title = Site.manifest.name
+        }
+        |> Seo.website
 
 
-data : RouteParams -> Request -> BackendTask FatalError (Response Data ErrorPage)
-data _ _ =
-    BackendTask.succeed
-        (Response.temporaryRedirect
-            (Route.toString
-                (Route.Persona__Name___Data__
-                    { name = Persona.default.name
-                    , data = Nothing
-                    }
-                )
-            )
-        )
-
-
-action : RouteParams -> Request -> BackendTask FatalError (Response ActionData ErrorPage)
-action =
-    data
+data : BackendTask FatalError Data
+data =
+    BackendTask.succeed {}
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)
-view app _ =
-    never app.data
+view _ _ =
+    { title = Site.manifest.name
+    , body = Element.text "TODO"
+    }
