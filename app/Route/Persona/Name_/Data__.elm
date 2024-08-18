@@ -185,18 +185,7 @@ update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Mo
 update _ _ msg model =
     case msg of
         Update persona ->
-            let
-                newRoute : Route
-                newRoute =
-                    Route.Persona__Name___Data__
-                        { name = Url.percentEncode persona.name
-                        , data = Just (partialPersonaToSlug (Persona.toPartial persona))
-                        }
-            in
-            ( persona
-            , Effect.SetRoute newRoute (gendertropeToHash persona.gendertrope)
-            , Nothing
-            )
+            setPersona persona
 
         Flip ->
             ( model, Effect.none, Just Shared.Flip )
@@ -232,7 +221,7 @@ update _ _ msg model =
                     ( model, Effect.none, Nothing )
 
                 Ok persona ->
-                    ( persona, Effect.none, Nothing )
+                    setPersona persona
 
         Download ->
             ( model
@@ -244,6 +233,22 @@ update _ _ msg model =
                 )
             , Nothing
             )
+
+
+setPersona : Persona -> ( Model, Effect Msg, Maybe Shared.Msg )
+setPersona persona =
+    let
+        newRoute : Route
+        newRoute =
+            Route.Persona__Name___Data__
+                { name = Url.percentEncode persona.name
+                , data = Just (partialPersonaToSlug (Persona.toPartial persona))
+                }
+    in
+    ( persona
+    , Effect.SetRoute newRoute (gendertropeToHash persona.gendertrope)
+    , Nothing
+    )
 
 
 gendertropeToHash : Gendertrope -> String
