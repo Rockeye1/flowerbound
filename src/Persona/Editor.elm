@@ -334,8 +334,8 @@ viewPoints label fullName value used setter =
     Theme.row [ width fill ]
         [ Theme.withHint fullName (text label)
         , Theme.wrappedRow [ width <| px (Theme.rhythm * 8) ]
-            (List.repeat (unused // 5) (tallyGroup 5)
-                ++ [ tallyGroup (modBy 5 unused) ]
+            (List.repeat (unused // 5) (Persona.View.tallyGroup 5)
+                ++ [ Persona.View.tallyGroup (modBy 5 unused) ]
             )
         , Theme.button [ alignRight ]
             { label = Icons.minus
@@ -351,42 +351,6 @@ viewPoints label fullName value used setter =
             , onPress = Just (setter (value + 1))
             }
         ]
-
-
-tallyGroup : Int -> Element msg
-tallyGroup count =
-    if count <= 0 then
-        Element.none
-
-    else
-        row
-            [ spacing (Theme.rhythm // 2)
-            , Element.inFront
-                (if count == 5 then
-                    el
-                        [ Border.widthEach
-                            { bottom = 1
-                            , top = 0
-                            , right = 0
-                            , left = 0
-                            }
-                        , centerY
-                        , width fill
-                        , Element.rotate (degrees -10)
-                        ]
-                        Element.none
-
-                 else
-                    Element.none
-                )
-            , Element.paddingXY (Theme.rhythm // 2) 0
-            ]
-            (List.repeat (min 4 count) tallyMark)
-
-
-tallyMark : Element msg
-tallyMark =
-    el [ Border.width 1, height <| px 16 ] Element.none
 
 
 viewGendertrope : Persona -> List (Element GendertropeMsg)
