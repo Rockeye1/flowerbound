@@ -41,9 +41,10 @@ personaFuzzer =
 tameString : Fuzzer String
 tameString =
     Fuzz.string
+        |> Fuzz.map String.trim
         |> Fuzz.filter
             (\s ->
-                not (String.isEmpty (String.trim s))
+                not (String.isEmpty s)
                     && not (String.contains "\n" s)
             )
 
