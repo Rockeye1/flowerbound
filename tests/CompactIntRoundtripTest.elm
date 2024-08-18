@@ -1,4 +1,4 @@
-module Tests exposing (bytesRoundtrip, compressRoundtrip, intRoundtrip, nonNegativeIntRoudtrips, positiveIntRoundtrip)
+module CompactIntRoundtripTest exposing (bytesRoundtrip, compressRoundtrip, intRoundtrip, nonNegativeIntRoudtrips, positiveIntRoundtrip)
 
 import Bit exposing (Bit(..))
 import Bits
