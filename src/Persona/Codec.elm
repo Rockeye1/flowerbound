@@ -356,7 +356,47 @@ organToString value =
         ( "Prehensile", value.name )
 
     else
-        ( "???", value.name )
+        let
+            group : String -> List ( String, Bool ) -> String
+            group label items =
+                case
+                    List.filterMap
+                        (\( item, enable ) ->
+                            if enable then
+                                Just item
+
+                            else
+                                Nothing
+                        )
+                        items
+                of
+                    [] ->
+                        ""
+
+                    enabled ->
+                        ("\n  - " ++ label ++ ":")
+                            :: enabled
+                            |> String.join "\n    - "
+        in
+        ( "Custom"
+        , value.name
+            ++ "\n  - Contour: "
+            ++ String.fromInt value.contour
+            ++ "\n  - Erogeny: "
+            ++ String.fromInt value.erogeny
+            ++ group "Can"
+                [ ( "Squish", value.canSquish )
+                , ( "Grip", value.canGrip )
+                , ( "Penetrate", value.canPenetrate )
+                , ( "Ensheathe", value.canEnsheathe )
+                ]
+            ++ group "Is"
+                [ ( "Squishable", value.isSquishable )
+                , ( "Grippable", value.isGrippable )
+                , ( "Penetrable", value.isPenetrable )
+                , ( "Ensheatheable", value.isEnsheatheable )
+                ]
+        )
 
 
 block : Int -> String -> List String -> String
