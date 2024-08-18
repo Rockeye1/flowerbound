@@ -1,5 +1,7 @@
 module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, toCard)
 
+-- import Flate
+
 import Array
 import BackendTask exposing (BackendTask)
 import Base64
@@ -11,7 +13,6 @@ import Drawing
 import Effect exposing (Effect)
 import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
-import Flate
 import Head
 import Head.Seo as Seo
 import Image
@@ -119,19 +120,18 @@ slugToBytes slug =
 
 maybeDecompress : List Bit -> Maybe (List Bit)
 maybeDecompress input =
-    case input of
-        [] ->
-            Just input
-
-        Bit.O :: tail ->
-            Just tail
-
-        Bit.I :: tail ->
-            tail
-                |> List.drop 7
-                |> Bits.toBytes
-                |> Flate.inflate
-                |> Maybe.map Bits.fromBytes
+    -- case input of
+    --     [] ->
+    --         Just input
+    --     Bit.O :: tail ->
+    --         Just tail
+    --     Bit.I :: tail ->
+    --         tail
+    --             |> List.drop 7
+    --             |> Bits.toBytes
+    --             |> Flate.inflate
+    --             |> Maybe.map Bits.fromBytes
+    Just input
 
 
 partialPersonaToSlug : PartialPersona -> String
@@ -155,20 +155,19 @@ bytesToSlug bytes =
 
 maybeCompress : Bytes -> Bytes
 maybeCompress input =
-    let
-        compressed : Bytes
-        compressed =
-            Flate.deflate input
-
-        bits : List Bit
-        bits =
-            if Bytes.width compressed < Bytes.width input then
-                Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
-
-            else
-                Bit.O :: Bits.fromBytes input
-    in
-    Bits.toBytes bits
+    -- let
+    --     compressed : Bytes
+    --     compressed =
+    --         Flate.deflate input
+    --     bits : List Bit
+    --     bits =
+    --         if Bytes.width compressed < Bytes.width input then
+    --             Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
+    --         else
+    --             Bit.O :: Bits.fromBytes input
+    -- in
+    -- Bits.toBytes bits
+    input
 
 
 update : App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg, Maybe Shared.Msg )
