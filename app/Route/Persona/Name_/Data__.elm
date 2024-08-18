@@ -128,6 +128,7 @@ maybeDecompress input =
 
         Bit.I :: tail ->
             tail
+                |> List.drop 7
                 |> Bits.toBytes
                 |> Flate.inflate
                 |> Maybe.map Bits.fromBytes
@@ -162,7 +163,7 @@ maybeCompress input =
         bits : List Bit
         bits =
             if Bytes.width compressed < Bytes.width input then
-                Bit.I :: Bits.fromBytes compressed
+                Bit.I :: List.repeat 7 Bit.O ++ Bits.fromBytes compressed
 
             else
                 Bit.O :: Bits.fromBytes input
