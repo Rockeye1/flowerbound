@@ -316,9 +316,9 @@ staminaTable model =
                         , label = text (toValue cost)
                         }
             }
-    in
-    Element.table []
-        { data =
+
+        rows : List ( String, Int -> String )
+        rows =
             [ ( "Stamina Cost", \c -> String.fromInt c )
             , ( "Stimulation"
               , \c ->
@@ -337,8 +337,17 @@ staminaTable model =
                         "d" ++ String.fromInt (c * 2)
               )
             ]
-        , columns = nameColumn :: List.map costColumn (List.range 1 18)
-        }
+    in
+    Theme.column []
+        [ Element.table []
+            { data = rows
+            , columns = nameColumn :: List.map costColumn (List.range 1 9)
+            }
+        , Element.table []
+            { data = rows
+            , columns = nameColumn :: List.map costColumn (List.range 10 18)
+            }
+        ]
 
 
 cheatSheet : String
