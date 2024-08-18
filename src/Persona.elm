@@ -196,7 +196,7 @@ viewGendertrope ({ gendertrope } as persona) =
                     [ Border.width 1
                     , Theme.padding
                     , Font.center
-                    , width fill
+                    , width (Element.minimum 160 fill)
                     ]
             in
             (standardGendertropes ++ [ Custom gendertropeRecord ])
@@ -215,12 +215,19 @@ viewGendertrope ({ gendertrope } as persona) =
                                     :: common
                             )
                             { label =
-                                case option of
-                                    Custom _ ->
-                                        text "Custom"
+                                Theme.row [ width fill ]
+                                    [ el [ width fill ] Element.none
+                                    , Theme.row []
+                                        [ gendertropeIcon option
+                                        , case option of
+                                            Custom _ ->
+                                                text "Custom"
 
-                                    _ ->
-                                        text (gendertropeToRecord option).name
+                                            _ ->
+                                                text (gendertropeToRecord option).name
+                                        ]
+                                    , el [ width fill ] Element.none
+                                    ]
                             , onPress = Just (UpdateGendertrope option)
                             }
                     )
@@ -274,6 +281,31 @@ viewGendertrope ({ gendertrope } as persona) =
             , viewStandardOrgans gendertropeRecord
             , Element.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
+
+
+gendertropeIcon : Gendertrope -> Element GendertropeMsg
+gendertropeIcon gendertrope =
+    case gendertrope of
+        Butterfly ->
+            Icons.butterfly
+
+        Flower ->
+            Icons.flower
+
+        Vixen ->
+            Icons.vixen
+
+        Buck ->
+            Icons.buck
+
+        Fiend ->
+            Icons.fiend
+
+        Doll ->
+            Icons.doll
+
+        Custom _ ->
+            Icons.custom
 
 
 viewStandardOrgans : GendertropeRecord -> Element msg
@@ -634,6 +666,13 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                         , label = Input.labelLeft [] (text ("Level " ++ String.fromInt level ++ " Feature: "))
                         , placeholder = Just (Input.placeholder [] (text "Name"))
                         }
+                        :: Theme.multiline [ width fill ]
+                            { onChange = \newDescription -> { feature | description = newDescription }
+                            , text = feature.description
+                            , label = Input.labelHidden "Description"
+                            , placeholder = Just (Input.placeholder [] (text "Description"))
+                            , spellcheck = True
+                            }
                         :: viewMarkdown feature.description
                     )
                     |> Element.map

@@ -1,9 +1,17 @@
-module Icons exposing (ensheathe, ensheatheable, flip, grip, grippable, minus, penetrable, penetrate, plus, squish, squishable)
+module Icons exposing (buck, butterfly, custom, doll, ensheathe, ensheatheable, fiend, flip, flower, grip, grippable, minus, penetrable, penetrate, plus, squish, squishable, vixen)
 
 import Element exposing (Element, el)
 import Phosphor
 import Svg
 import Svg.Attributes
+
+
+icon : Phosphor.Icon -> Phosphor.IconWeight -> Element msg
+icon input variant =
+    input variant
+        |> Phosphor.toHtml []
+        |> Element.html
+        |> el []
 
 
 plus : Element msg
@@ -88,9 +96,36 @@ ensheatheable =
     icon Phosphor.carrot Phosphor.Duotone
 
 
-icon : Phosphor.Icon -> Phosphor.IconWeight -> Element msg
-icon input variant =
-    input variant
-        |> Phosphor.toHtml []
-        |> Element.html
-        |> el []
+butterfly : Element msg
+butterfly =
+    icon Phosphor.butterfly Phosphor.Duotone
+
+
+flower : Element msg
+flower =
+    icon Phosphor.flower Phosphor.Duotone
+
+
+vixen : Element msg
+vixen =
+    icon Phosphor.pawPrint Phosphor.Duotone
+
+
+buck : Element msg
+buck =
+    icon Phosphor.horse Phosphor.Duotone
+
+
+fiend : Element msg
+fiend =
+    icon Phosphor.pentagram Phosphor.Duotone
+
+
+doll : Element msg
+doll =
+    icon Phosphor.legoSmiley Phosphor.Duotone
+
+
+custom : Element msg
+custom =
+    icon Phosphor.pencil Phosphor.Duotone
