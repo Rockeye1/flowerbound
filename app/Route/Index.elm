@@ -120,5 +120,10 @@ ORGASM THRESHOLD = SENSITIVITY + SATIATION (+ MODIFIERS)
 Once you know your **Orgasm Threshold**, you simply compare it to your **Arousal**. If your **Arousal** is greater than your **Orgasm Threshold**, you are **Having An Orgasm**.
 
 `AROUSAL > ORGASM THRESHOLD`
+
+## Stimulation
+`Stamina = max(1, Stimulation / 2)`
+
+`Dice = Stimulation`
 """)
     }

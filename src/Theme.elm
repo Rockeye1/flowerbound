@@ -293,13 +293,58 @@ markdownRenderer =
     , orderedList = \_ _ -> Element.text "TODO: orderedList"
     , codeBlock = \_ -> Element.text "TODO: codeBlock"
     , thematicBreak = Element.none
-    , table = \_ -> Element.text "TODO: table"
-    , tableHeader = \_ -> Element.text "TODO: tableHeader"
-    , tableBody = \_ -> Element.text "TODO: tableBody"
-    , tableRow = \_ -> Element.text "TODO: tableRow"
-    , tableCell = \_ _ -> Element.text "TODO: tableCell"
-    , tableHeaderCell = \_ _ -> Element.text "TODO: tableHeaderCell"
+    , table = Element.column []
+    , tableHeader =
+        Element.column
+            [ Font.bold
+            , Element.width Element.fill
+            , Font.center
+            ]
+    , tableBody = Element.column [ Element.width Element.fill ]
+    , tableRow =
+        Element.row
+            [ Element.height Element.fill
+            , Element.width Element.fill
+            ]
+    , tableCell =
+        \maybeAlignment ->
+            Element.paragraph
+                (toAlignAttribute maybeAlignment
+                    :: Border.widthEach
+                        { top = 1
+                        , bottom = 0
+                        , left = 0
+                        , right = 0
+                        }
+                    :: tableBorder
+                )
+    , tableHeaderCell = \_ -> Element.paragraph tableBorder
     }
+
+
+toAlignAttribute : Maybe Markdown.Block.Alignment -> Attribute msg
+toAlignAttribute alignment =
+    case alignment of
+        Nothing ->
+            Element.htmlAttribute (Html.Attributes.classList [])
+
+        Just Markdown.Block.AlignLeft ->
+            Font.alignLeft
+
+        Just Markdown.Block.AlignRight ->
+            Font.alignRight
+
+        Just Markdown.Block.AlignCenter ->
+            Font.center
+
+
+tableBorder : List (Attribute msg)
+tableBorder =
+    [ Border.color (Element.rgb255 223 226 229)
+    , Element.paddingXY 6 13
+    , Element.height Element.fill
+    , Element.width Element.fill
+    ]
 
 
 viewHeading : { level : Markdown.Block.HeadingLevel, rawText : String, children : List (Element msg) } -> Element msg
