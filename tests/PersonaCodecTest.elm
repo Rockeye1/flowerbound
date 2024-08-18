@@ -1,11 +1,12 @@
-module PersonaCodecTest exposing (persona)
+module PersonaCodecTest exposing (persona, personaFuzzer)
 
 import CodecTest
 import Dict
 import Fuzz exposing (Fuzzer)
+import List.Extra
 import Persona
 import Persona.Codec
-import Persona.Types as Persona
+import Persona.Types as Persona exposing (Persona)
 import Test exposing (Test, describe)
 
 
@@ -16,19 +17,35 @@ persona =
 
 partialPersonaFuzzer : Fuzzer Persona.PartialPersona
 partialPersonaFuzzer =
-    let
-        default : Persona.PartialPersona
-        default =
-            Persona.default
-                |> Persona.toPartial
-    in
-    Fuzz.map
-        (\gendertrope ->
-            { default
-                | gendertrope = Persona.gendertropeToPartial gendertrope
-            }
-        )
-        gendertropeFuzzer
+    personaFuzzer
+        |> Fuzz.map Persona.toPartial
+
+
+personaFuzzer : Fuzzer Persona
+personaFuzzer =
+    Fuzz.constant Persona
+        |> Fuzz.andMap tameString
+        |> Fuzz.andMap (Fuzz.intAtLeast 2)
+        |> Fuzz.andMap (Fuzz.intAtLeast 2)
+        |> Fuzz.andMap (Fuzz.intAtLeast 2)
+        |> Fuzz.andMap (Fuzz.intAtLeast 2)
+        |> Fuzz.andMap (Fuzz.intAtLeast 2)
+        |> Fuzz.andMap (Fuzz.intAtLeast 2)
+        |> Fuzz.andMap (Fuzz.intAtLeast 0)
+        |> Fuzz.andMap (Fuzz.intAtLeast 0)
+        |> Fuzz.andMap (Fuzz.intAtLeast 0)
+        |> Fuzz.andMap (Fuzz.list (Fuzz.intRange 2 5) |> Fuzz.map List.Extra.unique)
+        |> Fuzz.andMap gendertropeFuzzer
+
+
+tameString : Fuzzer String
+tameString =
+    Fuzz.string
+        |> Fuzz.filter
+            (\s ->
+                not (String.isEmpty (String.trim s))
+                    && not (String.contains "\n" s)
+            )
 
 
 gendertropeFuzzer : Fuzzer Persona.Gendertrope
@@ -47,8 +64,8 @@ gendertropeFuzzer =
 gendertropeRecordFuzzer : Fuzzer Persona.GendertropeRecord
 gendertropeRecordFuzzer =
     Fuzz.map4 Persona.GendertropeRecord
-        Fuzz.string
-        Fuzz.string
+        tameString
+        tameString
         (Fuzz.list organFuzzer)
         (Fuzz.map Dict.fromList (Fuzz.list (Fuzz.pair (Fuzz.intAtLeast 1) featureFuzzer)))
 
@@ -56,8 +73,8 @@ gendertropeRecordFuzzer =
 featureFuzzer : Fuzzer Persona.Feature
 featureFuzzer =
     Fuzz.map2 Persona.Feature
-        Fuzz.string
-        Fuzz.string
+        tameString
+        tameString
 
 
 organFuzzer : Fuzzer Persona.Organ

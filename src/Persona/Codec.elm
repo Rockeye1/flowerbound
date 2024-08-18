@@ -1,4 +1,4 @@
-module Persona.Codec exposing (fragmentToGendertropeRecord, fromUrl, partialPersona, partialPersonaFromSlug, partialPersonaToSlug, personaParser, toString, toUrl)
+module Persona.Codec exposing (fragmentToGendertropeRecord, fromUrl, maybeCompress, maybeDecompress, partialPersona, partialPersonaFromSlug, partialPersonaToSlug, personaParser, toString, toUrl)
 
 import Base64
 import Bit exposing (Bit)
@@ -217,9 +217,9 @@ personaParser =
         |= ulParser "Prowess" Parser.int
         |= ulParser "Moxie" Parser.int
         |. headerParser 2 (Parser.keyword "Progression Tally")
-        |= ulParser "Euphoria Points" Parser.int
-        |= ulParser "Ichor Points" Parser.int
-        |= ulParser "Numinous Points" Parser.int
+        |= ulParser "Euphoria Points" integer
+        |= ulParser "Ichor Points" integer
+        |= ulParser "Numinous Points" integer
         |. headerParser 2 (Parser.keyword "Unlocked features")
         |= (Parser.sequence
                 { start = ""
@@ -241,6 +241,17 @@ personaParser =
         |= gendertropeParser
         |. Parser.end
         |> Parser.map fixupPersona
+
+
+integer : Parser Int
+integer =
+    Parser.succeed identity
+        |= Parser.oneOf
+            [ Parser.succeed negate
+                |. Parser.symbol "-"
+            , Parser.succeed identity
+            ]
+        |= Parser.int
 
 
 fixupPersona : Persona -> Persona
@@ -318,14 +329,18 @@ featureToString ( level, value ) =
         ("Level "
             ++ String.fromInt level
             ++ " Feature: "
-            ++ (if String.isEmpty value.name then
-                    "-"
-
-                else
-                    value.name
-               )
+            ++ avoidEmpty value.name
         )
         [ value.description ]
+
+
+avoidEmpty : String -> String
+avoidEmpty value =
+    if String.isEmpty value then
+        "-"
+
+    else
+        value
 
 
 organToString : Organ -> ( String, String )
@@ -401,7 +416,7 @@ organToString value =
 
 block : Int -> String -> List String -> String
 block level name children =
-    (String.repeat level "#" ++ " " ++ name)
+    (String.repeat level "#" ++ " " ++ avoidEmpty name)
         :: children
         |> String.join "\n"
 

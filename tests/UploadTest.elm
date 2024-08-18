@@ -11,6 +11,7 @@ import Result.Extra
 import Rope
 import Route
 import Route.Persona.Name_.Data__
+import Site
 import Test exposing (Test, test)
 import Url
 
@@ -53,87 +54,10 @@ roundtrip =
                     Expect.fail (Debug.toString e)
 
                 Ok loaded ->
-                    let
-                        ( model, effect, shared ) =
-                            Route.Persona.Name_.Data__.setPersona loaded
-                    in
-                    if model /= loaded then
-                        model |> Expect.equal loaded
-
-                    else if shared /= Nothing then
-                        shared |> Expect.equal Nothing
-
-                    else
-                        (case effect of
-                            Effect.SetRoute route hash ->
-                                Ok { route = route, hash = hash }
-
-                            _ ->
-                                Err "Unexpected effect"
-                        )
-                            |> Result.andThen
-                                (\{ route, hash } ->
-                                    case Route.urlToRoute { path = Route.toString route } of
-                                        Just (Route.Persona__Name___Data__ { name, data }) ->
-                                            case data of
-                                                Nothing ->
-                                                    Err "No data extracted"
-
-                                                Just d ->
-                                                    Ok { hash = hash, name = name, data = d }
-
-                                        parsed ->
-                                            Err ("Unexpected route: " ++ Debug.toString parsed)
-                                )
-                            |> Result.andThen
-                                (\{ hash, name, data } ->
-                                    case Url.percentDecode name of
-                                        Nothing ->
-                                            Err "Could not decode the name"
-
-                                        Just decodedName ->
-                                            Ok
-                                                { hash = hash
-                                                , data = data
-                                                , decodedName = decodedName
-                                                }
-                                )
-                            |> Result.andThen
-                                (\{ hash, data, decodedName } ->
-                                    case Route.Persona.Name_.Data__.partialPersonaFromSlug data of
-                                        Err e ->
-                                            Err
-                                                ("Could not get partial persona from slug ("
-                                                    ++ data
-                                                    ++ "): "
-                                                    ++ e
-                                                )
-
-                                        Ok partial ->
-                                            Ok
-                                                { hash = hash
-                                                , decodedName = decodedName
-                                                , partial = partial
-                                                }
-                                )
-                            |> Result.andThen
-                                (\{ hash, decodedName, partial } ->
-                                    case Route.Persona.Name_.Data__.fragmentToGendertropeRecord hash of
-                                        Nothing ->
-                                            Err "Could not get gendertrope record from hash"
-
-                                        Just gendertropeRecord ->
-                                            let
-                                                recovered : Persona
-                                                recovered =
-                                                    Persona.fromPartial decodedName (Just partial) (Just gendertropeRecord)
-                                            in
-                                            recovered
-                                                |> Expect.equal loaded
-                                                |> Ok
-                                )
-                            |> Result.mapError Expect.fail
-                            |> Result.Extra.merge
+                    (Site.config.canonicalUrl ++ Persona.Codec.toUrl loaded)
+                        |> Debug.log "url"
+                        |> Persona.Codec.fromUrl
+                        |> Expect.equal (Ok loaded)
 
 
 ishaza : String

@@ -6,8 +6,8 @@ import Bits.Decode
 import Bits.Encode
 import Expect
 import Fuzz
+import Persona.Codec
 import Rope
-import Route.Persona.Name_.Data__
 import Test exposing (Test)
 
 
@@ -95,9 +95,9 @@ compressRoundtrip =
                 actual =
                     bits
                         |> Bits.toBytes
-                        |> Route.Persona.Name_.Data__.maybeCompress
+                        |> Persona.Codec.maybeCompress
                         |> Bits.fromBytes
-                        |> Route.Persona.Name_.Data__.maybeDecompress
+                        |> Persona.Codec.maybeDecompress
                         |> Maybe.withDefault []
             in
             actual
