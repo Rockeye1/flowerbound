@@ -1,4 +1,4 @@
-module Persona.Codec exposing (fragmentToGendertropeRecord, fromUrl, gendertropeRecord, gendertropeToHash, partialPersona, partialPersonaFromSlug, partialPersonaToSlug, personaParser, toString)
+module Persona.Codec exposing (fragmentToGendertropeRecord, fromUrl, partialPersona, partialPersonaFromSlug, partialPersonaToSlug, personaParser, toString, toUrl)
 
 import Base64
 import Bit exposing (Bit)
@@ -15,7 +15,7 @@ import Persona
 import Persona.Data as Data
 import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona)
 import Rope
-import Route
+import Route exposing (Route)
 import Url
 
 
@@ -61,6 +61,28 @@ fromUrl url =
                                     Ok (Just record)
                     )
             )
+
+
+toRoute : Persona -> Route
+toRoute input =
+    Route.Persona__Name___Data__
+        { name = Url.percentEncode input.name
+        , data = Just (partialPersonaToSlug (Persona.toPartial input))
+        }
+
+
+toUrl : Persona -> String
+toUrl input =
+    let
+        hash : String
+        hash =
+            gendertropeToHash input.gendertrope
+    in
+    if String.isEmpty hash then
+        Route.toString (toRoute input)
+
+    else
+        Route.toString (toRoute input) ++ "#" ++ hash
 
 
 partialPersonaFromSlug : String -> Result String PartialPersona

@@ -18,7 +18,6 @@ import Persona
 import Persona.Codec
 import Persona.Editor
 import Persona.Types exposing (GendertropeRecord, PartialPersona, Persona)
-import Route exposing (Route)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
@@ -132,19 +131,9 @@ update _ _ msg model =
 setPersona : Persona -> ( Model, Effect Msg, Maybe Shared.Msg )
 setPersona persona =
     ( persona
-    , Effect.SetRoute
-        (personaToRoute persona)
-        (Persona.Codec.gendertropeToHash persona.gendertrope)
+    , Effect.SetRouteToPersona persona
     , Nothing
     )
-
-
-personaToRoute : Persona -> Route
-personaToRoute persona =
-    Route.Persona__Name___Data__
-        { name = Url.percentEncode persona.name
-        , data = Just (Persona.Codec.partialPersonaToSlug (Persona.toPartial persona))
-        }
 
 
 type alias Data =

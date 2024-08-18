@@ -12,7 +12,6 @@ import File.Select
 import Parser
 import Persona.Codec
 import Persona.Types exposing (Persona)
-import Route exposing (Route)
 import Task
 
 
@@ -21,7 +20,7 @@ type Effect msg
     = None
     | Cmd (Cmd msg)
     | Batch (List (Effect msg))
-    | SetRoute Route String
+    | SetRouteToPersona Persona
     | PickMarkdown (File -> msg)
     | ReadPersonaFromMarkdown File (Result String Persona -> msg)
 
@@ -51,8 +50,8 @@ map fn effect =
         None ->
             None
 
-        SetRoute route hash ->
-            SetRoute route hash
+        SetRouteToPersona persona ->
+            SetRouteToPersona persona
 
         Cmd cmd ->
             Cmd (Cmd.map fn cmd)
@@ -90,13 +89,9 @@ perform ({ fromPageMsg, key } as helpers) effect =
         None ->
             Cmd.none
 
-        SetRoute route hash ->
-            (if String.isEmpty hash then
-                Route.toString route
-
-             else
-                Route.toString route ++ "#" ++ hash
-            )
+        SetRouteToPersona persona ->
+            persona
+                |> Persona.Codec.toUrl
                 |> Browser.Navigation.replaceUrl key
 
         Cmd cmd ->

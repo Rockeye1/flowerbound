@@ -17,6 +17,7 @@ import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona.Codec
 import Persona.Types exposing (Persona)
+import Persona.View
 import RouteBuilder exposing (StatefulRoute)
 import Shared
 import Site
@@ -35,6 +36,7 @@ type Msg
 
 type PlayingMsg
     = StimulationCost Int
+    | UpdatePersona Persona
 
 
 type Model
@@ -141,6 +143,9 @@ innerUpdate msg model =
         StimulationCost stimulationCost ->
             ( { model | stimulationCost = stimulationCost }, Effect.none )
 
+        UpdatePersona persona ->
+            ( { model | persona = persona }, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
@@ -238,14 +243,27 @@ view _ _ model =
                     |> Element.map PagesMsg.fromMsg
 
             Playing playingModel ->
-                (Theme.viewMarkdown cheatSheet
-                    ++ [ viewPlaying playingModel
+                (viewPersona playingModel
+                    :: (viewPlaying playingModel
                             |> Element.map PlayingMsg
-                       ]
+                       )
+                    :: Theme.viewMarkdown cheatSheet
                 )
                     |> Theme.column [ Theme.padding ]
                     |> Element.map PagesMsg.fromMsg
     }
+
+
+viewPersona : PlayingModel -> Element Msg
+viewPersona model =
+    Persona.View.persona
+        { update =
+            \newPersona ->
+                newPersona
+                    |> UpdatePersona
+                    |> PlayingMsg
+        }
+        model.persona
 
 
 viewPlaying : PlayingModel -> Element PlayingMsg

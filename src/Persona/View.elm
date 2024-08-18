@@ -1,11 +1,44 @@
-module Persona.View exposing (organs)
+module Persona.View exposing (Config, organs, persona)
 
 import Element exposing (Element, centerX, el, fill, height, padding, shrink, text, width)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
+import Element.Input as Input
 import Icons
+import Persona.Codec
+import Persona.Data
 import Persona.Types exposing (Organ)
 import Theme
+
+
+type alias Config msg =
+    { update : Persona.Types.Persona -> msg
+    }
+
+
+persona : Config msg -> Persona.Types.Persona -> Element msg
+persona config input =
+    Theme.column
+        [ Border.width 1
+        , Theme.padding
+        , Font.color Theme.purple
+        ]
+        [ Theme.input []
+            { text = Persona.Codec.toUrl input
+            , onChange =
+                \newUrl ->
+                    Persona.Codec.fromUrl newUrl
+                        |> Result.withDefault input
+                        |> config.update
+            , placeholder = Nothing
+            , label = Input.labelLeft [] (text "URL")
+            }
+        , Theme.row []
+            [ Persona.Data.gendertropeIcon input.gendertrope
+            , text input.name
+            ]
+        ]
 
 
 organs : List Organ -> Element msg
