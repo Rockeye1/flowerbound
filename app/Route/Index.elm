@@ -1,7 +1,7 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
-import Element
+import Effect exposing (Effect)
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
@@ -11,6 +11,8 @@ import PagesMsg exposing (PagesMsg)
 import RouteBuilder exposing (StatelessRoute)
 import Shared
 import Site
+import Theme
+import UrlPath exposing (UrlPath)
 import View exposing (View)
 
 
@@ -40,9 +42,27 @@ route =
         { head = head
         , data = data
         }
-        |> RouteBuilder.buildNoState
+        |> RouteBuilder.buildWithLocalState
             { view = view
+            , init = init
+            , update = update
+            , subscriptions = subscriptions
             }
+
+
+init : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect msg )
+init _ _ =
+    ( {}, Effect.none )
+
+
+update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect msg )
+update _ _ msg model =
+    ( model, Effect.none )
+
+
+subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg
+subscriptions _ _ _ _ =
+    Sub.none
 
 
 head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
@@ -72,8 +92,33 @@ data =
     BackendTask.succeed {}
 
 
-view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> View (PagesMsg Msg)
-view _ _ =
+view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Model -> View (PagesMsg Msg)
+view _ _ _ =
     { title = Site.manifest.name
-    , body = Element.text "TODO"
+    , body =
+        Theme.column [ Theme.padding ]
+            (Theme.viewMarkdown """
+## Temperaments
+
+**Innocent**: You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.
+- Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**.
+
+**Thoughtful**: You are dwelling on the emotions and emotional implications and the shape of your future.
+- When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**.
+
+**Perverse**: You are excited on a conceptual, kinky level, captivated and compelled.
+- Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Sensitivity** value, add the result to your **Craving** value.
+
+**Valiant**: You are proud of yourself for enduring, but you are enduring rather than enjoying.
+- When calculating whether or not you are currently having an **Orgasm**, roll a **Moxie Check**. If the result is _less_ than your current **Stamina** value, add the result to your Orgasm Threshold as a Modifier.
+
+## Orgasm
+To determine if you are Having An Orgasm you first determine your **Orgasm Threshold** by adding your **Sensitivity** to your **Satiation** and then also adding Modifiers if there are any.
+
+ORGASM THRESHOLD = SENSITIVITY + SATIATION (+ MODIFIERS)
+
+Once you know your **Orgasm Threshold**, you simply compare it to your **Arousal**. If your **Arousal** is greater than your **Orgasm Threshold**, you are **Having An Orgasm**.
+
+`AROUSAL > ORGASM THRESHOLD`
+""")
     }
