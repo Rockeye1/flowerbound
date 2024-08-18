@@ -224,7 +224,7 @@ personaParser =
         |= (Parser.sequence
                 { start = ""
                 , end = ""
-                , separator = "\n"
+                , separator = ""
                 , spaces = Parser.spaces
                 , item =
                     Parser.succeed identity
