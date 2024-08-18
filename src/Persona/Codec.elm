@@ -45,8 +45,8 @@ personaParser =
 
 toString : Persona -> String
 toString persona =
-    [ block 1 persona.name []
-    , block 2
+    ([ block 1 persona.name []
+     , block 2
         "Ability Scores"
         (numericUl
             [ ( "Fitness", persona.fitness )
@@ -57,7 +57,7 @@ toString persona =
             , ( "Moxie", persona.moxie )
             ]
         )
-    , block 2
+     , block 2
         "Progression Tally"
         (numericUl
             [ ( "Euphoria Points", persona.euphoriaPoints )
@@ -65,20 +65,78 @@ toString persona =
             , ( "Numinous Points", persona.numinousPoints )
             ]
         )
-    , block 2
+     , block 2
         "Unlocked features"
         (persona.features
             |> List.map
-                (\l -> "- Level" ++ String.fromInt l)
+                (\l -> "- Level " ++ String.fromInt l)
         )
-    , gendertropeToString
-    ]
+     ]
+        ++ gendertropeToString persona.gendertrope
+    )
         |> String.join "\n\n"
 
 
-gendertropeToString : String
-gendertropeToString =
-    "TODO"
+gendertropeToString : Gendertrope -> List String
+gendertropeToString gendertrope =
+    case gendertrope of
+        Custom record ->
+            gendertropeRecordToString record
+
+        _ ->
+            [ block 2 ("Gendertrope: " ++ (Data.gendertropeToRecord gendertrope).name) [] ]
+
+
+gendertropeRecordToString : GendertropeRecord -> List String
+gendertropeRecordToString gendertrope =
+    [ block 2
+        ("Gendertrope: " ++ gendertrope.name)
+        [ gendertrope.description ]
+    , block
+        3
+        "Organs"
+        (gendertrope.organs
+            |> List.map organToString
+            |> ul
+        )
+    ]
+        ++ List.map featureToString (Dict.toList gendertrope.features)
+
+
+featureToString : ( Int, Feature ) -> String
+featureToString ( level, value ) =
+    block 3 ("Level " ++ String.fromInt level ++ " Feature: " ++ value.name) [ value.description ]
+
+
+organToString : Organ -> ( String, String )
+organToString value =
+    -- TODO: fix this
+    if value == Data.mouth value.name then
+        ( "Mouth", value.name )
+
+    else if value == Data.hands value.name then
+        ( "Hands", value.name )
+
+    else if value == Data.breasts value.name then
+        ( "Breasts", value.name )
+
+    else if value == Data.hips value.name then
+        ( "Hips", value.name )
+
+    else if value == Data.yonic value.name then
+        ( "Yonic", value.name )
+
+    else if value == Data.phallic value.name then
+        ( "Phallic", value.name )
+
+    else if value == Data.legs value.name then
+        ( "Legs", value.name )
+
+    else if value == Data.prehensile value.name then
+        ( "Prehensile", value.name )
+
+    else
+        ( "???", value.name )
 
 
 block : Int -> String -> List String -> String

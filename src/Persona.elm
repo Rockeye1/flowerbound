@@ -203,7 +203,7 @@ viewGendertrope ({ gendertrope } as persona) =
     let
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
-            gendertropeToRecord gendertrope
+            Persona.Data.gendertropeToRecord gendertrope
 
         radioRow : Element GendertropeMsg
         radioRow =
@@ -241,7 +241,7 @@ viewGendertrope ({ gendertrope } as persona) =
                                                 text "Custom"
 
                                             _ ->
-                                                text (gendertropeToRecord option).name
+                                                text (Persona.Data.gendertropeToRecord option).name
                                         ]
                                     , el [ width fill ] Element.none
                                     ]
@@ -1097,31 +1097,6 @@ tallyMark =
     el [ Border.width 1, height <| px 16 ] Element.none
 
 
-gendertropeToRecord : Gendertrope -> GendertropeRecord
-gendertropeToRecord gendertrope =
-    case gendertrope of
-        Butterfly ->
-            Persona.Data.butterfly
-
-        Flower ->
-            Persona.Data.flower
-
-        Vixen ->
-            Persona.Data.vixen
-
-        Buck ->
-            Persona.Data.buck
-
-        Fiend ->
-            Persona.Data.fiend
-
-        Doll ->
-            Persona.Data.doll
-
-        Custom record ->
-            record
-
-
 fromPartial : String -> Maybe PartialPersona -> Maybe GendertropeRecord -> Persona
 fromPartial name partialPersona maybeGendertrope =
     let
@@ -1239,5 +1214,5 @@ gendertropeToPartial gendertrope =
 partialGendertropeName : Persona.Types.PartialGendertrope -> String
 partialGendertropeName partial =
     (partialGendertropeToGendertrope partial Nothing
-        |> gendertropeToRecord
+        |> Persona.Data.gendertropeToRecord
     ).name

@@ -1,7 +1,32 @@
-module Persona.Data exposing (breasts, buck, butterfly, doll, fiend, flower, hands, hips, legs, mouth, phallic, prehensile, vixen, yonic)
+module Persona.Data exposing (breasts, buck, butterfly, doll, fiend, flower, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, vixen, yonic)
 
 import Dict
-import Persona.Types exposing (Feature, GendertropeRecord, Organ)
+import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
+
+
+gendertropeToRecord : Gendertrope -> GendertropeRecord
+gendertropeToRecord gendertrope =
+    case gendertrope of
+        Butterfly ->
+            butterfly
+
+        Flower ->
+            flower
+
+        Vixen ->
+            vixen
+
+        Buck ->
+            buck
+
+        Fiend ->
+            fiend
+
+        Doll ->
+            doll
+
+        Custom record ->
+            record
 
 
 emptyOrgan : Organ
