@@ -9,6 +9,7 @@ import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
 import Site
 import Sitemap
+import Url
 
 
 routes :
@@ -20,7 +21,7 @@ routes getStaticRoutes {- htmlToString -} _ =
         (\name data _ ->
             case Persona.partialPersonaFromSlug data of
                 Just partialPersona ->
-                    Persona.toCard name partialPersona
+                    Persona.toCard (Maybe.withDefault name <| Url.percentDecode name) partialPersona
 
                 Nothing ->
                     BackendTask.fail (FatalError.fromString "Invalid input")
