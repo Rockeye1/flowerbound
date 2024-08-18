@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, setPersona, toCard)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, fragmentToGendertropeRecord, maybeCompress, maybeDecompress, partialPersonaFromSlug, route, setPersona, toCard)
 
 -- import Flate
 
@@ -91,16 +91,23 @@ init app _ =
         maybeGendertrope =
             app.url
                 |> Maybe.andThen .fragment
-                |> Maybe.andThen (\d -> d |> slugToBytes |> Result.toMaybe)
-                |> Maybe.andThen
-                    (\bytes ->
-                        Bits.Decode.run Persona.Codec.gendertropeRecord.decoder bytes
-                            |> Result.toMaybe
-                    )
+                |> Maybe.andThen fragmentToGendertropeRecord
     in
     ( Persona.fromPartial name partialPersona maybeGendertrope
     , Effect.none
     )
+
+
+fragmentToGendertropeRecord : String -> Maybe GendertropeRecord
+fragmentToGendertropeRecord fragment =
+    fragment
+        |> slugToBytes
+        |> Result.toMaybe
+        |> Maybe.andThen
+            (\bytes ->
+                Bits.Decode.run Persona.Codec.gendertropeRecord.decoder bytes
+                    |> Result.toMaybe
+            )
 
 
 partialPersonaFromSlug : String -> Result String PartialPersona

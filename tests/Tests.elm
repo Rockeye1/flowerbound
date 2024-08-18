@@ -1,4 +1,4 @@
-module Tests exposing (bytesRoundtrip, compressRoundtrip, intRoundtrip, positiveIntRoundtrip)
+module Tests exposing (bytesRoundtrip, compressRoundtrip, intRoundtrip, nonNegativeIntRoudtrips, positiveIntRoundtrip)
 
 import Bit exposing (Bit(..))
 import Bits
@@ -23,6 +23,26 @@ intRoundtrip =
                         |> Rope.toList
             in
             case Bits.Decode.run Bits.Decode.int encoded of
+                Err e ->
+                    Expect.fail ("Could not roundtrip: " ++ Debug.toString e)
+
+                Ok w ->
+                    w
+                        |> Expect.equal i
+
+
+nonNegativeIntRoudtrips : Test
+nonNegativeIntRoudtrips =
+    Test.fuzz (Fuzz.intAtLeast 0) "Non negative Int roundtrips" <|
+        \i ->
+            let
+                encoded : List Bit
+                encoded =
+                    i
+                        |> Bits.Encode.nonNegativeInt
+                        |> Rope.toList
+            in
+            case Bits.Decode.run Bits.Decode.nonNegativeInt encoded of
                 Err e ->
                     Expect.fail ("Could not roundtrip: " ++ Debug.toString e)
 
