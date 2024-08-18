@@ -471,6 +471,7 @@ slider attrs config =
                         , paddingXY 8 0
                         ]
                 )
+            :: Element.moveUp 8
             :: attrs
         )
         { onChange = \v -> config.onChange (round v)
