@@ -1,4 +1,4 @@
-module Persona.Codec exposing (gendertropeRecord, partialPersona, personaParser)
+module Persona.Codec exposing (gendertropeRecord, partialPersona, personaParser, toString)
 
 import Bits.Codec as Codec exposing (Codec)
 import Dict
@@ -41,6 +41,69 @@ personaParser =
         |. Parser.spaces
         |= gendertropeParser
         |. Parser.end
+
+
+toString : Persona -> String
+toString persona =
+    [ block 1 persona.name []
+    , block 2
+        "Ability Scores"
+        (numericUl
+            [ ( "Fitness", persona.fitness )
+            , ( "Grace", persona.grace )
+            , ( "Ardor", persona.ardor )
+            , ( "Sanity", persona.sanity )
+            , ( "Prowess", persona.prowess )
+            , ( "Moxie", persona.moxie )
+            ]
+        )
+    , block 2
+        "Progression Tally"
+        (numericUl
+            [ ( "Euphoria Points", persona.euphoriaPoints )
+            , ( "Ichor Points", persona.ichorPoints )
+            , ( "Numinous Points", persona.numinousPoints )
+            ]
+        )
+    , block 2
+        "Unlocked features"
+        (persona.features
+            |> List.map
+                (\l -> "- Level" ++ String.fromInt l)
+        )
+    , gendertropeToString
+    ]
+        |> String.join "\n\n"
+
+
+gendertropeToString : String
+gendertropeToString =
+    "TODO"
+
+
+block : Int -> String -> List String -> String
+block level name children =
+    (String.repeat level "#" ++ " " ++ name)
+        :: children
+        |> String.join "\n"
+
+
+numericUl : List ( String, Int ) -> List String
+numericUl children =
+    let
+        li ( key, value ) =
+            "- " ++ key ++ ": " ++ String.fromInt value
+    in
+    List.map li children
+
+
+ul : List ( String, String ) -> List String
+ul children =
+    let
+        li ( key, value ) =
+            "- " ++ key ++ ": " ++ value
+    in
+    List.map li children
 
 
 gendertropeParser : Parser Gendertrope

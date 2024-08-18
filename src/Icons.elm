@@ -1,7 +1,8 @@
 module Icons exposing
-    ( flip, load, minus, plus
+    ( flip, minus, plus
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
+    , download, upload
     )
 
 {-|
@@ -154,6 +155,11 @@ custom =
     icon Phosphor.pencil Phosphor.Duotone
 
 
-load : Element msg
-load =
+upload : Element msg
+upload =
     icon Phosphor.upload Phosphor.Duotone
+
+
+download : Element msg
+download =
+    icon Phosphor.download Phosphor.Duotone

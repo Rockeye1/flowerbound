@@ -45,7 +45,8 @@ default =
 type alias Config msg =
     { update : Persona -> msg
     , flip : msg
-    , load : msg
+    , upload : msg
+    , download : msg
     }
 
 
@@ -178,8 +179,12 @@ view config { flipped, persona } =
 topButtons : Config msg -> List (Element msg)
 topButtons config =
     [ Theme.button [ alignRight ]
-        { onPress = Just config.load
-        , label = Icons.load
+        { onPress = Just config.upload
+        , label = Icons.upload
+        }
+    , Theme.button [ alignRight ]
+        { onPress = Just config.download
+        , label = Icons.download
         }
     , Theme.button [ alignRight ]
         { onPress = Just config.flip

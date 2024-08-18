@@ -15,6 +15,7 @@ import Element
 import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import File exposing (File)
+import File.Download
 import File.Select
 import Head
 import Head.Seo as Seo
@@ -45,10 +46,11 @@ type alias Model =
 
 type Msg
     = Flip
-    | Load
+    | Upload
     | Update Persona
     | Picked File
     | Loaded String
+    | Download
 
 
 type alias RouteParams =
@@ -199,7 +201,7 @@ update _ _ msg model =
         Flip ->
             ( model, Effect.none, Just Shared.Flip )
 
-        Load ->
+        Upload ->
             ( model
             , Effect.fromCmd
                 (File.Select.file
@@ -231,6 +233,17 @@ update _ _ msg model =
 
                 Ok persona ->
                     ( persona, Effect.none, Nothing )
+
+        Download ->
+            ( model
+            , Effect.fromCmd
+                (File.Download.string
+                    (model.name ++ ".md")
+                    "text/markdown"
+                    (Persona.Codec.toString model)
+                )
+            , Nothing
+            )
 
 
 gendertropeToHash : Gendertrope -> String
@@ -344,7 +357,8 @@ view app shared model =
         Persona.view
             { update = Update
             , flip = Flip
-            , load = Load
+            , upload = Upload
+            , download = Download
             }
             { persona = model
             , flipped = shared.flipped
