@@ -262,6 +262,7 @@ viewPersona model =
                 newPersona
                     |> UpdatePersona
                     |> PlayingMsg
+        , upload = LoadFromFile
         }
         model.persona
 

@@ -1,6 +1,6 @@
 module Persona.View exposing (Config, organs, persona)
 
-import Element exposing (Element, centerX, el, fill, height, padding, shrink, text, width)
+import Element exposing (Element, alignRight, centerX, el, fill, height, padding, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -14,6 +14,7 @@ import Theme
 
 type alias Config msg =
     { update : Persona.Types.Persona -> msg
+    , upload : msg
     }
 
 
@@ -34,11 +35,21 @@ persona config input =
             , placeholder = Nothing
             , label = Input.labelLeft [] (text "URL")
             }
-        , Theme.row []
-            [ Persona.Data.gendertropeIcon input.gendertrope
-            , text input.name
-            ]
+        , Theme.row [ width fill ]
+            (Persona.Data.gendertropeIcon input.gendertrope
+                :: text input.name
+                :: topButtons config
+            )
         ]
+
+
+topButtons : Config msg -> List (Element msg)
+topButtons config =
+    [ Theme.button [ alignRight ]
+        { onPress = Just config.upload
+        , label = Icons.upload
+        }
+    ]
 
 
 organs : List Organ -> Element msg
