@@ -67,13 +67,13 @@ perform ({ fromPageMsg, key } as helpers) effect =
             Cmd.none
 
         SetRoute route hash ->
-            Browser.Navigation.replaceUrl key
-                (if String.isEmpty hash then
-                    Route.toString route
+            (if String.isEmpty hash then
+                Route.toString route
 
-                 else
-                    Route.toString route ++ "#" ++ hash
-                )
+             else
+                Route.toString route ++ "#" ++ hash
+            )
+                |> Browser.Navigation.replaceUrl key
 
         Cmd cmd ->
             Cmd.map fromPageMsg cmd
