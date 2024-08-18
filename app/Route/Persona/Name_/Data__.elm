@@ -19,6 +19,7 @@ import Image
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona
+import Persona.Codec
 import Persona.Types exposing (Gendertrope, GendertropeRecord, PartialPersona, Persona)
 import Rope
 import Route exposing (Route)
@@ -81,7 +82,7 @@ init app _ =
                 |> Maybe.andThen slugToBytes
                 |> Maybe.andThen
                     (\bytes ->
-                        Bits.Decode.run Persona.gendertropeRecordCodec.decoder bytes
+                        Bits.Decode.run Persona.Codec.gendertropeRecord.decoder bytes
                             |> Result.toMaybe
                     )
     in
@@ -95,7 +96,7 @@ partialPersonaFromSlug slug =
     slugToBytes slug
         |> Maybe.andThen
             (\slugBytes ->
-                case Bits.Decode.run Persona.codec.decoder slugBytes of
+                case Bits.Decode.run Persona.Codec.partialPersona.decoder slugBytes of
                     Ok partial ->
                         Just partial
 
@@ -137,7 +138,7 @@ maybeDecompress input =
 partialPersonaToSlug : PartialPersona -> String
 partialPersonaToSlug partialPersona =
     partialPersona
-        |> Persona.codec.encoder
+        |> Persona.Codec.partialPersona.encoder
         |> Rope.toList
         |> Bits.toBytes
         |> bytesToSlug
@@ -195,7 +196,7 @@ gendertropeToHash : Gendertrope -> String
 gendertropeToHash gendertrope =
     case gendertrope of
         Persona.Types.Custom record ->
-            Persona.gendertropeRecordCodec.encoder record
+            Persona.Codec.gendertropeRecord.encoder record
                 |> Rope.toList
                 |> Bits.toBytes
                 |> bytesToSlug
