@@ -1,7 +1,7 @@
-module Persona.Editor exposing (Config, GendertropeMsg(..), abilitiesView, nameRow, progressionView, statusView, tallyGroup, tallyMark, topButtons, view, viewPoints)
+module Persona.Editor exposing (Config, GendertropeMsg(..), view)
 
 import Dict
-import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, column, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -12,6 +12,7 @@ import List.Extra
 import Persona
 import Persona.Data
 import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
+import Persona.View
 import Theme
 
 
@@ -483,99 +484,9 @@ viewGendertrope ({ gendertrope } as persona) =
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
-            , viewStandardOrgans gendertropeRecord
+            , Persona.View.organs gendertropeRecord.organs
             , Element.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
-
-
-viewStandardOrgans : GendertropeRecord -> Element msg
-viewStandardOrgans gendertropeRecord =
-    let
-        wrap : Int -> Element msg -> Element msg
-        wrap index child =
-            el
-                [ width fill
-                , height fill
-                , padding (Theme.rhythm // 2)
-                , Background.color
-                    (if modBy 2 index == 0 then
-                        Theme.lightGray
-
-                     else
-                        Theme.white
-                    )
-                ]
-                child
-
-        intColumn :
-            String
-            -> (Organ -> Int)
-            -> Element.IndexedColumn Organ msg
-        intColumn label prop =
-            { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (text label)
-            , view =
-                \index organ ->
-                    wrap index
-                        -- (el
-                        --     [ Font.color Theme.purple
-                        --     , Font.size 24
-                        --     , centerX
-                        --     ]
-                        --     (text (intToDots (prop organ)))
-                        -- )
-                        (el
-                            [ centerX
-                            ]
-                            (text (String.fromInt (prop organ)))
-                        )
-            }
-
-        boolColumn :
-            String
-            -> (Organ -> Bool)
-            -> Element msg
-            -> Element.IndexedColumn Organ msg
-        boolColumn label prop img =
-            { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (text label)
-            , view =
-                \index organ ->
-                    if prop organ then
-                        wrap index (el [ centerX, Font.color Theme.purple ] img)
-
-                    else
-                        wrap index Element.none
-            }
-
-        spacer : Element.IndexedColumn organ msg
-        spacer =
-            { width = fill
-            , header = Element.none
-            , view = \_ _ -> Element.none
-            }
-    in
-    Element.indexedTable [ width fill ]
-        { data = gendertropeRecord.organs
-        , columns =
-            [ spacer
-            , { width = shrink
-              , header = Element.none
-              , view = \index { name } -> wrap index (text name)
-              }
-            , intColumn "Cont" .contour
-            , intColumn "Erog" .erogeny
-            , boolColumn "CS" .canSquish Icons.squish
-            , boolColumn "CG" .canGrip Icons.grip
-            , boolColumn "CP" .canPenetrate Icons.penetrate
-            , boolColumn "CE" .canEnsheathe Icons.ensheathe
-            , boolColumn "IS" .isSquishable Icons.squishable
-            , boolColumn "IG" .isGrippable Icons.grippable
-            , boolColumn "IP" .isPenetrable Icons.penetrable
-            , boolColumn "IE" .isEnsheatheable Icons.ensheatheable
-            , spacer
-            ]
-        }
 
 
 viewOrgans : GendertropeRecord -> Element (List Organ)
