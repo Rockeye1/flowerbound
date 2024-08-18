@@ -2,7 +2,7 @@ module Persona exposing (Config, codec, default, fromPartial, gendertropeRecordC
 
 import Bits.Codec as Codec exposing (Codec)
 import Dict
-import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, column, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, column, el, fill, height, moveDown, moveLeft, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -164,10 +164,10 @@ view config { flipped, persona } =
                     (Element.map
                         (\msg ->
                             case msg of
-                                Ok newGendertrope ->
+                                UpdateGendertrope newGendertrope ->
                                     config.update { persona | gendertrope = newGendertrope }
 
-                                Err newFeatures ->
+                                SelectFeatures newFeatures ->
                                     config.update { persona | features = newFeatures }
                         )
                     )
@@ -176,14 +176,19 @@ view config { flipped, persona } =
         ]
 
 
-viewGendertrope : Persona -> List (Element (Result (List Int) Gendertrope))
+type GendertropeMsg
+    = SelectFeatures (List Int)
+    | UpdateGendertrope Gendertrope
+
+
+viewGendertrope : Persona -> List (Element GendertropeMsg)
 viewGendertrope ({ gendertrope } as persona) =
     let
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
             gendertropeToRecord gendertrope
 
-        radioRow : Element (Result e Gendertrope)
+        radioRow : Element GendertropeMsg
         radioRow =
             let
                 common : List (Attribute msg)
@@ -216,7 +221,7 @@ viewGendertrope ({ gendertrope } as persona) =
 
                                     _ ->
                                         text (gendertropeToRecord option).name
-                            , onPress = Just (Ok option)
+                            , onPress = Just (UpdateGendertrope option)
                             }
                     )
                 |> Theme.wrappedRow [ width fill ]
@@ -232,7 +237,7 @@ viewGendertrope ({ gendertrope } as persona) =
                             | name = newName
                         }
                             |> Custom
-                            |> Ok
+                            |> UpdateGendertrope
                 , placeholder = Just <| Input.placeholder [] (text "Name")
                 , text = gendertropeRecord.name
                 }
@@ -244,7 +249,7 @@ viewGendertrope ({ gendertrope } as persona) =
                             | description = newDescription
                         }
                             |> Custom
-                            |> Ok
+                            |> UpdateGendertrope
                 , placeholder = Just <| Input.placeholder [] (text "Description")
                 , text = gendertropeRecord.description
                 , spellcheck = True
@@ -255,7 +260,7 @@ viewGendertrope ({ gendertrope } as persona) =
                         | organs = newOrgans
                     }
                         |> Custom
-                        |> Ok
+                        |> UpdateGendertrope
                 )
                 (viewOrgans gendertropeRecord)
             , viewFeatures persona gendertropeRecord
@@ -267,7 +272,7 @@ viewGendertrope ({ gendertrope } as persona) =
                 [ text gendertropeRecord.description
                 ]
             , viewStandardOrgans gendertropeRecord
-            , Element.map Err (viewStandardFeatures persona gendertropeRecord)
+            , Element.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
 
 
@@ -450,8 +455,8 @@ viewOrgans gendertropeRecord =
                                 }
                             )
               }
-            , intColumn "Cont" .contour <| \value organ -> { organ | contour = value }
-            , intColumn "Erog" .erogeny <| \value organ -> { organ | erogeny = value }
+            , intColumn "Cont." .contour <| \value organ -> { organ | contour = value }
+            , intColumn "Erog." .erogeny <| \value organ -> { organ | erogeny = value }
             , boolColumn "CS" .canSquish <| \value organ -> { organ | canSquish = value }
             , boolColumn "CG" .canGrip <| \value organ -> { organ | canGrip = value }
             , boolColumn "CP" .canPenetrate <| \value organ -> { organ | canPenetrate = value }
@@ -562,10 +567,10 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
         |> Theme.column [ width fill ]
 
 
-viewFeatures : Persona -> GendertropeRecord -> Element (Result (List Int) Gendertrope)
+viewFeatures : Persona -> GendertropeRecord -> Element GendertropeMsg
 viewFeatures ({ features } as persona) gendertropeRecord =
     let
-        viewFeature : ( Int, Feature ) -> Element (Result (List Int) Gendertrope)
+        viewFeature : ( Int, Feature ) -> Element GendertropeMsg
         viewFeature ( level, feature ) =
             let
                 selected : Bool
@@ -576,51 +581,72 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                 canSelect =
                     selected || (persona.euphoriaPoints - usedEuphoriaPoints persona) >= 10 + level
             in
-            Theme.button
-                [ Font.alignLeft
-                , padding 0
-                , Border.width 0
-                , width fill
-                ]
-                { onPress =
-                    if level == 1 || not canSelect then
-                        Nothing
+            Theme.row [ width fill ]
+                [ Input.checkbox [ alignTop, width <| px 20 ]
+                    { label =
+                        Input.labelBelow
+                            [ Element.rotate (degrees 90)
+                            , if level == 1 || not canSelect then
+                                Font.color Theme.gray
 
-                    else if selected then
-                        Just (Err (List.Extra.remove level features))
-
-                    else
-                        Just (Err (level :: features))
-                , label =
-                    Theme.column
-                        [ Border.width 1
-                        , Theme.padding
-                        , width fill
-                        , Background.color
-                            (if selected then
-                                Theme.purple
-
-                             else if canSelect then
-                                Theme.white
-
-                             else
-                                Theme.gray
-                            )
-                        , Font.color
-                            (if selected then
-                                Theme.white
-
-                             else
-                                Theme.black
-                            )
-                        ]
-                        (paragraph [ Font.underline ]
-                            [ text ("Level " ++ String.fromInt level ++ " Feature: ")
-                            , el [ Font.bold ] (text feature.name)
+                              else
+                                Font.color Theme.black
                             ]
-                            :: viewMarkdown feature.description
+                            (text "Select")
+                    , checked = selected
+                    , icon = Theme.purpleCheckbox
+                    , onChange =
+                        \_ ->
+                            if level == 1 || not canSelect then
+                                SelectFeatures features
+
+                            else if selected then
+                                SelectFeatures (List.Extra.remove level features)
+
+                            else
+                                SelectFeatures (level :: features)
+                    }
+                , Theme.column
+                    [ Border.width 1
+                    , Theme.padding
+                    , width fill
+                    , Background.color
+                        (if selected then
+                            Theme.purple
+
+                         else if canSelect then
+                            Theme.white
+
+                         else
+                            Theme.gray
                         )
-                }
+                    , Font.color
+                        (if selected then
+                            Theme.white
+
+                         else
+                            Theme.black
+                        )
+                    ]
+                    (Theme.input [ width fill ]
+                        { onChange = \newName -> { feature | name = newName }
+                        , text = feature.name
+                        , label = Input.labelLeft [] (text ("Level " ++ String.fromInt level ++ " Feature: "))
+                        , placeholder = Just (Input.placeholder [] (text "Name"))
+                        }
+                        :: viewMarkdown feature.description
+                    )
+                    |> Element.map
+                        (\newFeature ->
+                            UpdateGendertrope
+                                (Custom
+                                    { gendertropeRecord
+                                        | features =
+                                            Dict.insert level newFeature gendertropeRecord.features
+                                    }
+                                )
+                        )
+                ]
     in
     gendertropeRecord.features
         |> Dict.toList

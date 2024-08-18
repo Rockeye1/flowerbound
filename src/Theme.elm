@@ -175,12 +175,7 @@ purpleCheckbox checked =
         , Font.size 9
         , Font.center
         , Border.rounded 3
-        , Border.color <|
-            if checked then
-                purple
-
-            else
-                Element.rgb (211 / 255) (211 / 255) (211 / 255)
+        , Border.color purple
         , Border.shadow
             { offset = ( 0, 0 )
             , blur = 1
