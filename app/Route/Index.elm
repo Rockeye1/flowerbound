@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, paragraph, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -20,6 +20,7 @@ import Persona.View
 import RouteBuilder exposing (StatefulRoute)
 import Shared
 import Site
+import Svg exposing (desc)
 import Theme
 import Types exposing (Attribute(..), Move, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
@@ -39,6 +40,7 @@ type PlayingMsg
     | UpdatePersona Persona
     | UpdateMeters Meters
     | SelectMove (Maybe String)
+    | SelectTemperament (Maybe String)
 
 
 type Model
@@ -51,6 +53,7 @@ type alias PlayingModel =
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
+    , selectedTemperament : Maybe String
     }
 
 
@@ -160,6 +163,9 @@ innerUpdate msg model =
         SelectMove selectedMove ->
             ( { model | selectedMove = selectedMove }, Effect.none )
 
+        SelectTemperament selectedTemperament ->
+            ( { model | selectedTemperament = selectedTemperament }, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
@@ -173,6 +179,7 @@ initPlayingModel persona =
         , stamina = 0
         }
     , selectedMove = Nothing
+    , selectedTemperament = Nothing
     }
 
 
@@ -313,9 +320,7 @@ viewPlaying ({ meters, persona } as model) =
                 [ width fill
                 , alignTop
                 ]
-                [ el
-                    [ Font.bold ]
-                    (text "Moves")
+                [ el [ Font.bold ] (text "Moves")
                 , text "Choose a move."
                 , viewMoves model
                 ]
@@ -323,14 +328,56 @@ viewPlaying ({ meters, persona } as model) =
                 [ width fill
                 , alignTop
                 ]
-                [ el
-                    [ Font.bold ]
-                    (text "Stimulation")
+                [ el [ Font.bold ] (text "Stimulation")
                 , text "Choose a stamina cost."
                 , staminaTable model
                 ]
             ]
+        , el [ Font.bold ] (text "Temperaments")
+        , viewTemperaments model
         ]
+
+
+viewTemperaments : PlayingModel -> Element PlayingMsg
+viewTemperaments model =
+    [ ( "Innocent", "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**." )
+    , ( "Thoughtful", "You are dwelling on the emotions and emotional implications and the shape of your future.", "When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**." )
+    , ( "Perverse", "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Sensitivity** value, add the result to your **Craving** value." )
+    , ( "Valiant", "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "When calculating whether or not you are currently having an **Orgasm**, roll a **Moxie Check**. If the result is _less_ than your current **Stamina** value, add the result to your Orgasm Threshold as a Modifier." )
+    ]
+        |> List.map (viewTemperament model)
+        |> Theme.wrappedRow [ width fill ]
+
+
+viewTemperament : PlayingModel -> ( String, String, String ) -> Element PlayingMsg
+viewTemperament model ( name, description, consequence ) =
+    let
+        selected : Bool
+        selected =
+            model.selectedTemperament == Just name
+    in
+    Theme.selectableButton
+        [ width <| Element.minimum 400 fill
+        , height fill
+        , Font.alignLeft
+        ]
+        { selected = selected
+        , onPress =
+            if selected then
+                Just (SelectTemperament Nothing)
+
+            else
+                Just (SelectTemperament (Just name))
+        , label =
+            Theme.column [ alignTop ]
+                (paragraph []
+                    [ el [ Font.bold ] (text name)
+                    , text " "
+                    , text description
+                    ]
+                    :: Theme.viewMarkdown consequence
+                )
+        }
 
 
 viewMoves : PlayingModel -> Element PlayingMsg
@@ -352,13 +399,11 @@ viewMove model move =
         , Font.alignLeft
         ]
         { onPress =
-            Just
-                (if selected then
-                    SelectMove Nothing
+            if selected then
+                Just (SelectMove Nothing)
 
-                 else
-                    SelectMove (Just move.name)
-                )
+            else
+                Just (SelectMove (Just move.name))
         , selected = selected
         , label =
             Theme.column [ width fill ]
@@ -491,21 +536,7 @@ staminaTable model =
 
 cheatSheet : String
 cheatSheet =
-    """## Temperaments
-
-**Innocent**: You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.
-- Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**.
-
-**Thoughtful**: You are dwelling on the emotions and emotional implications and the shape of your future.
-- When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**.
-
-**Perverse**: You are excited on a conceptual, kinky level, captivated and compelled.
-- Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Sensitivity** value, add the result to your **Craving** value.
-
-**Valiant**: You are proud of yourself for enduring, but you are enduring rather than enjoying.
-- When calculating whether or not you are currently having an **Orgasm**, roll a **Moxie Check**. If the result is _less_ than your current **Stamina** value, add the result to your Orgasm Threshold as a Modifier.
-
-## Orgasm
+    """## Orgasm
 To determine if you are Having An Orgasm you first determine your **Orgasm Threshold** by adding your **Sensitivity** to your **Satiation** and then also adding Modifiers if there are any.
 
 ORGASM THRESHOLD = SENSITIVITY + SATIATION (+ MODIFIERS)
