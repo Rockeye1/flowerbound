@@ -498,8 +498,10 @@ viewMove model move =
                             ++ ") ["
                             ++ String.join "/"
                                 (List.map Types.attributeToString move.attributeCompatibility)
-                            ++ "] | CT: "
+                            ++ "] | "
                         )
+                    , Theme.withHint "Craving Threshold" (text "CT")
+                    , text ": "
                     , el [ Font.bold ] (text (String.fromInt move.cravingThreshold))
                     , text " |"
                     ]
