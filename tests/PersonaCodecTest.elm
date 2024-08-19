@@ -81,7 +81,7 @@ featureFuzzer =
 organFuzzer : Fuzzer Persona.Organ
 organFuzzer =
     Fuzz.constant Persona.Organ
-        |> Fuzz.andMap Fuzz.string
+        |> Fuzz.andMap tameString
         |> Fuzz.andMap (Fuzz.intAtLeast 0)
         |> Fuzz.andMap (Fuzz.intAtLeast 0)
         |> Fuzz.andMap Fuzz.bool

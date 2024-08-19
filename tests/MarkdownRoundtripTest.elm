@@ -1,8 +1,8 @@
-module MarkdownRoundtripTest exposing (roundtrip, simple)
+module MarkdownRoundtripTest exposing (fuzzy, simple)
 
-import Dict
 import Expect
 import Parser
+import Persona
 import Persona.Codec
 import Persona.Types exposing (Gendertrope(..), Persona)
 import PersonaCodecTest
@@ -44,7 +44,7 @@ simple =
                     , prowess = 2
                     , sanity = 2
                     }
-        , test "Bang" <|
+        , test "Multiple features" <|
             \_ ->
                 roundtrips True
                     { ardor = 2
@@ -60,11 +60,15 @@ simple =
                     , prowess = 2
                     , sanity = 2
                     }
+        , test "?" <|
+            \_ ->
+                roundtrips True
+                    Persona.default
         ]
 
 
-roundtrip : Test
-roundtrip =
+fuzzy : Test
+fuzzy =
     fuzz PersonaCodecTest.personaFuzzer
         "A Persona roundtrips through Markdown"
         (roundtrips False)
