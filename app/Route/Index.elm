@@ -1,7 +1,6 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
-import Color
 import Effect exposing (Effect)
 import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, spacing, text, width)
 import Element.Background as Background
