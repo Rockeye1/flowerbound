@@ -43,11 +43,6 @@ view config { flipped, persona } =
         fullWidth =
             800
 
-        style : String -> String -> Attribute msg
-        style key value =
-            Element.htmlAttribute <|
-                Html.Attributes.style key value
-
         commonAttrs : Int -> List (Attribute msg)
         commonAttrs rotate =
             [ Border.width 1
@@ -55,10 +50,10 @@ view config { flipped, persona } =
             , height fill
             , Theme.padding
             , Background.color Theme.white
-            , style "backface-visibility" "hidden"
-            , style "transition" "all .5s ease-in-out"
-            , style "position" "absolute"
-            , style "transform"
+            , Theme.style "backface-visibility" "hidden"
+            , Theme.style "transition" "all .5s ease-in-out"
+            , Theme.style "position" "absolute"
+            , Theme.style "transform"
                 ("rotateY("
                     ++ String.fromInt rotate
                     ++ "deg)"
@@ -68,7 +63,7 @@ view config { flipped, persona } =
     Theme.row
         [ width <| px fullWidth
         , height <| px 600
-        , style "perspective" "2000px"
+        , Theme.style "perspective" "2000px"
         ]
         [ Theme.column
             (commonAttrs

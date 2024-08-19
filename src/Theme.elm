@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, table, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -158,10 +158,15 @@ withHint hint label =
     el
         [ Element.htmlAttribute <| Html.Attributes.title hint
         , Font.underline
-        , Element.htmlAttribute <| Html.Attributes.style "text-decoration-style" "dotted"
-        , Element.htmlAttribute <| Html.Attributes.style "cursor" "help"
+        , style "text-decoration-style" "dotted"
+        , style "cursor" "help"
         ]
         label
+
+
+style : String -> String -> Attribute msg
+style key value =
+    Element.htmlAttribute (Html.Attributes.style key value)
 
 
 link :
@@ -307,7 +312,7 @@ markdownRenderer =
         \{ title, destination } body ->
             Element.newTabLink
                 [ maybeTitle title
-                , Element.htmlAttribute (Html.Attributes.style "display" "inline-flex")
+                , style "display" "inline-flex"
                 , Element.htmlAttribute (Html.Attributes.attribute "elm-pages:prefetch" "")
                 ]
                 { url = destination
@@ -520,5 +525,6 @@ slider attrs config =
                     , Border.width 1
                     , Border.color purple
                     , Background.color lightPurple
+                    , style "transition" "all .5s ease-in-out"
                     ]
             }
