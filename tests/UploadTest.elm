@@ -1,19 +1,14 @@
 module UploadTest exposing (partialRoundtrip, roundtrip)
 
 import Bits.Decode
-import Effect
 import Expect
 import Parser
 import Persona
 import Persona.Codec
-import Persona.Types exposing (PartialPersona, Persona)
-import Result.Extra
 import Rope
-import Route
-import Route.Persona.Name_.Data__
 import Site
 import Test exposing (Test, test)
-import Url
+import Types exposing (PartialPersona)
 
 
 partialRoundtrip : Test

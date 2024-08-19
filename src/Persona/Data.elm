@@ -3,7 +3,7 @@ module Persona.Data exposing (breasts, gendertropeIcon, gendertropeToRecord, han
 import Dict
 import Element exposing (Element)
 import Icons
-import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
+import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
 
 
 gendertropeIcon : Gendertrope -> Element msg

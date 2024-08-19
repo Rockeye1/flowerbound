@@ -38,6 +38,7 @@ config =
     [ Docs.ReviewAtDocs.rule
     , NoConfusingPrefixOperator.rule
     , NoDebug.Log.rule
+        |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoDebug.TodoOrToString.rule
         |> Rule.ignoreErrorsForDirectories [ "tests/" ]
     , NoExposingEverything.rule

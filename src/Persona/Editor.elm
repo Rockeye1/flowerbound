@@ -11,9 +11,9 @@ import Icons
 import List.Extra
 import Persona
 import Persona.Data
-import Persona.Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
 import Persona.View
 import Theme
+import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
 
 
 type alias Config msg =
@@ -371,7 +371,7 @@ viewGendertrope ({ gendertrope } as persona) =
                     , width (Element.minimum 160 fill)
                     ]
             in
-            (Persona.Types.standardGendertropes ++ [ Custom gendertropeRecord ])
+            (Types.standardGendertropes ++ [ Custom gendertropeRecord ])
                 |> List.map
                     (\option ->
                         Input.button

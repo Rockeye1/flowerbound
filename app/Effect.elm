@@ -11,8 +11,8 @@ import File exposing (File)
 import File.Select
 import Parser
 import Persona.Codec
-import Persona.Types exposing (Persona)
 import Task
+import Types exposing (Persona)
 
 
 {-| -}

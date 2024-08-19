@@ -10,9 +10,9 @@ import Icons
 import Persona
 import Persona.Codec
 import Persona.Data
-import Persona.Types exposing (Feature, GendertropeRecord, Organ, Persona)
 import Site
 import Theme
+import Types exposing (Feature, GendertropeRecord, Organ, Persona)
 
 
 type alias Config msg =

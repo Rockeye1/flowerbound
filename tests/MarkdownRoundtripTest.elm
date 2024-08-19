@@ -4,9 +4,9 @@ import Expect
 import Parser
 import Persona
 import Persona.Codec
-import Persona.Types exposing (Gendertrope(..), Persona)
 import PersonaCodecTest
 import Test exposing (Test, fuzz, test)
+import Types exposing (Gendertrope(..), Persona)
 
 
 simple : Test

@@ -1,8 +1,8 @@
-module Persona exposing (default, fromPartial, gendertropeToPartial, levelBonus, partialGendertropeName, toPartial, usedEuphoriaPoints, usedIchorPoints, usedNuminousPoints)
+module Persona exposing (default, fromPartial, levelBonus, partialGendertropeName, toPartial, usedEuphoriaPoints, usedIchorPoints, usedNuminousPoints)
 
 import Dict
 import Persona.Data
-import Persona.Types exposing (Gendertrope(..), GendertropeRecord, PartialGendertrope(..), PartialPersona, Persona)
+import Types exposing (Gendertrope(..), GendertropeRecord, PartialGendertrope(..), PartialPersona, Persona)
 
 
 default : Persona

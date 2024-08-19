@@ -6,8 +6,8 @@ import Fuzz exposing (Fuzzer)
 import List.Extra
 import Persona
 import Persona.Codec
-import Persona.Types as Persona exposing (Persona)
 import Test exposing (Test, describe)
+import Types as Persona exposing (Persona)
 
 
 persona : Test

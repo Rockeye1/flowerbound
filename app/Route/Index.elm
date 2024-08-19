@@ -16,12 +16,12 @@ import MimeType
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona.Codec
-import Persona.Types exposing (Persona)
 import Persona.View
 import RouteBuilder exposing (StatefulRoute)
 import Shared
 import Site
 import Theme
+import Types exposing (Persona)
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 

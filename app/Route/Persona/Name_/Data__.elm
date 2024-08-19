@@ -1,4 +1,4 @@
-module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, route, setPersona, toCard)
+module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteParams, route, toCard)
 
 import Array
 import BackendTask exposing (BackendTask)
@@ -17,13 +17,13 @@ import PagesMsg exposing (PagesMsg)
 import Persona
 import Persona.Codec
 import Persona.Editor
-import Persona.Types exposing (GendertropeRecord, PartialPersona, Persona)
 import RouteBuilder exposing (App, StatefulRoute)
 import Server.Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
 import Site
 import Theme
+import Types exposing (GendertropeRecord, PartialPersona, Persona)
 import Url
 import UrlPath exposing (UrlPath)
 import View exposing (View)
