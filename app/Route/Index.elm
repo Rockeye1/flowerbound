@@ -11,6 +11,7 @@ import FatalError exposing (FatalError)
 import File exposing (File)
 import Head
 import Head.Seo as Seo
+import Html exposing (th)
 import Icons
 import MimeType
 import Pages.Url
@@ -45,6 +46,8 @@ type PlayingMsg
     | Rest
     | RestedSatiation Int
     | RestedCraving Int
+    | RollValiantModifier
+    | RolledValiantModifier Int
 
 
 type Model
@@ -58,6 +61,7 @@ type alias PlayingModel =
     , meters : Meters
     , selectedMove : Maybe String
     , selectedTemperament : Maybe String
+    , valiantModifier : Int
     }
 
 
@@ -203,6 +207,12 @@ innerUpdate msg model =
         RestedCraving craving ->
             alterMeters <| \meters -> { meters | craving = min (Persona.maxCraving model.persona) craving }
 
+        RollValiantModifier ->
+            ( model, Effect.rollCheck model.persona.moxie RolledValiantModifier )
+
+        RolledValiantModifier modifier ->
+            ( { model | valiantModifier = modifier }, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
@@ -217,6 +227,7 @@ initPlayingModel persona =
         }
     , selectedMove = Nothing
     , selectedTemperament = Nothing
+    , valiantModifier = 0
     }
 
 
@@ -390,32 +401,107 @@ viewOrgasm model =
     let
         modifiers : Int
         modifiers =
-            -- TODO
-            0
+            if model.selectedTemperament == Just "Valiant" then
+                if model.valiantModifier < model.meters.stamina then
+                    model.valiantModifier
+
+                else
+                    0
+
+            else
+                0
 
         orgasmThreshold : Int
         orgasmThreshold =
             model.meters.sensitivity + model.meters.satiation + modifiers
-    in
-    if model.meters.arousal > orgasmThreshold then
-        paragraph
-            [ Font.color Theme.white
-            , Background.color Theme.purple
-            , Theme.padding
-            , width fill
-            ]
-            [ text "You are having an orgasm! (Unless your resist "
-            , el [ Font.bold ] (text "Valiant")
-            , text "ly)"
-            ]
 
-    else
-        Theme.el
-            [ Theme.padding
-            , Border.width 1
-            , width fill
+        isOrgasm : Bool
+        isOrgasm =
+            model.meters.arousal > orgasmThreshold
+    in
+    Theme.column
+        [ width fill
+        ]
+        [ if isOrgasm then
+            paragraph
+                [ Theme.padding
+                , Border.width 1
+                , Background.color Theme.purple
+                , Font.color Theme.white
+                ]
+                (if model.selectedTemperament == Just "Valiant" then
+                    [ text "You are having an orgasm!"
+                    ]
+
+                 else
+                    [ text "You are having an orgasm! (You can try resisting "
+                    , el [ Font.bold ] (text "Valiant")
+                    , text "ly though)"
+                    ]
+                )
+
+          else
+            paragraph
+                [ Theme.padding
+                , Border.width 1
+                ]
+                (if model.selectedTemperament == Just "Valiant" && model.meters.arousal > model.meters.sensitivity + model.meters.satiation then
+                    [ text "You are resisting "
+                    , el [ Font.bold ] (text "Valiant")
+                    , text "ly."
+                    ]
+
+                 else
+                    [ text "You are not having an orgasm (yet!)." ]
+                )
+        , paragraph []
+            [ text ("Arousal: " ++ String.fromInt model.meters.arousal)
+            , el [ Font.bold ] <|
+                if model.meters.arousal <= orgasmThreshold then
+                    text " ≤ "
+
+                else
+                    text " > "
+            , text
+                ("Orgasm Threshold: "
+                    ++ String.fromInt model.meters.sensitivity
+                    ++ " (Sensitivity) + "
+                    ++ String.fromInt model.meters.satiation
+                    ++ " (Satiation) + "
+                    ++ String.fromInt modifiers
+                    ++ " (Modifiers) = "
+                    ++ String.fromInt orgasmThreshold
+                )
             ]
-            (text "You are not having an orgasm (yet!).")
+        , if model.selectedTemperament == Just "Valiant" then
+            Theme.row [ width fill ]
+                [ if model.valiantModifier < model.meters.stamina then
+                    paragraph []
+                        [ text "You are being "
+                        , el [ Font.bold ] (text "Valiant")
+                        , text " which currently gives you a +"
+                        , el [ Font.bold ] (text (String.fromInt model.valiantModifier))
+                        , text " modifier to your Orgasm Threshold"
+                        ]
+
+                  else
+                    paragraph []
+                        [ text "You are being "
+                        , el [ Font.bold ] (text "Valiant")
+                        , text " which would give you a +"
+                        , el [ Font.bold ] (text (String.fromInt model.valiantModifier))
+                        , text " modifier to your Orgasm Threshold, if you had enough "
+                        , el [ Font.bold ] (text "Stamina")
+                        ]
+                , Theme.button [ width shrink, alignRight ]
+                    { onPress = Just RollValiantModifier
+                    , label = text "Re-Roll"
+                    }
+                ]
+
+          else
+            Element.none
+        ]
 
 
 viewTemperaments : PlayingModel -> Element PlayingMsg

@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -525,6 +525,5 @@ slider attrs config =
                     , Border.width 1
                     , Border.color purple
                     , Background.color lightPurple
-                    , style "transition" "all .5s ease-in-out"
                     ]
             }
