@@ -471,9 +471,9 @@ slider attrs config =
                 :: Element.behindContent
                     (Element.el
                         [ Element.width Element.fill
-                        , Element.height (Element.px 2)
+                        , Element.height (Element.px 1)
                         , Element.centerY
-                        , Background.color gray
+                        , Background.color purple
                         , Border.rounded 2
                         ]
                         Element.none
@@ -512,5 +512,13 @@ slider attrs config =
             , max = toFloat config.max
             , step = Nothing
             , value = toFloat config.value
-            , thumb = Input.defaultThumb
+            , thumb =
+                Input.thumb
+                    [ Element.width (Element.px 16)
+                    , Element.height (Element.px 16)
+                    , Border.rounded 8
+                    , Border.width 1
+                    , Border.color purple
+                    , Background.color lightPurple
+                    ]
             }
