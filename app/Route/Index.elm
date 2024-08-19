@@ -1,8 +1,10 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
+import Color
 import Effect exposing (Effect)
 import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, spacing, text, width)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
@@ -303,12 +305,10 @@ view _ _ model =
                     |> Element.map PagesMsg.fromMsg
 
             Playing playingModel ->
-                (viewPersona playingModel
-                    :: (viewPlaying playingModel
-                            |> Element.map PlayingMsg
-                       )
-                    :: Theme.viewMarkdown cheatSheet
-                )
+                [ viewPersona playingModel
+                , viewPlaying playingModel
+                    |> Element.map PlayingMsg
+                ]
                     |> Theme.column [ Theme.padding ]
                     |> Element.map PagesMsg.fromMsg
     }
@@ -361,6 +361,8 @@ viewPlaying ({ meters, persona } as model) =
                   }
                 ]
             }
+        , el [ Font.bold ] (text "Orgasm")
+        , viewOrgasm model
         , Theme.row [ width fill ]
             [ Theme.column
                 [ width fill
@@ -382,6 +384,39 @@ viewPlaying ({ meters, persona } as model) =
         , el [ Font.bold ] (text "Temperaments")
         , viewTemperaments model
         ]
+
+
+viewOrgasm : PlayingModel -> Element PlayingMsg
+viewOrgasm model =
+    let
+        modifiers : Int
+        modifiers =
+            -- TODO
+            0
+
+        orgasmThreshold : Int
+        orgasmThreshold =
+            model.meters.sensitivity + model.meters.satiation + modifiers
+    in
+    if model.meters.arousal > orgasmThreshold then
+        paragraph
+            [ Font.color Theme.white
+            , Background.color Theme.purple
+            , Theme.padding
+            , width fill
+            ]
+            [ text "You are having an orgasm! (Unless your resist "
+            , el [ Font.bold ] (text "Valiant")
+            , text "ly)"
+            ]
+
+    else
+        Theme.el
+            [ Theme.padding
+            , Border.width 1
+            , width fill
+            ]
+            (text "You are not having an orgasm (yet!).")
 
 
 viewTemperaments : PlayingModel -> Element PlayingMsg
@@ -573,15 +608,3 @@ staminaTable model =
             , columns = nameColumn :: List.map costColumn (List.range 13 18)
             }
         ]
-
-
-cheatSheet : String
-cheatSheet =
-    """## Orgasm
-To determine if you are Having An Orgasm you first determine your **Orgasm Threshold** by adding your **Sensitivity** to your **Satiation** and then also adding Modifiers if there are any.
-
-ORGASM THRESHOLD = SENSITIVITY + SATIATION (+ MODIFIERS)
-
-Once you know your **Orgasm Threshold**, you simply compare it to your **Arousal**. If your **Arousal** is greater than your **Orgasm Threshold**, you are **Having An Orgasm**.
-
-`AROUSAL > ORGASM THRESHOLD`"""
