@@ -427,6 +427,21 @@ viewPlaying ({ meters, persona } as model) =
                             let
                                 ( ardents, timids ) =
                                     List.unzip results
+
+                                raw : Int
+                                raw =
+                                    List.sum ardents - List.sum timids
+
+                                corrected : Int
+                                corrected =
+                                    if raw < 0 then
+                                        min 0 (raw + model.persona.prowess)
+
+                                    else if raw == 0 then
+                                        0
+
+                                    else
+                                        max 0 (raw - model.persona.prowess)
                             in
                             paragraph []
                                 [ text
@@ -441,7 +456,12 @@ viewPlaying ({ meters, persona } as model) =
                                     |> String.join " + "
                                     |> text
                                 , text " = "
-                                , text (String.fromInt (List.sum ardents - List.sum timids))
+                                , text (String.fromInt raw)
+                                , if raw == corrected then
+                                    Element.none
+
+                                  else
+                                    text (" ⇒ " ++ String.fromInt corrected ++ " (PRW = " ++ String.fromInt model.persona.prowess ++ ")")
                                 ]
                     , Theme.button [ alignRight ]
                         { onPress = Just RollStimulation
