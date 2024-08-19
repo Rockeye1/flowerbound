@@ -465,51 +465,52 @@ slider :
         }
     -> Element msg
 slider attrs config =
-    Input.slider
-        (Element.height (Element.px 30)
-            :: Element.behindContent
-                (Element.el
-                    [ Element.width Element.fill
-                    , Element.height (Element.px 2)
-                    , Element.centerY
-                    , Background.color gray
-                    , Border.rounded 2
-                    ]
-                    Element.none
-                )
-            :: Element.behindContent
-                (List.range config.min config.max
-                    |> List.map
-                        (\v ->
-                            el
-                                [ Element.width (Element.px 1)
-                                , Element.height (Element.px 8)
-                                , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
-                                , Element.behindContent
-                                    (el
-                                        [ Element.centerX
-                                        , Element.moveDown 11
-                                        ]
-                                        (Element.text (String.fromInt v))
-                                    )
-                                ]
-                                Element.none
-                        )
-                    |> List.intersperse (el [ Element.width Element.fill ] Element.none)
-                    |> row
+    el [ padding ] <|
+        Input.slider
+            (Element.height (Element.px 30)
+                :: Element.behindContent
+                    (Element.el
                         [ Element.width Element.fill
-                        , Element.height Element.fill
-                        , paddingXY 8 0
+                        , Element.height (Element.px 2)
+                        , Element.centerY
+                        , Background.color gray
+                        , Border.rounded 2
                         ]
-                )
-            :: Element.moveUp 8
-            :: attrs
-        )
-        { onChange = \v -> config.onChange (round v)
-        , label = Input.labelHidden config.label
-        , min = toFloat config.min
-        , max = toFloat config.max
-        , step = Nothing
-        , value = toFloat config.value
-        , thumb = Input.defaultThumb
-        }
+                        Element.none
+                    )
+                :: Element.behindContent
+                    (List.range config.min config.max
+                        |> List.map
+                            (\v ->
+                                el
+                                    [ Element.width (Element.px 1)
+                                    , Element.height (Element.px 8)
+                                    , Border.widthEach { left = 1, right = 0, top = 0, bottom = 0 }
+                                    , Element.behindContent
+                                        (el
+                                            [ Element.centerX
+                                            , Element.moveDown 11
+                                            ]
+                                            (Element.text (String.fromInt v))
+                                        )
+                                    ]
+                                    Element.none
+                            )
+                        |> List.intersperse (el [ Element.width Element.fill ] Element.none)
+                        |> row
+                            [ Element.width Element.fill
+                            , Element.height Element.fill
+                            , paddingXY 8 0
+                            ]
+                    )
+                :: Element.moveUp 8
+                :: attrs
+            )
+            { onChange = \v -> config.onChange (round v)
+            , label = Input.labelHidden config.label
+            , min = toFloat config.min
+            , max = toFloat config.max
+            , step = Nothing
+            , value = toFloat config.value
+            , thumb = Input.defaultThumb
+            }

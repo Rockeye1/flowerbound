@@ -418,7 +418,7 @@ statusMeter label value bonus setter =
         cap =
             20 + 2 * bonus
     in
-    ( text label
+    ( el [ centerY ] (text label)
     , Theme.slider []
         { min = 0
         , max = cap
