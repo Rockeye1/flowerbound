@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, paragraph, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, paragraph, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -308,15 +308,28 @@ viewPlaying ({ meters, persona } as model) =
                   }
                 ]
             }
-        , el
-            [ Font.bold ]
-            (text "Moves")
-        , viewMoves model
-        , el
-            [ Font.bold ]
-            (text "Stimulation")
-        , text "Choose a stamina cost by clicking the table below."
-        , staminaTable model
+        , Theme.row [ width fill ]
+            [ Theme.column
+                [ width fill
+                , alignTop
+                ]
+                [ el
+                    [ Font.bold ]
+                    (text "Moves")
+                , text "Choose a move."
+                , viewMoves model
+                ]
+            , Theme.column
+                [ width fill
+                , alignTop
+                ]
+                [ el
+                    [ Font.bold ]
+                    (text "Stimulation")
+                , text "Choose a stamina cost."
+                , staminaTable model
+                ]
+            ]
         ]
 
 
@@ -463,11 +476,15 @@ staminaTable model =
     Theme.column [ centerX ]
         [ Theme.table [ spacing 4 ]
             { data = rows
-            , columns = nameColumn :: List.map costColumn (List.range 1 9)
+            , columns = nameColumn :: List.map costColumn (List.range 1 6)
             }
         , Theme.table [ spacing 4 ]
             { data = rows
-            , columns = nameColumn :: List.map costColumn (List.range 10 18)
+            , columns = nameColumn :: List.map costColumn (List.range 7 12)
+            }
+        , Theme.table [ spacing 4 ]
+            { data = rows
+            , columns = nameColumn :: List.map costColumn (List.range 13 18)
             }
         ]
 
