@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, slider, spacing, table, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, table, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -69,27 +69,53 @@ button attrs config =
     case config.onPress of
         Just _ ->
             Input.button
-                (Border.width 1
-                    :: padding
-                    :: Background.color purple
-                    :: Font.center
-                    :: Font.color white
-                    :: Border.color black
-                    :: Element.width (Element.minimum 38 Element.shrink)
-                    :: attrs
-                )
+                (buttonAttrs white purple black attrs)
                 config
 
         Nothing ->
             el
-                (Border.width 1
-                    :: padding
-                    :: Font.center
-                    :: Background.color gray
-                    :: Element.width (Element.minimum 38 Element.shrink)
-                    :: attrs
-                )
+                (buttonAttrs black gray purple attrs)
                 config.label
+
+
+selectableButton :
+    List (Attribute msg)
+    ->
+        { onPress : Maybe msg
+        , label : Element msg
+        , selected : Bool
+        }
+    -> Element msg
+selectableButton attrs config =
+    case config.onPress of
+        Just _ ->
+            Input.button
+                (if config.selected then
+                    buttonAttrs white purple black attrs
+
+                 else
+                    buttonAttrs black lightPurple purple attrs
+                )
+                { label = config.label
+                , onPress = config.onPress
+                }
+
+        Nothing ->
+            el
+                (buttonAttrs black gray purple attrs)
+                config.label
+
+
+buttonAttrs : Element.Color -> Element.Color -> Element.Color -> List (Attribute msg) -> List (Attribute msg)
+buttonAttrs fg bg border attrs =
+    Border.width 1
+        :: padding
+        :: Font.center
+        :: Element.width (Element.minimum 38 Element.shrink)
+        :: Background.color bg
+        :: Font.color fg
+        :: Border.color border
+        :: attrs
 
 
 lightGray : Element.Color
@@ -115,6 +141,11 @@ white =
 purple : Element.Color
 purple =
     Element.rgb255 0x80 0 0x80
+
+
+lightPurple : Element.Color
+lightPurple =
+    Element.rgb255 0xE6 0xCC 0xE6
 
 
 purpleHex : number

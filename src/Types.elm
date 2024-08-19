@@ -1,4 +1,4 @@
-module Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona, standardGendertropes)
+module Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), attributeToString, standardGendertropes, stimulationTypeToString)
 
 import Dict exposing (Dict)
 
@@ -102,3 +102,54 @@ type alias Organ =
     , isPenetrable : Bool
     , isEnsheatheable : Bool
     }
+
+
+type alias Move =
+    { name : String
+    , stimulationType : StimulationType
+    , attributeCompatibility : List Attribute
+    , cravingThreshold : Int
+    , description : String
+    }
+
+
+type StimulationType
+    = Tease
+    | Grind
+    | Thrust
+
+
+type Attribute
+    = Squishes
+    | Grips
+    | Penetrates
+    | Ensheathes
+
+
+stimulationTypeToString : StimulationType -> String
+stimulationTypeToString type_ =
+    case type_ of
+        Tease ->
+            "Tease"
+
+        Grind ->
+            "Grind"
+
+        Thrust ->
+            "Thrust"
+
+
+attributeToString : Attribute -> String
+attributeToString attribute =
+    case attribute of
+        Squishes ->
+            "Squishes"
+
+        Grips ->
+            "Grips"
+
+        Penetrates ->
+            "Penetrates"
+
+        Ensheathes ->
+            "Ensheathes"

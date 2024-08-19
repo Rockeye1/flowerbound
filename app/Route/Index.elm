@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, paragraph, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -21,7 +21,7 @@ import RouteBuilder exposing (StatefulRoute)
 import Shared
 import Site
 import Theme
-import Types exposing (Persona)
+import Types exposing (Attribute(..), Move, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -38,6 +38,7 @@ type PlayingMsg
     = StimulationCost Int
     | UpdatePersona Persona
     | UpdateMeters Meters
+    | SelectMove (Maybe String)
 
 
 type Model
@@ -49,6 +50,7 @@ type alias PlayingModel =
     { persona : Persona
     , stimulationCost : Int
     , meters : Meters
+    , selectedMove : Maybe String
     }
 
 
@@ -155,6 +157,9 @@ innerUpdate msg model =
         UpdateMeters meters ->
             ( { model | meters = meters }, Effect.none )
 
+        SelectMove selectedMove ->
+            ( { model | selectedMove = selectedMove }, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
@@ -167,6 +172,7 @@ initPlayingModel persona =
         , satiation = 0
         , stamina = 0
         }
+    , selectedMove = Nothing
     }
 
 
@@ -304,10 +310,92 @@ viewPlaying ({ meters, persona } as model) =
             }
         , el
             [ Font.bold ]
+            (text "Moves")
+        , viewMoves model
+        , el
+            [ Font.bold ]
             (text "Stimulation")
         , text "Choose a stamina cost by clicking the table below."
         , staminaTable model
         ]
+
+
+viewMoves : PlayingModel -> Element PlayingMsg
+viewMoves model =
+    (defaultMoves ++ featureMoves model.persona)
+        |> List.map (viewMove model)
+        |> Theme.column []
+
+
+viewMove : PlayingModel -> Move -> Element PlayingMsg
+viewMove model move =
+    let
+        selected : Bool
+        selected =
+            model.selectedMove == Just move.name
+    in
+    Theme.selectableButton
+        [ width fill
+        , Font.alignLeft
+        ]
+        { onPress =
+            Just
+                (if selected then
+                    SelectMove Nothing
+
+                 else
+                    SelectMove (Just move.name)
+                )
+        , selected = selected
+        , label =
+            Theme.column [ width fill ]
+                [ paragraph []
+                    [ el [ Font.bold ] (text move.name)
+                    , text
+                        (" ("
+                            ++ Types.stimulationTypeToString move.stimulationType
+                            ++ ") ["
+                            ++ String.join "/"
+                                (List.map Types.attributeToString move.attributeCompatibility)
+                            ++ "] | CT: "
+                        )
+                    , el [ Font.bold ] (text (String.fromInt move.cravingThreshold))
+                    , text " |"
+                    ]
+                , paragraph []
+                    [ text move.description
+                    ]
+                ]
+        }
+
+
+featureMoves : Persona -> List Move
+featureMoves _ =
+    -- TODO: implement this
+    []
+
+
+defaultMoves : List Move
+defaultMoves =
+    [ { name = "Caress"
+      , stimulationType = Tease
+      , attributeCompatibility = [ Squishes, Grips ]
+      , cravingThreshold = 0
+      , description = "A light touch with no other effects."
+      }
+    , { name = "Rub"
+      , stimulationType = Grind
+      , attributeCompatibility = [ Squishes, Grips, Penetrates, Ensheathes ]
+      , cravingThreshold = 0
+      , description = "A massaging motion with no other effects."
+      }
+    , { name = "Stroke"
+      , stimulationType = Thrust
+      , attributeCompatibility = [ Grips, Penetrates, Ensheathes ]
+      , cravingThreshold = 0
+      , description = "A back-and-forth movement with no other effects."
+      }
+    ]
 
 
 statusMeter : String -> Int -> Int -> (Int -> msg) -> ( Element msg, Element msg )
@@ -344,21 +432,10 @@ staminaTable model =
             , header = Element.none
             , view =
                 \( _, toValue ) ->
-                    Theme.button
-                        [ Font.center
-                        , if cost == model.stimulationCost then
-                            Background.color Theme.purple
-
-                          else
-                            Background.color Theme.gray
-                        , if cost == model.stimulationCost then
-                            Theme.noAttribute
-
-                          else
-                            Font.color Theme.black
-                        ]
+                    Theme.selectableButton []
                         { onPress = Just (StimulationCost cost)
                         , label = text (toValue cost)
+                        , selected = cost == model.stimulationCost
                         }
             }
 
