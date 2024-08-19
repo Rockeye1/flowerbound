@@ -479,7 +479,10 @@ viewMove model move =
         , Font.alignLeft
         ]
         { onPress =
-            if selected then
+            if move.cravingThreshold > model.meters.craving then
+                Nothing
+
+            else if selected then
                 Just (SelectMove Nothing)
 
             else
