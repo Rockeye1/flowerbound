@@ -1,8 +1,7 @@
 module Icons exposing
-    ( flip, minus, plus
+    ( flip, download, upload, minus, plus
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
-    , download, upload
     )
 
 {-|
@@ -10,7 +9,7 @@ module Icons exposing
 
 ## Actions
 
-@docs flip, load, minus, plus
+@docs flip, download, upload, minus, plus
 
 
 ## Moves
