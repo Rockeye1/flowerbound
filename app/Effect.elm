@@ -1,11 +1,8 @@
-module Effect exposing
-    ( Effect(..), batch, fromCmd, map, none, perform
-    , rollCheck
-    )
+module Effect exposing (Effect(..), batch, fromCmd, map, none, perform, rollCheck)
 
 {-|
 
-@docs Effect, batch, fromCmd, map, none, perform
+@docs Effect, batch, fromCmd, map, none, perform, rollCheck
 
 -}
 
@@ -28,6 +25,7 @@ type Effect msg
     | PickMarkdown (File -> msg)
     | ReadPersonaFromMarkdown File (Result String Persona -> msg)
     | Roll Int (Int -> msg)
+    | RollStimulation (List Int) (List ( Int, Int ) -> msg)
 
 
 {-| -}
@@ -81,6 +79,10 @@ map fn effect =
             Roll die
                 (\result -> result |> toMsg |> fn)
 
+        RollStimulation dice toMsg ->
+            RollStimulation dice
+                (\result -> result |> toMsg |> fn)
+
 
 {-| -}
 perform :
@@ -125,6 +127,19 @@ perform ({ fromPageMsg, key } as helpers) effect =
 
         Roll die toMsg ->
             Random.int 1 die
+                |> Random.generate
+                    (\result -> fromPageMsg (toMsg result))
+
+        RollStimulation dice toMsg ->
+            List.foldr
+                (\die acc ->
+                    Random.map2
+                        (::)
+                        (Random.pair (Random.int 1 die) (Random.int 1 die))
+                        acc
+                )
+                (Random.constant [])
+                dice
                 |> Random.generate
                     (\result -> fromPageMsg (toMsg result))
 

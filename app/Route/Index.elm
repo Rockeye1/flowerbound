@@ -2,7 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -11,8 +11,8 @@ import FatalError exposing (FatalError)
 import File exposing (File)
 import Head
 import Head.Seo as Seo
-import Html exposing (th)
 import Icons
+import List.Extra
 import MimeType
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
@@ -48,6 +48,8 @@ type PlayingMsg
     | RestedCraving Int
     | RollValiantModifier
     | RolledValiantModifier Int
+    | RollStimulation
+    | RolledStimulation (List ( Int, Int ))
 
 
 type Model
@@ -62,6 +64,7 @@ type alias PlayingModel =
     , selectedMove : Maybe String
     , selectedTemperament : Maybe String
     , valiantModifier : Int
+    , stimulationRoll : Maybe (List ( Int, Int ))
     }
 
 
@@ -165,7 +168,12 @@ innerUpdate msg model =
     in
     case msg of
         StimulationCost stimulationCost ->
-            ( { model | stimulationCost = stimulationCost }, Effect.none )
+            ( { model
+                | stimulationCost = stimulationCost
+                , stimulationRoll = Nothing
+              }
+            , Effect.none
+            )
 
         UpdatePersona persona ->
             ( { model | persona = persona }, Effect.none )
@@ -213,6 +221,28 @@ innerUpdate msg model =
         RolledValiantModifier modifier ->
             ( { model | valiantModifier = modifier }, Effect.none )
 
+        RollStimulation ->
+            case
+                List.Extra.findMap
+                    (\( cost, dice ) ->
+                        if cost == model.stimulationCost then
+                            Just dice
+
+                        else
+                            Nothing
+                    )
+                    stimulationDice
+                    |> Maybe.withDefault []
+            of
+                [] ->
+                    ( { model | stimulationRoll = Nothing }, Effect.none )
+
+                dice ->
+                    ( { model | stimulationRoll = Nothing }, Effect.RollStimulation dice RolledStimulation )
+
+        RolledStimulation stimulationRoll ->
+            ( { model | stimulationRoll = Just stimulationRoll }, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
@@ -228,6 +258,7 @@ initPlayingModel persona =
     , selectedMove = Nothing
     , selectedTemperament = Nothing
     , valiantModifier = 0
+    , stimulationRoll = Nothing
     }
 
 
@@ -387,6 +418,42 @@ viewPlaying ({ meters, persona } as model) =
                 [ el [ Font.bold ] (text "Stimulation")
                 , text "Choose a stamina cost."
                 , staminaTable model
+                , Theme.row [ width fill ]
+                    [ case model.stimulationRoll of
+                        Nothing ->
+                            Element.none
+
+                        Just results ->
+                            let
+                                ( ardents, timids ) =
+                                    List.unzip results
+                            in
+                            paragraph []
+                                [ text
+                                    "Rolled "
+                                , results
+                                    |> List.map
+                                        (\( ardent, timid ) ->
+                                            String.fromInt ardent
+                                                ++ " - "
+                                                ++ String.fromInt timid
+                                        )
+                                    |> String.join " + "
+                                    |> text
+                                , text " = "
+                                , text (String.fromInt (List.sum ardents - List.sum timids))
+                                ]
+                    , Theme.button [ alignRight ]
+                        { onPress = Just RollStimulation
+                        , label =
+                            case model.stimulationRoll of
+                                Nothing ->
+                                    text "Roll"
+
+                                Just _ ->
+                                    text "Reroll"
+                        }
+                    ]
                 ]
             ]
         , el [ Font.bold ] (text "Temperaments")
@@ -641,21 +708,17 @@ statusMeter label value cap setter =
 staminaTable : PlayingModel -> Element PlayingMsg
 staminaTable model =
     let
-        button : Int -> String -> Element PlayingMsg
-        button cost label =
-            Theme.selectableButton [ width fill ]
-                { onPress = Just (StimulationCost cost)
-                , label = text label
-                , selected = cost == model.stimulationCost
-                }
-
         column : String -> (Int -> List Int -> String) -> Element.Column ( Int, List Int ) PlayingMsg
         column header toLabel =
             { width = shrink
             , header = el [ Font.center ] (text header)
             , view =
-                \( cost, die ) ->
-                    button cost (toLabel cost die)
+                \( cost, dice ) ->
+                    Theme.selectableButton [ width fill ]
+                        { onPress = Just (StimulationCost cost)
+                        , label = text (toLabel cost dice)
+                        , selected = cost == model.stimulationCost
+                        }
             }
 
         columns : List (Element.Column ( Int, List Int ) PlayingMsg)
@@ -670,24 +733,24 @@ staminaTable model =
                     else
                         String.fromInt (cost * 2)
             , column "Dice Type" <|
-                \_ die ->
-                    if List.isEmpty die then
+                \_ dice ->
+                    if List.isEmpty dice then
                         "No Roll"
 
                     else
-                        die
-                            |> List.map (\d -> "d" ++ String.fromInt d)
+                        dice
+                            |> List.map (\die -> "d" ++ String.fromInt die)
                             |> String.join " and "
             ]
     in
     Theme.table []
-        { data = dice
+        { data = stimulationDice
         , columns = columns
         }
 
 
-dice : List ( Int, List Int )
-dice =
+stimulationDice : List ( Int, List Int )
+stimulationDice =
     [ []
     , [ 4 ]
     , [ 6 ]
