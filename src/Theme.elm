@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, table, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, link, multiline, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, table, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background

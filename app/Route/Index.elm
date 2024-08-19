@@ -3,7 +3,6 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
 import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, spacing, text, width)
-import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
@@ -20,7 +19,6 @@ import Persona.View
 import RouteBuilder exposing (StatefulRoute)
 import Shared
 import Site
-import Svg exposing (desc)
 import Theme
 import Types exposing (Attribute(..), Move, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
