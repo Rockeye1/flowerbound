@@ -238,7 +238,7 @@ gendertropeToPartial gendertrope =
             PartialCustom name
 
 
-partialGendertropeName : Persona.Types.PartialGendertrope -> String
+partialGendertropeName : Types.PartialGendertrope -> String
 partialGendertropeName partial =
     (partialGendertropeToGendertrope partial Nothing
         |> Persona.Data.gendertropeToRecord

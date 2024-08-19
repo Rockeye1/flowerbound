@@ -150,7 +150,7 @@ slugToBytes slug =
 gendertropeToHash : Gendertrope -> String
 gendertropeToHash gendertrope =
     case gendertrope of
-        Persona.Types.Custom record ->
+        Types.Custom record ->
             gendertropeRecord.encoder record
                 |> Rope.toList
                 |> Bits.toBytes
@@ -530,6 +530,7 @@ organParser =
                 |. Parser.spaces
                 |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
 
+        item : Parser keep -> Parser keep
         item inner =
             Parser.succeed identity
                 |. Parser.spaces
@@ -538,6 +539,7 @@ organParser =
                 |= inner
                 |. Parser.spaces
 
+        group : String -> List String -> Parser (List String)
         group label options =
             Parser.oneOf
                 [ Parser.succeed identity
