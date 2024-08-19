@@ -1,4 +1,4 @@
-module Persona exposing (default, fromPartial, levelBonus, partialGendertropeName, toPartial, usedEuphoriaPoints, usedIchorPoints, usedNuminousPoints)
+module Persona exposing (default, fromPartial, levelBonus, maxArousal, maxCraving, maxSatiation, maxSensitivity, maxStamina, partialGendertropeName, toPartial, usedEuphoriaPoints, usedIchorPoints, usedNuminousPoints)
 
 import Dict
 import Persona.Data
@@ -243,3 +243,28 @@ partialGendertropeName partial =
     (partialGendertropeToGendertrope partial Nothing
         |> Persona.Data.gendertropeToRecord
     ).name
+
+
+maxStamina : Persona -> Int
+maxStamina _ =
+    20
+
+
+maxSatiation : Persona -> Int
+maxSatiation persona =
+    20 + 2 * persona.ardor
+
+
+maxCraving : Persona -> Int
+maxCraving persona =
+    20 + 2 * persona.sanity
+
+
+maxSensitivity : Persona -> Int
+maxSensitivity persona =
+    20 + 2 * persona.moxie
+
+
+maxArousal : Persona -> Int
+maxArousal persona =
+    20 + 2 * persona.prowess

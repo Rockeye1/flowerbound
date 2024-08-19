@@ -14,6 +14,7 @@ import Icons
 import MimeType
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
+import Persona
 import Persona.Codec
 import Persona.View
 import RouteBuilder exposing (StatefulRoute)
@@ -39,6 +40,10 @@ type PlayingMsg
     | UpdateMeters Meters
     | SelectMove (Maybe String)
     | SelectTemperament (Maybe String)
+    | BeginEncounter
+    | Rest
+    | RestedSatiation Int
+    | RestedCraving Int
 
 
 type Model
@@ -140,14 +145,19 @@ update _ _ msg model =
                         ( newModel, effect ) =
                             innerUpdate playingMsg playingModel
                     in
-                    ( Playing newModel, effect )
+                    ( Playing newModel, Effect.map PlayingMsg effect )
 
         PickedFile file ->
             ( model, Effect.ReadPersonaFromMarkdown file LoadedFromFile )
 
 
-innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect msg )
+innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
 innerUpdate msg model =
+    let
+        alterMeters : (Meters -> Meters) -> ( PlayingModel, Effect msg )
+        alterMeters f =
+            ( { model | meters = f model.meters }, Effect.none )
+    in
     case msg of
         StimulationCost stimulationCost ->
             ( { model | stimulationCost = stimulationCost }, Effect.none )
@@ -155,14 +165,42 @@ innerUpdate msg model =
         UpdatePersona persona ->
             ( { model | persona = persona }, Effect.none )
 
-        UpdateMeters meters ->
-            ( { model | meters = meters }, Effect.none )
+        UpdateMeters newMeters ->
+            ( { model | meters = newMeters }, Effect.none )
 
         SelectMove selectedMove ->
             ( { model | selectedMove = selectedMove }, Effect.none )
 
         SelectTemperament selectedTemperament ->
             ( { model | selectedTemperament = selectedTemperament }, Effect.none )
+
+        BeginEncounter ->
+            alterMeters <| \meters -> { meters | stamina = 5 + model.persona.fitness }
+
+        Rest ->
+            ( { model
+                | meters =
+                    let
+                        meters : Meters
+                        meters =
+                            model.meters
+                    in
+                    { meters
+                        | arousal = 1
+                        , sensitivity = 0
+                    }
+              }
+            , Effect.batch
+                [ Effect.rollCheck model.persona.ardor RestedSatiation
+                , Effect.rollCheck model.persona.sanity RestedCraving
+                ]
+            )
+
+        RestedSatiation satiation ->
+            alterMeters <| \meters -> { meters | satiation = min (Persona.maxSatiation model.persona) satiation }
+
+        RestedCraving craving ->
+            alterMeters <| \meters -> { meters | craving = min (Persona.maxCraving model.persona) craving }
 
 
 initPlayingModel : Persona -> PlayingModel
@@ -294,13 +332,23 @@ viewPlaying : PlayingModel -> Element PlayingMsg
 viewPlaying ({ meters, persona } as model) =
     Theme.column [ width fill ]
         [ el [ Font.bold ] (text "Status meters")
+        , Theme.row []
+            [ Theme.button [ width fill ]
+                { onPress = Just BeginEncounter
+                , label = text "Begin Encounter"
+                }
+            , Theme.button [ width fill ]
+                { onPress = Just Rest
+                , label = text "Rest"
+                }
+            ]
         , Theme.table [ width fill ]
             { data =
-                [ statusMeter "Stamina" meters.stamina 0 <| \newValue -> UpdateMeters { meters | stamina = newValue }
-                , statusMeter "Satiation" meters.satiation persona.ardor <| \newValue -> UpdateMeters { meters | satiation = newValue }
-                , statusMeter "Craving" meters.craving persona.sanity <| \newValue -> UpdateMeters { meters | craving = newValue }
-                , statusMeter "Sensitivity" meters.sensitivity persona.moxie <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
-                , statusMeter "Arousal" meters.arousal persona.prowess <| \newValue -> UpdateMeters { meters | arousal = newValue }
+                [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> UpdateMeters { meters | stamina = newValue }
+                , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> UpdateMeters { meters | satiation = newValue }
+                , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> UpdateMeters { meters | craving = newValue }
+                , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
+                , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
                 ]
             , columns =
                 [ { width = shrink
@@ -455,12 +503,7 @@ defaultMoves =
 
 
 statusMeter : String -> Int -> Int -> (Int -> msg) -> ( Element msg, Element msg )
-statusMeter label value bonus setter =
-    let
-        cap : Int
-        cap =
-            20 + 2 * bonus
-    in
+statusMeter label value cap setter =
     ( el [ centerY ] (text label)
     , Theme.slider []
         { min = 0

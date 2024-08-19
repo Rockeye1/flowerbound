@@ -232,10 +232,10 @@ abilitiesView persona =
 statusView : Persona -> Element Persona
 statusView persona =
     let
-        statusRow : String -> Int -> ( String, Int )
-        statusRow label bonusToCap =
+        statusRow : String -> (Persona -> Int) -> ( String, Int )
+        statusRow label toCap =
             ( label
-            , 20 + 2 * bonusToCap
+            , toCap persona
             )
     in
     Theme.column
@@ -259,11 +259,11 @@ statusView persona =
             [ Theme.spacing
             ]
             { data =
-                [ statusRow "Max Stamina" 0
-                , statusRow "Max Satiation" persona.ardor
-                , statusRow "Max Craving" persona.sanity
-                , statusRow "Max Arousal" persona.prowess
-                , statusRow "Max Sensitivity" persona.moxie
+                [ statusRow "Max Stamina" Persona.maxStamina
+                , statusRow "Max Satiation" Persona.maxSatiation
+                , statusRow "Max Craving" Persona.maxCraving
+                , statusRow "Max Arousal" Persona.maxArousal
+                , statusRow "Max Sensitivity" Persona.maxSensitivity
                 ]
             , columns =
                 [ { header = Element.none

@@ -1,4 +1,7 @@
-module Effect exposing (Effect(..), batch, fromCmd, map, none, perform)
+module Effect exposing
+    ( Effect(..), batch, fromCmd, map, none, perform
+    , rollCheck
+    )
 
 {-|
 
@@ -11,6 +14,7 @@ import File exposing (File)
 import File.Select
 import Parser
 import Persona.Codec
+import Random
 import Task
 import Types exposing (Persona)
 
@@ -23,6 +27,7 @@ type Effect msg
     | SetRouteToPersona Persona
     | PickMarkdown (File -> msg)
     | ReadPersonaFromMarkdown File (Result String Persona -> msg)
+    | Roll Int (Int -> msg)
 
 
 {-| -}
@@ -43,6 +48,11 @@ fromCmd =
     Cmd
 
 
+rollCheck : Int -> (Int -> msg) -> Effect msg
+rollCheck bonus toMsg =
+    Roll 10 (\res -> toMsg (res + bonus))
+
+
 {-| -}
 map : (a -> b) -> Effect a -> Effect b
 map fn effect =
@@ -61,19 +71,15 @@ map fn effect =
 
         PickMarkdown toMsg ->
             PickMarkdown
-                (\file ->
-                    file
-                        |> toMsg
-                        |> fn
-                )
+                (\file -> file |> toMsg |> fn)
 
         ReadPersonaFromMarkdown file toMsg ->
             ReadPersonaFromMarkdown file
-                (\result ->
-                    result
-                        |> toMsg
-                        |> fn
-                )
+                (\result -> result |> toMsg |> fn)
+
+        Roll die toMsg ->
+            Roll die
+                (\result -> result |> toMsg |> fn)
 
 
 {-| -}
@@ -116,6 +122,11 @@ perform ({ fromPageMsg, key } as helpers) effect =
                             |> toMsg
                             |> fromPageMsg
                     )
+
+        Roll die toMsg ->
+            Random.int 1 die
+                |> Random.generate
+                    (\result -> fromPageMsg (toMsg result))
 
 
 parserErrorToString : String -> List Parser.DeadEnd -> String
