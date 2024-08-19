@@ -383,9 +383,7 @@ viewPlaying ({ meters, persona } as model) =
                 , viewMoves model
                 ]
             , Theme.column
-                [ width fill
-                , alignTop
-                ]
+                [ alignTop ]
                 [ el [ Font.bold ] (text "Stimulation")
                 , text "Choose a stamina cost."
                 , staminaTable model
@@ -643,58 +641,70 @@ statusMeter label value cap setter =
 staminaTable : PlayingModel -> Element PlayingMsg
 staminaTable model =
     let
-        nameColumn : Element.Column ( String, Int -> String ) msg
-        nameColumn =
-            { width = shrink
-            , header = Element.none
-            , view = \( label, _ ) -> el [ Theme.padding ] (text label)
-            }
+        button : Int -> String -> Element PlayingMsg
+        button cost label =
+            Theme.selectableButton [ width fill ]
+                { onPress = Just (StimulationCost cost)
+                , label = text label
+                , selected = cost == model.stimulationCost
+                }
 
-        costColumn : Int -> Element.Column ( String, Int -> String ) PlayingMsg
-        costColumn cost =
+        column : String -> (Int -> List Int -> String) -> Element.Column ( Int, List Int ) PlayingMsg
+        column header toLabel =
             { width = shrink
-            , header = Element.none
+            , header = el [ Font.center ] (text header)
             , view =
-                \( _, toValue ) ->
-                    Theme.selectableButton []
-                        { onPress = Just (StimulationCost cost)
-                        , label = text (toValue cost)
-                        , selected = cost == model.stimulationCost
-                        }
+                \( cost, die ) ->
+                    button cost (toLabel cost die)
             }
 
-        rows : List ( String, Int -> String )
-        rows =
-            [ ( "Stamina Cost", \c -> String.fromInt c )
-            , ( "Stimulation"
-              , \c ->
-                    if c == 1 then
+        columns : List (Element.Column ( Int, List Int ) PlayingMsg)
+        columns =
+            [ column "Stamina" <|
+                \cost _ -> String.fromInt cost
+            , column "Stimulation" <|
+                \cost _ ->
+                    if cost == 1 then
                         "0"
 
                     else
-                        String.fromInt (c * 2)
-              )
-            , ( "Dice type"
-              , \c ->
-                    if c == 1 then
+                        String.fromInt (cost * 2)
+            , column "Dice Type" <|
+                \_ die ->
+                    if List.isEmpty die then
                         "No Roll"
 
                     else
-                        "d" ++ String.fromInt (c * 2)
-              )
+                        die
+                            |> List.map (\d -> "d" ++ String.fromInt d)
+                            |> String.join " and "
             ]
     in
-    Theme.column [ centerX ]
-        [ Theme.table [ spacing 4 ]
-            { data = rows
-            , columns = nameColumn :: List.map costColumn (List.range 1 6)
-            }
-        , Theme.table [ spacing 4 ]
-            { data = rows
-            , columns = nameColumn :: List.map costColumn (List.range 7 12)
-            }
-        , Theme.table [ spacing 4 ]
-            { data = rows
-            , columns = nameColumn :: List.map costColumn (List.range 13 18)
-            }
-        ]
+    Theme.table []
+        { data = dice
+        , columns = columns
+        }
+
+
+dice : List ( Int, List Int )
+dice =
+    [ []
+    , [ 4 ]
+    , [ 6 ]
+    , [ 8 ]
+    , [ 10 ]
+    , [ 12 ]
+    , [ 10, 4 ]
+    , [ 10, 6 ]
+    , [ 10, 8 ]
+    , [ 10, 10 ]
+    , [ 12, 10 ]
+    , [ 12, 12 ]
+    , [ 10, 10, 6 ]
+    , [ 10, 10, 8 ]
+    , [ 10, 10, 10 ]
+    , [ 12, 10, 10 ]
+    , [ 12, 12, 10 ]
+    , [ 12, 12, 12 ]
+    ]
+        |> List.indexedMap (\i d -> ( i + 1, d ))
