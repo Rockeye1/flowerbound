@@ -874,15 +874,19 @@ viewOrgan persona pos organ =
             , Svg.Attributes.fill "white"
             ]
             []
-        , Svg.text_
-            [ Svg.Attributes.x (String.fromFloat (organWidth / 2))
-            , Svg.Attributes.y (String.fromFloat 8)
-            , Svg.Attributes.textAnchor "middle"
-            , Svg.Attributes.dominantBaseline "hanging"
+        , Svg.g
+            [ Svg.Attributes.transform
+                ("translate(" ++ String.fromFloat 0 ++ " " ++ String.fromFloat 8 ++ ")")
             ]
             [ Persona.Data.gendertropeIcon persona.gendertrope
                 |> Phosphor.toHtml []
-            , Svg.text organ.name
+            , Svg.text_
+                [ Svg.Attributes.x (String.fromFloat (organWidth / 2))
+                , Svg.Attributes.textAnchor "middle"
+                , Svg.Attributes.dominantBaseline "hanging"
+                ]
+                [ Svg.text organ.name
+                ]
             , Persona.Data.gendertropeIcon persona.gendertrope
                 |> Phosphor.toHtml []
             ]
