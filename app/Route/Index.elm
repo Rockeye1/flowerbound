@@ -362,23 +362,7 @@ innerUpdate shared msg model =
                     ( model, Effect.none )
 
                 Just ( key, delta ) ->
-                    let
-                        zOrder : Int
-                        zOrder =
-                            getNewZOrder model.organsPositions
-                    in
-                    ( { model
-                        | dragging = Just ( key, delta )
-                        , organsPositions =
-                            Dict.insert key
-                                ( Point2d.translateBy delta position
-                                    |> clipOrganPosition shared
-                                , zOrder
-                                )
-                                model.organsPositions
-                      }
-                    , Effect.none
-                    )
+                    ( { model | dragging = Just ( key, delta ) }, Effect.none )
 
         MouseMove position ->
             case model.dragging of
@@ -400,11 +384,63 @@ innerUpdate shared msg model =
                                 )
                                 model.organsPositions
                       }
+                        |> trySnap
                     , Effect.none
                     )
 
         MouseUp ->
             ( { model | dragging = Nothing }, Effect.none )
+
+
+trySnap : PlayingModel -> PlayingModel
+trySnap model =
+    let
+        sorted : List ( ( Int, String ), ( Point2d Pixels (), Int ) )
+        sorted =
+            model.organsPositions
+                |> Dict.toList
+                |> List.sortBy (\( _, ( _, zOrder ) ) -> -zOrder)
+
+        pair : List a -> List ( a, List a ) -> List ( a, List a )
+        pair queue acc =
+            case queue of
+                [] ->
+                    acc
+
+                h :: tail ->
+                    pair tail (( h, tail ) :: acc)
+
+        toSnap : List ( ( Int, String ), ( Point2d Pixels (), Int ) )
+        toSnap =
+            pair sorted []
+                |> List.filterMap
+                    (\( organ, options ) ->
+                        List.Extra.findMap
+                            (\option ->
+                                if canSnapTo option organ then
+                                    Nothing
+
+                                else
+                                    Nothing
+                            )
+                            options
+                    )
+    in
+    { model
+        | organsPositions =
+            List.foldl
+                (\( key, value ) acc -> Dict.insert key value acc)
+                model.organsPositions
+                toSnap
+    }
+
+
+canSnapTo :
+    ( ( Int, String ), ( Point2d Pixels (), Int ) )
+    -> ( ( Int, String ), ( Point2d Pixels (), Int ) )
+    -> Bool
+canSnapTo target organ =
+    False
 
 
 clipOrganPosition : Shared.Model -> Point2d Pixels () -> Point2d Pixels ()
@@ -829,12 +865,12 @@ svgHeight shared =
 
 organWidth : number
 organWidth =
-    240
+    260
 
 
 organHeight : number
 organHeight =
-    24 * 7 + 16
+    24 * 6 + 16
 
 
 type TextAnchor
@@ -931,52 +967,39 @@ viewOrgan persona pos organ =
             , Svg.Attributes.fill "white"
             ]
             []
-        , textAt []
-            { x = 0
-            , y = 0
-            , label = organ.name
-            , anchor = AnchorMiddle
-            }
         , Persona.Data.gendertropeIcon persona.gendertrope
             |> Phosphor.withSize 24
             |> Phosphor.withSizeUnit "px"
             |> Phosphor.toHtml
                 [ Svg.Attributes.transform
-                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 32 ++ ")")
+                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 8 ++ ")")
                 ]
+        , textAt []
+            { x = 32
+            , y = 0
+            , label = organ.name
+            , anchor = AnchorStart
+            }
         , textAt []
             { x = 0
             , y = 1
-            , label = persona.name
-            , anchor = AnchorMiddle
-            }
-        , Persona.Data.gendertropeIcon persona.gendertrope
-            |> Phosphor.withSize 24
-            |> Phosphor.withSizeUnit "px"
-            |> Phosphor.toHtml
-                [ Svg.Attributes.transform
-                    ("translate(" ++ String.fromFloat (organWidth - 32) ++ " " ++ String.fromFloat 32 ++ ")")
-                ]
-        , textAt []
-            { x = 0
-            , y = 2
             , label = "Contour: " ++ String.fromInt organ.contour
             , anchor = AnchorStart
             }
         , textAt []
             { x = 0
-            , y = 2
+            , y = 1
             , label = "Erogeny: " ++ String.fromInt organ.erogeny
             , anchor = AnchorEnd
             }
-        , iifLeft organ.isSquishable "IS" 3
-        , iifLeft organ.isGrippable "IG" 4
-        , iifLeft organ.isPenetrable "IP" 5
-        , iifLeft organ.isEnsheatheable "IE" 6
-        , iifRight organ.canSquish "CS" 3
-        , iifRight organ.canGrip "CG" 4
-        , iifRight organ.canPenetrate "CP" 5
-        , iifRight organ.canEnsheathe "CE" 6
+        , iifLeft organ.isSquishable "IS" 2
+        , iifLeft organ.isGrippable "IG" 3
+        , iifLeft organ.isPenetrable "IP" 4
+        , iifLeft organ.isEnsheatheable "IE" 5
+        , iifRight organ.canSquish "CS" 2
+        , iifRight organ.canGrip "CG" 3
+        , iifRight organ.canPenetrate "CP" 4
+        , iifRight organ.canEnsheathe "CE" 5
         ]
 
 
