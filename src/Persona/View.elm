@@ -18,20 +18,26 @@ import Types exposing (Feature, GendertropeRecord, Organ, Persona)
 type alias Config msg =
     { update : Persona -> msg
     , upload : msg
+    , persona : Persona
     }
 
 
-persona : Config msg -> Persona -> Element msg
-persona config input =
+persona : List (Attribute msg) -> Config msg -> Element msg
+persona attrs config =
     let
+        input : Persona
+        input =
+            config.persona
+
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
             Persona.Data.gendertropeToRecord input.gendertrope
     in
     Theme.column
-        [ Border.width 1
-        , Theme.padding
-        ]
+        (Border.width 1
+            :: Theme.padding
+            :: attrs
+        )
         [ Theme.row [ width fill ]
             (Theme.input [ width fill ]
                 { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input

@@ -372,23 +372,21 @@ view _ _ model =
                     ]
 
             Playing playingModel ->
-                [ Theme.wrappedRow [ centerX ]
-                    (el [ alignTop ]
-                        (Persona.View.persona
-                            { update = UpdatePersona
-                            , upload = UpdateFromFile
-                            }
-                            playingModel.persona
-                        )
+                [ Theme.wrappedRow []
+                    (Persona.View.persona
+                        [ alignTop ]
+                        { update = UpdatePersona
+                        , upload = UpdateFromFile
+                        , persona = playingModel.persona
+                        }
                         :: List.indexedMap
                             (\i other ->
-                                el [ alignTop ]
-                                    (Persona.View.persona
-                                        { update = UpdateOther i
-                                        , upload = UpdateOtherFromFile i
-                                        }
-                                        other
-                                    )
+                                Persona.View.persona
+                                    [ alignTop ]
+                                    { update = UpdateOther i
+                                    , upload = UpdateOtherFromFile i
+                                    , persona = other
+                                    }
                             )
                             playingModel.others
                         ++ [ Theme.column []
