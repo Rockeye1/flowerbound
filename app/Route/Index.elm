@@ -3,7 +3,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 import BackendTask exposing (BackendTask)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, scrollbarX, scrollbars, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -12,6 +12,7 @@ import FatalError exposing (FatalError)
 import File exposing (File)
 import Head
 import Head.Seo as Seo
+import Html
 import Icons
 import Json.Decode
 import List.Extra
@@ -405,7 +406,7 @@ innerUpdate shared msg model =
                         | organsPositions =
                             Dict.insert key
                                 ( Point2d.translateBy delta position
-                                    |> clipOrganPosition shared
+                                    |> clipOrganPosition
                                 , zOrder
                                 )
                                 model.organsPositions
@@ -561,15 +562,15 @@ trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
             Nothing
 
 
-clipOrganPosition : Shared.Model -> Point2d Pixels () -> Point2d Pixels ()
-clipOrganPosition shared position =
+clipOrganPosition : Point2d Pixels () -> Point2d Pixels ()
+clipOrganPosition position =
     let
         { x, y } =
             Point2d.toPixels position
     in
     Point2d.pixels
-        (clamp 0 (svgWidth shared - organWidth) x)
-        (clamp 0 (svgHeight shared - organHeight) y)
+        (clamp 0 (svgWidth - organWidth) x)
+        (clamp 0 (svgHeight - organHeight) y)
 
 
 getNewZOrder : Dict ( Int, String ) ( Point2d Pixels (), Int ) -> Int
@@ -893,6 +894,7 @@ organColors =
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
 viewOrgans shared model =
     let
+        svgSurface : Html.Html PlayingMsg
         svgSurface =
             model.organsPositions
                 |> Dict.toList
@@ -938,8 +940,8 @@ viewOrgans shared model =
                     [ Svg.Attributes.width "100%"
                     , [ 0
                       , 0
-                      , svgWidth shared
-                      , svgHeight shared
+                      , svgWidth
+                      , svgHeight
                       ]
                         |> List.map String.fromFloat
                         |> String.join " "
@@ -974,10 +976,19 @@ viewOrgans shared model =
             ]
         , Element.html svgSurface
             |> Theme.el
-                [ centerX
-                , width <| Element.maximum (floor <| svgWidth shared) fill
+                [ width <| px svgWidth
+                , height <| px (ceiling svgHeight)
                 , Border.width 1
                 , Background.color Theme.lightPurple
+                ]
+            |> Theme.el
+                [ centerX
+                , (floor <| svgWidth + 8)
+                    |> min (shared.width - 2 * Theme.rhythm)
+                    |> px
+                    |> width
+                , height <| px <| floor (svgHeight + 8)
+                , scrollbarX
                 ]
         ]
 
@@ -1004,18 +1015,14 @@ positionDecoder toMsg =
         )
 
 
-svgWidth : Shared.Model -> Float
-svgWidth shared =
-    toFloat (shared.width - 2 * Theme.rhythm)
-        |> min 1600
+svgWidth : number
+svgWidth =
+    1600
 
 
-svgHeight : Shared.Model -> Float
-svgHeight shared =
-    svgWidth shared
-        * 9
-        / 16
-        |> min 800
+svgHeight : Float
+svgHeight =
+    svgWidth * 9 / 16
 
 
 organWidth : number
