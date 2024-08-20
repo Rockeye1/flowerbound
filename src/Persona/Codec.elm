@@ -459,22 +459,46 @@ gendertropeParser =
             (\name ->
                 case name of
                     "The Butterfly" ->
-                        Parser.succeed Butterfly
+                        Parser.oneOf
+                            [ Parser.succeed Butterfly
+                                |. Parser.end
+                            , Parser.map Custom (gendertropeRecordParser name)
+                            ]
 
                     "The Flower" ->
-                        Parser.succeed Flower
+                        Parser.oneOf
+                            [ Parser.succeed Flower
+                                |. Parser.end
+                            , Parser.map Custom (gendertropeRecordParser name)
+                            ]
 
                     "The Vixen" ->
-                        Parser.succeed Vixen
+                        Parser.oneOf
+                            [ Parser.succeed Vixen
+                                |. Parser.end
+                            , Parser.map Custom (gendertropeRecordParser name)
+                            ]
 
                     "The Buck" ->
-                        Parser.succeed Buck
+                        Parser.oneOf
+                            [ Parser.succeed Buck
+                                |. Parser.end
+                            , Parser.map Custom (gendertropeRecordParser name)
+                            ]
 
                     "The Fiend" ->
-                        Parser.succeed Fiend
+                        Parser.oneOf
+                            [ Parser.succeed Fiend
+                                |. Parser.end
+                            , Parser.map Custom (gendertropeRecordParser name)
+                            ]
 
                     "The Doll" ->
-                        Parser.succeed Doll
+                        Parser.oneOf
+                            [ Parser.succeed Doll
+                                |. Parser.end
+                            , Parser.map Custom (gendertropeRecordParser name)
+                            ]
 
                     _ ->
                         Parser.map Custom (gendertropeRecordParser name)
