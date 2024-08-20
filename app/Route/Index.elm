@@ -14,6 +14,7 @@ import File exposing (File)
 import Head
 import Head.Seo as Seo
 import Icons
+import Json.Decode
 import List.Extra
 import MimeType
 import Pages.Url
@@ -22,19 +23,25 @@ import Persona
 import Persona.Codec
 import Persona.Data
 import Persona.View
+import Pixels exposing (Pixels)
+import Point2d exposing (Point2d)
 import RouteBuilder exposing (StatefulRoute)
 import Set exposing (Set)
 import Shared
 import Site
 import Theme
+import Triple
 import TypedSvg
 import TypedSvg.Attributes
 import TypedSvg.Attributes.InPx
 import TypedSvg.Core
+import TypedSvg.Events
 import TypedSvg.Types
 import Types exposing (Attribute(..), Move, Organ, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
+import Vector2d exposing (Vector2d)
 import View exposing (View)
+import VirtualDom
 
 
 type Msg
@@ -70,6 +77,9 @@ type PlayingMsg
     | ReadAdd (Result String Persona)
     | PickedUpdateOther Int File
     | ReadUpdateOther Int (Result String Persona)
+    | MouseDown (Point2d Pixels ())
+    | MouseMove (Point2d Pixels ())
+    | MouseUp
 
 
 type Model
@@ -80,13 +90,14 @@ type Model
 type alias PlayingModel =
     { persona : Persona
     , others : List Persona
-    , organsPositions : Dict ( Int, String ) ( Float, Float )
+    , organsPositions : Dict ( Int, String ) ( Point2d Pixels (), Int )
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
     , selectedTemperament : Maybe String
     , valiantModifier : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
+    , dragging : Maybe ( ( Int, String ), Vector2d Pixels () )
     }
 
 
@@ -145,7 +156,11 @@ update _ _ msg model =
         LoadedFromFile (Ok persona) ->
             ( Playing (initPlayingModel persona), Effect.none )
 
-        LoadedFromFile (Err _) ->
+        LoadedFromFile (Err e) ->
+            let
+                _ =
+                    Debug.log e ()
+            in
             -- TODO
             ( model, Effect.none )
 
@@ -183,25 +198,33 @@ checkOrgans model =
                     )
                 |> List.concat
                 |> Set.fromList
+
+        filtered : Dict ( Int, String ) ( Point2d Pixels (), Int )
+        filtered =
+            Dict.filter
+                (\key _ -> Set.member key expected)
+                model.organsPositions
     in
     { model
         | organsPositions =
             Set.foldl
-                (\( i, organ ) ( pos, acc ) ->
+                (\( i, organ ) ( acc, pos, z ) ->
                     case Dict.get ( i, organ ) acc of
                         Nothing ->
-                            ( pos + 10, Dict.insert ( i, organ ) ( pos, pos ) acc )
+                            ( Dict.insert ( i, organ ) ( Point2d.pixels pos pos, z ) acc
+                            , pos + 10
+                            , z + 1
+                            )
 
                         Just _ ->
-                            ( pos, acc )
+                            ( acc, pos, z )
                 )
-                ( 10
-                , Dict.filter
-                    (\key _ -> Set.member key expected)
-                    model.organsPositions
+                ( filtered
+                , 10
+                , getNewZOrder filtered
                 )
                 expected
-                |> Tuple.second
+                |> Triple.first
     }
 
 
@@ -340,6 +363,84 @@ innerUpdate msg model =
             -- TODO
             ( model, Effect.none )
 
+        MouseDown position ->
+            case raycast model position of
+                Nothing ->
+                    let
+                        _ =
+                            Debug.log "raycast failed" ()
+                    in
+                    ( model, Effect.none )
+
+                Just ( key, delta ) ->
+                    ( { model | dragging = Just ( key, delta ) }, Effect.none )
+
+        MouseMove position ->
+            case model.dragging of
+                Nothing ->
+                    ( model, Effect.none )
+
+                Just ( key, delta ) ->
+                    let
+                        zOrder : Int
+                        zOrder =
+                            getNewZOrder model.organsPositions
+                    in
+                    ( { model
+                        | organsPositions =
+                            Dict.insert key
+                                ( Point2d.translateBy delta position
+                                    |> clipOrganPosition
+                                , zOrder
+                                )
+                                model.organsPositions
+                      }
+                    , Effect.none
+                    )
+
+        MouseUp ->
+            ( { model | dragging = Nothing }, Effect.none )
+
+
+clipOrganPosition : Point2d Pixels () -> Point2d Pixels ()
+clipOrganPosition position =
+    let
+        { x, y } =
+            Point2d.toPixels position
+    in
+    Point2d.pixels (clamp 0 (svgWidth - organWidth) x) (clamp 0 (svgHeight - organHeight) y)
+
+
+getNewZOrder : Dict ( Int, String ) ( Point2d Pixels (), Int ) -> Int
+getNewZOrder organsPositions =
+    Dict.foldl
+        (\_ ( _, z ) acc -> max (z + 1) acc)
+        0
+        organsPositions
+
+
+raycast : PlayingModel -> Point2d Pixels () -> Maybe ( ( Int, String ), Vector2d Pixels () )
+raycast model position =
+    model.organsPositions
+        |> Dict.toList
+        |> List.sortBy (\( _, ( _, zOrder ) ) -> -zOrder)
+        |> List.Extra.findMap
+            (\( key, ( organPosition, _ ) ) ->
+                let
+                    vec : Vector2d Pixels ()
+                    vec =
+                        Vector2d.from position organPosition
+
+                    { x, y } =
+                        Vector2d.toPixels vec
+                in
+                if x <= 0 && x >= -organWidth && y <= 0 && y >= -organHeight then
+                    Just ( key, vec )
+
+                else
+                    Nothing
+            )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
@@ -358,7 +459,9 @@ initPlayingModel persona =
     , selectedTemperament = Nothing
     , valiantModifier = 0
     , stimulationRoll = Nothing
+    , dragging = Nothing
     }
+        |> checkOrgans
 
 
 subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg
@@ -621,8 +724,10 @@ viewOrgans model =
     Theme.column [ width fill ]
         [ el [ Font.bold ] (text "Organs")
         , model.organsPositions
-            |> Dict.foldr
-                (\( i, organName ) pos acc ->
+            |> Dict.toList
+            |> List.sortBy (\( _, ( _, zOrder ) ) -> zOrder)
+            |> List.concatMap
+                (\( ( i, organName ), ( pos, _ ) ) ->
                     let
                         maybePersona : Maybe Persona
                         maybePersona =
@@ -634,7 +739,7 @@ viewOrgans model =
                     in
                     case maybePersona of
                         Nothing ->
-                            acc
+                            []
 
                         Just persona ->
                             case
@@ -644,27 +749,76 @@ viewOrgans model =
                                     |> List.Extra.find (\organ -> organ.name == organName)
                             of
                                 Nothing ->
-                                    acc
+                                    []
 
                                 Just organ ->
-                                    viewOrgan pos organ :: acc
+                                    [ viewOrgan pos organ ]
                 )
-                []
+            |> (::) (TypedSvg.style [] [ TypedSvg.Core.text """svg text { cursor: default; }""" ])
             |> TypedSvg.svg
-                [ TypedSvg.Attributes.viewBox 0 0 800 600
-                , TypedSvg.Attributes.width (TypedSvg.Types.percent 100)
+                [ TypedSvg.Attributes.width (TypedSvg.Types.percent 100)
+                , TypedSvg.Attributes.viewBox 0 0 svgWidth svgHeight
+                , TypedSvg.Events.on "mousedown" (VirtualDom.Custom (positionDecoder MouseDown))
+                , case model.dragging of
+                    Just _ ->
+                        TypedSvg.Events.on "mousemove" (VirtualDom.Custom (positionDecoder MouseMove))
+
+                    Nothing ->
+                        TypedSvg.Attributes.class []
+                , TypedSvg.Events.onMouseUp MouseUp
                 ]
             |> Element.html
             |> Element.el [ width fill ]
         ]
 
 
-viewOrgan : ( Float, Float ) -> Organ -> TypedSvg.Core.Svg msg
-viewOrgan ( x, y ) organ =
+positionDecoder :
+    (Point2d Pixels () -> msg)
+    ->
+        Json.Decode.Decoder
+            { message : msg
+            , stopPropagation : Bool
+            , preventDefault : Bool
+            }
+positionDecoder toMsg =
+    Json.Decode.field "__svgCoordinates"
+        (Json.Decode.map2
+            (\x y ->
+                { message = toMsg (Point2d.pixels x y)
+                , stopPropagation = True
+                , preventDefault = True
+                }
+            )
+            (Json.Decode.field "x" Json.Decode.float)
+            (Json.Decode.field "y" Json.Decode.float)
+        )
+
+
+svgWidth : number
+svgWidth =
+    800
+
+
+svgHeight : number
+svgHeight =
+    600
+
+
+organWidth : number
+organWidth =
+    240
+
+
+organHeight : number
+organHeight =
+    160
+
+
+viewOrgan : Point2d Pixels () -> Organ -> TypedSvg.Core.Svg msg
+viewOrgan pos organ =
     let
-        width : number
-        width =
-            240
+        { x, y } =
+            Point2d.toPixels pos
 
         iifLeft : Bool -> String -> Float -> TypedSvg.Core.Svg msg
         iifLeft condition label dy =
@@ -684,7 +838,7 @@ viewOrgan ( x, y ) organ =
         iifRight : Bool -> String -> Float -> TypedSvg.Core.Svg msg
         iifRight condition label dy =
             TypedSvg.text_
-                [ TypedSvg.Attributes.InPx.x (width - 8)
+                [ TypedSvg.Attributes.InPx.x (organWidth - 8)
                 , TypedSvg.Attributes.InPx.y (32 + 24 * dy)
                 , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorEnd
                 , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
@@ -699,14 +853,14 @@ viewOrgan ( x, y ) organ =
     TypedSvg.g
         [ TypedSvg.Attributes.transform [ TypedSvg.Types.Translate x y ] ]
         [ TypedSvg.rect
-            [ TypedSvg.Attributes.InPx.width width
-            , TypedSvg.Attributes.InPx.height 160
+            [ TypedSvg.Attributes.InPx.width organWidth
+            , TypedSvg.Attributes.InPx.height organHeight
             , TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
             , TypedSvg.Attributes.fill (TypedSvg.Types.Paint Color.white)
             ]
             []
         , TypedSvg.text_
-            [ TypedSvg.Attributes.InPx.x (width / 2)
+            [ TypedSvg.Attributes.InPx.x (organWidth / 2)
             , TypedSvg.Attributes.InPx.y 8
             , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorMiddle
             , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
@@ -720,7 +874,7 @@ viewOrgan ( x, y ) organ =
             ]
             [ TypedSvg.Core.text ("Contour: " ++ String.fromInt organ.contour) ]
         , TypedSvg.text_
-            [ TypedSvg.Attributes.InPx.x (width - 8)
+            [ TypedSvg.Attributes.InPx.x (organWidth - 8)
             , TypedSvg.Attributes.InPx.y 32
             , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorEnd
             , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
