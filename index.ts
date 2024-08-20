@@ -18,7 +18,7 @@ const config: ElmPagesInit = {
                 const pt = svg.createSVGPoint();
                 pt.x = this.clientX;
                 pt.y = this.clientY;
-                var localPoint = pt.matrixTransform(
+                const localPoint = pt.matrixTransform(
                     svg.getScreenCTM()!.inverse()
                 );
                 return localPoint;
