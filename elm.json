@@ -28,6 +28,7 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
+            "elm-community/typed-svg": "7.0.0",
             "elmcraft/core-extra": "2.0.0",
             "folkertdev/elm-flate": "2.0.5",
             "justgook/elm-image": "5.0.0",

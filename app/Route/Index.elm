@@ -1,9 +1,10 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
+import Color
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, shrink, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -26,7 +27,12 @@ import Set exposing (Set)
 import Shared
 import Site
 import Theme
-import Types exposing (Attribute(..), Move, Persona, StimulationType(..))
+import TypedSvg
+import TypedSvg.Attributes
+import TypedSvg.Attributes.InPx
+import TypedSvg.Core
+import TypedSvg.Types
+import Types exposing (Attribute(..), Move, Organ, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -74,7 +80,7 @@ type Model
 type alias PlayingModel =
     { persona : Persona
     , others : List Persona
-    , organsPositions : Dict ( Int, String ) ( Int, Int )
+    , organsPositions : Dict ( Int, String ) ( Float, Float )
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
@@ -498,7 +504,8 @@ loadPersona config =
 viewPlaying : PlayingModel -> Element PlayingMsg
 viewPlaying ({ meters, persona } as model) =
     Theme.column [ width fill ]
-        [ el [ Font.bold ] (text "Status meters")
+        [ viewOrgans model
+        , el [ Font.bold ] (text "Status meters")
         , Theme.row []
             [ Theme.button [ width fill ]
                 { onPress = Just BeginEncounter
@@ -606,6 +613,127 @@ viewPlaying ({ meters, persona } as model) =
             , text "(Optionally) choose a Temperament"
             , viewTemperaments model
             ]
+        ]
+
+
+viewOrgans : PlayingModel -> Element PlayingMsg
+viewOrgans model =
+    Theme.column [ width fill ]
+        [ el [ Font.bold ] (text "Organs")
+        , model.organsPositions
+            |> Dict.foldr
+                (\( i, organName ) pos acc ->
+                    let
+                        maybePersona : Maybe Persona
+                        maybePersona =
+                            if i < 0 then
+                                Just model.persona
+
+                            else
+                                List.Extra.getAt i model.others
+                    in
+                    case maybePersona of
+                        Nothing ->
+                            acc
+
+                        Just persona ->
+                            case
+                                persona.gendertrope
+                                    |> Persona.Data.gendertropeToRecord
+                                    |> .organs
+                                    |> List.Extra.find (\organ -> organ.name == organName)
+                            of
+                                Nothing ->
+                                    acc
+
+                                Just organ ->
+                                    viewOrgan pos organ :: acc
+                )
+                []
+            |> TypedSvg.svg
+                [ TypedSvg.Attributes.viewBox 0 0 800 600
+                , TypedSvg.Attributes.width (TypedSvg.Types.percent 100)
+                ]
+            |> Element.html
+            |> Element.el [ width fill ]
+        ]
+
+
+viewOrgan : ( Float, Float ) -> Organ -> TypedSvg.Core.Svg msg
+viewOrgan ( x, y ) organ =
+    let
+        width : number
+        width =
+            240
+
+        iifLeft : Bool -> String -> Float -> TypedSvg.Core.Svg msg
+        iifLeft condition label dy =
+            TypedSvg.text_
+                [ TypedSvg.Attributes.InPx.x 8
+                , TypedSvg.Attributes.InPx.y (32 + 24 * dy)
+                , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorStart
+                , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+                , if condition then
+                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
+
+                  else
+                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.gray)
+                ]
+                [ TypedSvg.Core.text ("--> " ++ label) ]
+
+        iifRight : Bool -> String -> Float -> TypedSvg.Core.Svg msg
+        iifRight condition label dy =
+            TypedSvg.text_
+                [ TypedSvg.Attributes.InPx.x (width - 8)
+                , TypedSvg.Attributes.InPx.y (32 + 24 * dy)
+                , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorEnd
+                , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+                , if condition then
+                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
+
+                  else
+                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.gray)
+                ]
+                [ TypedSvg.Core.text (label ++ " -->") ]
+    in
+    TypedSvg.g
+        [ TypedSvg.Attributes.transform [ TypedSvg.Types.Translate x y ] ]
+        [ TypedSvg.rect
+            [ TypedSvg.Attributes.InPx.width width
+            , TypedSvg.Attributes.InPx.height 160
+            , TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
+            , TypedSvg.Attributes.fill (TypedSvg.Types.Paint Color.white)
+            ]
+            []
+        , TypedSvg.text_
+            [ TypedSvg.Attributes.InPx.x (width / 2)
+            , TypedSvg.Attributes.InPx.y 8
+            , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorMiddle
+            , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+            ]
+            [ TypedSvg.Core.text organ.name ]
+        , TypedSvg.text_
+            [ TypedSvg.Attributes.InPx.x 8
+            , TypedSvg.Attributes.InPx.y 32
+            , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorStart
+            , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+            ]
+            [ TypedSvg.Core.text ("Contour: " ++ String.fromInt organ.contour) ]
+        , TypedSvg.text_
+            [ TypedSvg.Attributes.InPx.x (width - 8)
+            , TypedSvg.Attributes.InPx.y 32
+            , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorEnd
+            , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+            ]
+            [ TypedSvg.Core.text ("Erogeny: " ++ String.fromInt organ.erogeny) ]
+        , iifLeft organ.isSquishable "IS" 1
+        , iifLeft organ.isGrippable "IG" 2
+        , iifLeft organ.isPenetrable "IP" 3
+        , iifLeft organ.isEnsheatheable "IE" 4
+        , iifRight organ.canSquish "CS" 1
+        , iifRight organ.canGrip "CG" 2
+        , iifRight organ.canPenetrate "CP" 3
+        , iifRight organ.canEnsheathe "CE" 4
         ]
 
 
