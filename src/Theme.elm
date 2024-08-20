@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, lightPurple, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, lightPurple, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -153,17 +153,6 @@ purpleHex =
     0x00800080
 
 
-withHint : String -> Element msg -> Element msg
-withHint hint label =
-    el
-        [ Element.htmlAttribute <| Html.Attributes.title hint
-        , Font.underline
-        , style "text-decoration-style" "dotted"
-        , style "cursor" "help"
-        ]
-        label
-
-
 style : String -> String -> Attribute msg
 style key value =
     Element.htmlAttribute (Html.Attributes.style key value)
@@ -309,13 +298,13 @@ markdownRenderer =
     , strikethrough = row [ Font.strike ]
     , hardLineBreak = Html.br [] [] |> Element.html
     , link =
-        \{ title, destination } body ->
+        \data body ->
             Element.newTabLink
-                [ maybeTitle title
+                [ maybeTitle data.title
                 , style "display" "inline-flex"
                 , Element.htmlAttribute (Html.Attributes.attribute "elm-pages:prefetch" "")
                 ]
-                { url = destination
+                { url = data.destination
                 , label =
                     Element.paragraph
                         [ Font.color (Element.rgb255 0 0 255)
@@ -444,14 +433,30 @@ viewUnorderedListItem (Markdown.Block.ListItem task children) =
         ]
 
 
+withHint : String -> Element msg -> Element msg
+withHint hint label =
+    el
+        [ title hint
+        , Font.underline
+        , style "text-decoration-style" "dotted"
+        , style "cursor" "help"
+        ]
+        label
+
+
 maybeTitle : Maybe String -> Attribute msg
-maybeTitle title =
-    case title of
+maybeTitle mt =
+    case mt of
         Just t ->
-            Element.htmlAttribute (Html.Attributes.title t)
+            title t
 
         Nothing ->
             noAttribute
+
+
+title : String -> Attribute msg
+title hint =
+    Element.htmlAttribute <| Html.Attributes.title hint
 
 
 noAttribute : Attribute msg

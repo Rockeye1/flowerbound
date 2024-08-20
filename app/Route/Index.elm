@@ -77,6 +77,7 @@ type PlayingMsg
     | MouseDown (Point2d Pixels ())
     | MouseMove (Point2d Pixels ())
     | MouseUp
+    | ReStack
     | Rearrange
 
 
@@ -205,8 +206,8 @@ checkOrgans model =
                 (\( i, organ ) ( acc, pos, z ) ->
                     case Dict.get ( i, organ ) acc of
                         Nothing ->
-                            ( Dict.insert ( i, organ ) ( Point2d.pixels pos pos, z ) acc
-                            , pos + 10
+                            ( Dict.insert ( i, organ ) ( Point2d.pixels (pos * 16 + 8) (pos * 32 + 8), z ) acc
+                            , pos + 1
                             , z + 1
                             )
 
@@ -214,7 +215,7 @@ checkOrgans model =
                             ( acc, pos, z )
                 )
                 ( filtered
-                , 10
+                , 0
                 , getNewZOrder filtered
                 )
                 expected
@@ -392,7 +393,7 @@ innerUpdate shared msg model =
         MouseUp ->
             ( { model | dragging = Nothing }, Effect.none )
 
-        Rearrange ->
+        ReStack ->
             ( { model
                 | organsPositions =
                     model.organsPositions
@@ -403,9 +404,47 @@ innerUpdate shared msg model =
                                     { x, y } =
                                         Point2d.toPixels pos
                                 in
-                                x + 10 * y
+                                x + 8 * y
                             )
                         |> List.indexedMap (\i ( key, ( pos, _ ) ) -> ( key, ( pos, i ) ))
+                        |> Dict.fromList
+              }
+                |> trySnap
+            , Effect.none
+            )
+
+        Rearrange ->
+            ( { model
+                | organsPositions =
+                    model.organsPositions
+                        |> Dict.toList
+                        |> List.Extra.gatherEqualsBy
+                            (\( ( i, _ ), _ ) -> i)
+                        |> List.concatMap
+                            (\( ( ( i, _ ), _ ) as h, t ) ->
+                                (h :: t)
+                                    |> List.sortBy
+                                        (\( _, ( pos, _ ) ) ->
+                                            let
+                                                { x, y } =
+                                                    Point2d.toPixels pos
+                                            in
+                                            x + 8 * y
+                                        )
+                                    |> List.indexedMap
+                                        (\j ( key, _ ) ->
+                                            ( key
+                                            , ( Point2d.pixels
+                                                    (16 * toFloat j + 8)
+                                                    (((organHeight + 32) * toFloat (i + 1))
+                                                        + (32 * toFloat j)
+                                                        + 8
+                                                    )
+                                              , i * 100 + j
+                                              )
+                                            )
+                                        )
+                            )
                         |> Dict.fromList
               }
                 |> trySnap
@@ -892,9 +931,13 @@ viewOrgans shared model =
     Theme.column [ width fill ]
         [ Theme.row []
             [ el [ Font.bold ] (text "Organs")
-            , Theme.button []
-                { label = Icons.rearrange
+            , Theme.button [ Theme.title "Rearrange" ]
+                { label = Icons.arrange
                 , onPress = Just Rearrange
+                }
+            , Theme.button [ Theme.title "Restack" ]
+                { label = Icons.stack
+                , onPress = Just ReStack
                 }
             ]
         , Element.html svgSurface
