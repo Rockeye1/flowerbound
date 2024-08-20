@@ -929,13 +929,19 @@ viewOrgans shared model =
                     ]
     in
     Theme.column [ width fill ]
-        [ Theme.row []
+        [ Theme.row [ width fill ]
             [ el [ Font.bold ] (text "Organs")
-            , Theme.button [ Theme.title "Rearrange" ]
+            , Theme.button
+                [ alignRight
+                , Theme.title "Rearrange"
+                ]
                 { label = Icons.arrange
                 , onPress = Just Rearrange
                 }
-            , Theme.button [ Theme.title "Restack" ]
+            , Theme.button
+                [ alignRight
+                , Theme.title "Restack"
+                ]
                 { label = Icons.stack
                 , onPress = Just ReStack
                 }
