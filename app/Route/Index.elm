@@ -368,7 +368,8 @@ innerUpdate shared msg model =
                             getNewZOrder model.organsPositions
                     in
                     ( { model
-                        | organsPositions =
+                        | dragging = Just ( key, delta )
+                        , organsPositions =
                             Dict.insert key
                                 ( Point2d.translateBy delta position
                                     |> clipOrganPosition shared
@@ -781,7 +782,12 @@ viewOrgans shared model =
                 , Svg.Events.onMouseUp MouseUp
                 ]
             |> Element.html
-            |> Element.el [ width fill ]
+            |> Theme.el
+                [ centerX
+                , width <| Element.maximum (floor <| svgWidth shared) fill
+                , Border.width 1
+                , Background.color Theme.lightPurple
+                ]
         ]
 
 
@@ -810,11 +816,15 @@ positionDecoder toMsg =
 svgWidth : Shared.Model -> Float
 svgWidth shared =
     toFloat (shared.width - 2 * Theme.rhythm)
+        |> min 1600
 
 
 svgHeight : Shared.Model -> Float
 svgHeight shared =
-    svgWidth shared * 9 / 16
+    svgWidth shared
+        * 9
+        / 16
+        |> min 800
 
 
 organWidth : number
@@ -824,7 +834,13 @@ organWidth =
 
 organHeight : number
 organHeight =
-    160
+    24 * 7 + 16
+
+
+type TextAnchor
+    = AnchorStart
+    | AnchorMiddle
+    | AnchorEnd
 
 
 viewOrgan : Persona -> Point2d Pixels () -> Organ -> Svg.Svg msg
@@ -833,35 +849,76 @@ viewOrgan persona pos organ =
         { x, y } =
             Point2d.toPixels pos
 
+        textAt :
+            List (Svg.Attribute msg)
+            ->
+                { x : Float
+                , y : Float
+                , label : String
+                , anchor : TextAnchor
+                }
+            -> Svg.Svg msg
+        textAt attrs config =
+            Svg.text_
+                (Svg.Attributes.x
+                    (String.fromFloat
+                        (case config.anchor of
+                            AnchorStart ->
+                                8 + config.x
+
+                            AnchorMiddle ->
+                                organWidth / 2
+
+                            AnchorEnd ->
+                                organWidth - 8 - config.x
+                        )
+                    )
+                    :: Svg.Attributes.y (String.fromFloat (8 + 24 * config.y))
+                    :: Svg.Attributes.textAnchor
+                        (case config.anchor of
+                            AnchorStart ->
+                                "start"
+
+                            AnchorMiddle ->
+                                "middle"
+
+                            AnchorEnd ->
+                                "end"
+                        )
+                    :: Svg.Attributes.dominantBaseline "hanging"
+                    :: attrs
+                )
+                [ Svg.text config.label ]
+
         iifLeft : Bool -> String -> Float -> Svg.Svg msg
         iifLeft condition label dy =
-            Svg.text_
-                [ Svg.Attributes.x (String.fromFloat 8)
-                , Svg.Attributes.y (String.fromFloat (32 + 24 * dy))
-                , Svg.Attributes.textAnchor "start"
-                , Svg.Attributes.dominantBaseline "hanging"
-                , if condition then
-                    Svg.Attributes.stroke "black"
+            textAt
+                [ if condition then
+                    Svg.Attributes.fill "black"
 
                   else
-                    Svg.Attributes.stroke "gray"
+                    Svg.Attributes.fill "gray"
                 ]
-                [ Svg.text ("--> " ++ label) ]
+                { x = 0
+                , y = dy
+                , label = "⇒ " ++ label
+                , anchor = AnchorStart
+                }
 
         iifRight : Bool -> String -> Float -> Svg.Svg msg
         iifRight condition label dy =
-            Svg.text_
-                [ Svg.Attributes.x (String.fromFloat (organWidth - 8))
-                , Svg.Attributes.y (String.fromFloat (32 + 24 * dy))
-                , Svg.Attributes.textAnchor "end"
-                , Svg.Attributes.dominantBaseline "hanging"
-                , if condition then
-                    Svg.Attributes.stroke "black"
+            textAt
+                [ if condition then
+                    Svg.Attributes.fill "black"
 
                   else
-                    Svg.Attributes.stroke "gray"
+                    Svg.Attributes.fill "gray"
                 ]
-                [ Svg.text (label ++ " -->") ]
+                { x = 0
+                , y = dy
+                , label = label ++ " ⇒"
+                , anchor = AnchorEnd
+                }
     in
     Svg.g
         [ Svg.Attributes.transform
@@ -874,44 +931,52 @@ viewOrgan persona pos organ =
             , Svg.Attributes.fill "white"
             ]
             []
-        , Svg.g
-            [ Svg.Attributes.transform
-                ("translate(" ++ String.fromFloat 0 ++ " " ++ String.fromFloat 8 ++ ")")
-            ]
-            [ Persona.Data.gendertropeIcon persona.gendertrope
-                |> Phosphor.toHtml []
-            , Svg.text_
-                [ Svg.Attributes.x (String.fromFloat (organWidth / 2))
-                , Svg.Attributes.textAnchor "middle"
-                , Svg.Attributes.dominantBaseline "hanging"
+        , textAt []
+            { x = 0
+            , y = 0
+            , label = organ.name
+            , anchor = AnchorMiddle
+            }
+        , Persona.Data.gendertropeIcon persona.gendertrope
+            |> Phosphor.withSize 24
+            |> Phosphor.withSizeUnit "px"
+            |> Phosphor.toHtml
+                [ Svg.Attributes.transform
+                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 32 ++ ")")
                 ]
-                [ Svg.text organ.name
+        , textAt []
+            { x = 0
+            , y = 1
+            , label = persona.name
+            , anchor = AnchorMiddle
+            }
+        , Persona.Data.gendertropeIcon persona.gendertrope
+            |> Phosphor.withSize 24
+            |> Phosphor.withSizeUnit "px"
+            |> Phosphor.toHtml
+                [ Svg.Attributes.transform
+                    ("translate(" ++ String.fromFloat (organWidth - 32) ++ " " ++ String.fromFloat 32 ++ ")")
                 ]
-            , Persona.Data.gendertropeIcon persona.gendertrope
-                |> Phosphor.toHtml []
-            ]
-        , Svg.text_
-            [ Svg.Attributes.x (String.fromFloat 8)
-            , Svg.Attributes.y (String.fromFloat 32)
-            , Svg.Attributes.textAnchor "start"
-            , Svg.Attributes.dominantBaseline "hanging"
-            ]
-            [ Svg.text ("Contour: " ++ String.fromInt organ.contour) ]
-        , Svg.text_
-            [ Svg.Attributes.x (String.fromFloat (organWidth - 8))
-            , Svg.Attributes.y (String.fromFloat 32)
-            , Svg.Attributes.textAnchor "end"
-            , Svg.Attributes.dominantBaseline "hanging"
-            ]
-            [ Svg.text ("Erogeny: " ++ String.fromInt organ.erogeny) ]
-        , iifLeft organ.isSquishable "IS" 1
-        , iifLeft organ.isGrippable "IG" 2
-        , iifLeft organ.isPenetrable "IP" 3
-        , iifLeft organ.isEnsheatheable "IE" 4
-        , iifRight organ.canSquish "CS" 1
-        , iifRight organ.canGrip "CG" 2
-        , iifRight organ.canPenetrate "CP" 3
-        , iifRight organ.canEnsheathe "CE" 4
+        , textAt []
+            { x = 0
+            , y = 2
+            , label = "Contour: " ++ String.fromInt organ.contour
+            , anchor = AnchorStart
+            }
+        , textAt []
+            { x = 0
+            , y = 2
+            , label = "Erogeny: " ++ String.fromInt organ.erogeny
+            , anchor = AnchorEnd
+            }
+        , iifLeft organ.isSquishable "IS" 3
+        , iifLeft organ.isGrippable "IG" 4
+        , iifLeft organ.isPenetrable "IP" 5
+        , iifLeft organ.isEnsheatheable "IE" 6
+        , iifRight organ.canSquish "CS" 3
+        , iifRight organ.canGrip "CG" 4
+        , iifRight organ.canPenetrate "CP" 5
+        , iifRight organ.canEnsheathe "CE" 6
         ]
 
 
