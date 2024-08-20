@@ -3,7 +3,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 import BackendTask exposing (BackendTask)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -530,17 +530,16 @@ viewPlaying ({ meters, persona } as model) =
             }
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model
-        , Theme.wrappedRow [ width fill ]
+        , Theme.row [ width fill ]
             [ Theme.column
-                [ width fill
-                , alignTop
+                [ alignTop
+                , width fill
                 ]
                 [ el [ Font.bold ] (text "Moves")
                 , text "Choose a move."
                 , viewMoves model
                 ]
-            , Theme.column
-                [ alignTop ]
+            , Theme.column [ alignTop ]
                 [ el [ Font.bold ] (text "Stimulation")
                 , text "Choose a stamina cost."
                 , staminaTable model
@@ -601,11 +600,11 @@ viewPlaying ({ meters, persona } as model) =
                         }
                     ]
                 ]
-            , Theme.column [ alignTop ]
-                [ el [ Font.bold ] (text "Temperaments")
-                , text "(Optionally) choose a Temperament"
-                , viewTemperaments model
-                ]
+            ]
+        , Theme.column []
+            [ el [ Font.bold ] (text "Temperaments")
+            , text "(Optionally) choose a Temperament"
+            , viewTemperaments model
             ]
         ]
 
