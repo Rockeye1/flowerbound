@@ -1,6 +1,7 @@
 module Shared exposing (Data, Model, Msg(..), template)
 
 import BackendTask exposing (BackendTask)
+import Browser.Events
 import Effect exposing (Effect)
 import Element
 import FatalError exposing (FatalError)
@@ -27,6 +28,7 @@ template =
 
 type Msg
     = Flip
+    | Resized Int Int
 
 
 type alias Data =
@@ -34,7 +36,10 @@ type alias Data =
 
 
 type alias Model =
-    { flipped : Bool }
+    { flipped : Bool
+    , width : Int
+    , height : Int
+    }
 
 
 init :
@@ -51,8 +56,11 @@ init :
             }
     -> ( Model, Effect Msg )
 init _ _ =
-    ( { flipped = False }
-    , Effect.none
+    ( { flipped = False
+      , width = 800
+      , height = 600
+      }
+    , Effect.MeasureScreen Resized
     )
 
 
@@ -62,10 +70,18 @@ update msg model =
         Flip ->
             ( { model | flipped = not model.flipped }, Effect.none )
 
+        Resized w h ->
+            ( { model
+                | width = w
+                , height = h
+              }
+            , Effect.none
+            )
+
 
 subscriptions : UrlPath -> Model -> Sub Msg
 subscriptions _ _ =
-    Sub.none
+    Browser.Events.onResize Resized
 
 
 data : BackendTask FatalError Data

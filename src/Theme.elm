@@ -15,7 +15,7 @@ import Markdown.Renderer
 import Route
 
 
-rhythm : Int
+rhythm : number
 rhythm =
     8
 

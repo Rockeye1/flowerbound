@@ -10,6 +10,7 @@ import Icons
 import Persona
 import Persona.Codec
 import Persona.Data
+import Phosphor
 import Site
 import Theme
 import Types exposing (Feature, GendertropeRecord, Organ, Persona)
@@ -55,9 +56,9 @@ persona attrs config =
             [ centerX
             , Font.color Theme.purple
             ]
-            [ Persona.Data.gendertropeIcon input.gendertrope
+            [ Persona.Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text input.name)
-            , Persona.Data.gendertropeIcon input.gendertrope
+            , Persona.Data.gendertropeIconElement input.gendertrope
             ]
         , Theme.row [ centerX ]
             [ viewAbilities input
@@ -67,9 +68,9 @@ persona attrs config =
             [ centerX
             , Font.color Theme.purple
             ]
-            [ Persona.Data.gendertropeIcon input.gendertrope
+            [ Persona.Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text gendertropeRecord.name)
-            , Persona.Data.gendertropeIcon input.gendertrope
+            , Persona.Data.gendertropeIconElement input.gendertrope
             ]
         , paragraph
             [ Font.italic

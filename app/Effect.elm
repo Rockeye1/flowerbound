@@ -6,6 +6,7 @@ module Effect exposing (Effect(..), batch, fromCmd, map, none, perform, rollChec
 
 -}
 
+import Browser.Dom
 import Browser.Navigation
 import File exposing (File)
 import File.Select
@@ -29,6 +30,7 @@ type Effect msg
     | ReadPersonaFromMarkdown File (Result String Persona -> msg)
     | Roll Int (Int -> msg)
     | RollStimulation (List Int) (List ( Int, Int ) -> msg)
+    | MeasureScreen (Int -> Int -> msg)
 
 
 {-| -}
@@ -86,6 +88,10 @@ map fn effect =
             RollStimulation dice
                 (\result -> result |> toMsg |> fn)
 
+        MeasureScreen toMsg ->
+            MeasureScreen
+                (\w h -> toMsg w h |> fn)
+
 
 {-| -}
 perform :
@@ -95,7 +101,13 @@ perform :
     }
     -> Effect pageMsg
     -> Cmd msg
-perform ({ fromPageMsg, key } as helpers) effect =
+perform { fromPageMsg, key } effect =
+    innerPerform key effect
+        |> Cmd.map fromPageMsg
+
+
+innerPerform : Browser.Navigation.Key -> Effect msg -> Cmd msg
+innerPerform key effect =
     case effect of
         None ->
             Cmd.none
@@ -106,17 +118,17 @@ perform ({ fromPageMsg, key } as helpers) effect =
                 |> Browser.Navigation.replaceUrl key
 
         Cmd cmd ->
-            Cmd.map fromPageMsg cmd
+            cmd
 
         Batch list ->
-            Cmd.batch (List.map (perform helpers) list)
+            Cmd.batch (List.map (innerPerform key) list)
 
         PickMarkdown toMsg ->
             File.Select.file
                 [ ".md"
                 , "text/plain"
                 ]
-                (\file -> fromPageMsg (toMsg file))
+                toMsg
 
         ReadPersonaFromMarkdown file toMsg ->
             File.toString file
@@ -125,13 +137,11 @@ perform ({ fromPageMsg, key } as helpers) effect =
                         Parser.run Persona.Codec.personaParser markdown
                             |> Result.mapError (parserErrorToString markdown)
                             |> toMsg
-                            |> fromPageMsg
                     )
 
         Roll die toMsg ->
             Random.int 1 die
-                |> Random.generate
-                    (\result -> fromPageMsg (toMsg result))
+                |> Random.generate toMsg
 
         RollStimulation dice toMsg ->
             List.foldr
@@ -143,8 +153,16 @@ perform ({ fromPageMsg, key } as helpers) effect =
                 )
                 (Random.constant [])
                 dice
-                |> Random.generate
-                    (\result -> fromPageMsg (toMsg result))
+                |> Random.generate toMsg
+
+        MeasureScreen toMsg ->
+            Browser.Dom.getViewport
+                |> Task.perform
+                    (\{ viewport } ->
+                        toMsg
+                            (floor viewport.width)
+                            (floor viewport.height)
+                    )
 
 
 parserErrorToString : String -> List Parser.DeadEnd -> String

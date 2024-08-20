@@ -128,7 +128,7 @@ nameRow config persona =
         , width fill
         ]
         (el [ Font.color Theme.purple ]
-            (Persona.Data.gendertropeIcon persona.gendertrope)
+            (Persona.Data.gendertropeIconElement persona.gendertrope)
             :: Theme.input [ width fill ]
                 { label = Input.labelHidden "Name"
                 , text = persona.name
@@ -384,7 +384,7 @@ viewGendertrope ({ gendertrope } as persona) =
                                 Theme.row [ width fill ]
                                     [ el [ width fill ] Element.none
                                     , Theme.row []
-                                        [ Persona.Data.gendertropeIcon option
+                                        [ Persona.Data.gendertropeIconElement option
                                         , case option of
                                             Custom _ ->
                                                 text "Custom"

@@ -2,6 +2,7 @@ module Icons exposing
     ( flip, download, upload, minus, plus
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
+    , toElement
     )
 
 {-|
@@ -32,6 +33,12 @@ import Svg.Attributes
 icon : Phosphor.Icon -> Phosphor.IconWeight -> Element msg
 icon input variant =
     input variant
+        |> toElement
+
+
+toElement : Phosphor.IconVariant -> Element msg
+toElement variant =
+    variant
         |> Phosphor.toHtml []
         |> Element.html
         |> el []
@@ -85,7 +92,7 @@ ensheathe =
         ]
         []
     ]
-        |> Svg.svg
+        |> Svg.g
             [ Svg.Attributes.width "1em"
             , Svg.Attributes.height "1em"
             , Svg.Attributes.fill "currentColor"
@@ -93,10 +100,11 @@ ensheathe =
             , Svg.Attributes.strokeWidth "2"
             , Svg.Attributes.strokeLinecap "round"
             , Svg.Attributes.strokeLinejoin "round"
-            , Svg.Attributes.viewBox "0 0 32 32"
+            , Svg.Attributes.transform "scale(32)"
             ]
-        |> Element.html
-        |> el []
+        |> List.singleton
+        |> Phosphor.customIcon
+        |> toElement
 
 
 squishable : Element msg
@@ -119,39 +127,39 @@ ensheatheable =
     icon Phosphor.carrot Phosphor.Duotone
 
 
-butterfly : Element msg
+butterfly : Phosphor.IconVariant
 butterfly =
-    icon Phosphor.butterfly Phosphor.Duotone
+    Phosphor.butterfly Phosphor.Duotone
 
 
-flower : Element msg
+flower : Phosphor.IconVariant
 flower =
-    icon Phosphor.flower Phosphor.Duotone
+    Phosphor.flower Phosphor.Duotone
 
 
-vixen : Element msg
+vixen : Phosphor.IconVariant
 vixen =
-    icon Phosphor.pawPrint Phosphor.Duotone
+    Phosphor.pawPrint Phosphor.Duotone
 
 
-buck : Element msg
+buck : Phosphor.IconVariant
 buck =
-    icon Phosphor.horse Phosphor.Duotone
+    Phosphor.horse Phosphor.Duotone
 
 
-fiend : Element msg
+fiend : Phosphor.IconVariant
 fiend =
-    icon Phosphor.pentagram Phosphor.Duotone
+    Phosphor.pentagram Phosphor.Duotone
 
 
-doll : Element msg
+doll : Phosphor.IconVariant
 doll =
-    icon Phosphor.legoSmiley Phosphor.Duotone
+    Phosphor.legoSmiley Phosphor.Duotone
 
 
-custom : Element msg
+custom : Phosphor.IconVariant
 custom =
-    icon Phosphor.pencil Phosphor.Duotone
+    Phosphor.pencil Phosphor.Duotone
 
 
 upload : Element msg

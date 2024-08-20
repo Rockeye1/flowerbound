@@ -23,25 +23,22 @@ import Persona
 import Persona.Codec
 import Persona.Data
 import Persona.View
+import Phosphor
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
 import RouteBuilder exposing (StatefulRoute)
 import Set exposing (Set)
 import Shared
 import Site
+import Svg
+import Svg.Attributes
+import Svg.Events
 import Theme
 import Triple
-import TypedSvg
-import TypedSvg.Attributes
-import TypedSvg.Attributes.InPx
-import TypedSvg.Core
-import TypedSvg.Events
-import TypedSvg.Types
 import Types exposing (Attribute(..), Move, Organ, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
 import Vector2d exposing (Vector2d)
 import View exposing (View)
-import VirtualDom
 
 
 type Msg
@@ -142,7 +139,7 @@ init _ _ =
 
 
 update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
-update _ _ msg model =
+update _ shared msg model =
     case msg of
         LoadFromUrl url ->
             case Persona.Codec.fromUrl url of
@@ -156,11 +153,7 @@ update _ _ msg model =
         LoadedFromFile (Ok persona) ->
             ( Playing (initPlayingModel persona), Effect.none )
 
-        LoadedFromFile (Err e) ->
-            let
-                _ =
-                    Debug.log e ()
-            in
+        LoadedFromFile (Err _) ->
             -- TODO
             ( model, Effect.none )
 
@@ -175,7 +168,7 @@ update _ _ msg model =
                 Playing playingModel ->
                     let
                         ( newModel, effect ) =
-                            innerUpdate playingMsg playingModel
+                            innerUpdate shared playingMsg playingModel
                     in
                     ( Playing (checkOrgans newModel), Effect.map PlayingMsg effect )
 
@@ -228,8 +221,8 @@ checkOrgans model =
     }
 
 
-innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
-innerUpdate msg model =
+innerUpdate : Shared.Model -> PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
+innerUpdate shared msg model =
     let
         alterMeters : (Meters -> Meters) -> ( PlayingModel, Effect msg )
         alterMeters f =
@@ -366,14 +359,25 @@ innerUpdate msg model =
         MouseDown position ->
             case raycast model position of
                 Nothing ->
-                    let
-                        _ =
-                            Debug.log "raycast failed" ()
-                    in
                     ( model, Effect.none )
 
                 Just ( key, delta ) ->
-                    ( { model | dragging = Just ( key, delta ) }, Effect.none )
+                    let
+                        zOrder : Int
+                        zOrder =
+                            getNewZOrder model.organsPositions
+                    in
+                    ( { model
+                        | organsPositions =
+                            Dict.insert key
+                                ( Point2d.translateBy delta position
+                                    |> clipOrganPosition shared
+                                , zOrder
+                                )
+                                model.organsPositions
+                      }
+                    , Effect.none
+                    )
 
         MouseMove position ->
             case model.dragging of
@@ -390,7 +394,7 @@ innerUpdate msg model =
                         | organsPositions =
                             Dict.insert key
                                 ( Point2d.translateBy delta position
-                                    |> clipOrganPosition
+                                    |> clipOrganPosition shared
                                 , zOrder
                                 )
                                 model.organsPositions
@@ -402,13 +406,15 @@ innerUpdate msg model =
             ( { model | dragging = Nothing }, Effect.none )
 
 
-clipOrganPosition : Point2d Pixels () -> Point2d Pixels ()
-clipOrganPosition position =
+clipOrganPosition : Shared.Model -> Point2d Pixels () -> Point2d Pixels ()
+clipOrganPosition shared position =
     let
         { x, y } =
             Point2d.toPixels position
     in
-    Point2d.pixels (clamp 0 (svgWidth - organWidth) x) (clamp 0 (svgHeight - organHeight) y)
+    Point2d.pixels
+        (clamp 0 (svgWidth shared - organWidth) x)
+        (clamp 0 (svgHeight shared - organHeight) y)
 
 
 getNewZOrder : Dict ( Int, String ) ( Point2d Pixels (), Int ) -> Int
@@ -497,7 +503,7 @@ data =
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Model -> View (PagesMsg Msg)
-view _ _ model =
+view _ shared model =
     { title = Site.manifest.name
     , body =
         (case model of
@@ -512,9 +518,9 @@ view _ _ model =
                         , centerX
                         , Font.center
                         ]
-                        [ Icons.flower
+                        [ Icons.flower |> Icons.toElement
                         , text "Welcome to Flowerbound"
-                        , Icons.flower
+                        , Icons.flower |> Icons.toElement
                         ]
                     , loadPersona
                         { loadFromFile = LoadFromFile
@@ -546,9 +552,9 @@ view _ _ model =
                                     , centerX
                                     , Font.center
                                     ]
-                                    [ Icons.flower
+                                    [ Icons.flower |> Icons.toElement
                                     , text "Add another player"
-                                    , Icons.flower
+                                    , Icons.flower |> Icons.toElement
                                     ]
                                 , loadPersona
                                     { loadFromFile = AddFromFile
@@ -557,7 +563,7 @@ view _ _ model =
                                 ]
                            ]
                     )
-                , viewPlaying playingModel
+                , viewPlaying shared playingModel
                 ]
                     |> Theme.column [ Theme.padding ]
                     |> Element.map PlayingMsg
@@ -604,10 +610,10 @@ loadPersona config =
         ]
 
 
-viewPlaying : PlayingModel -> Element PlayingMsg
-viewPlaying ({ meters, persona } as model) =
+viewPlaying : Shared.Model -> PlayingModel -> Element PlayingMsg
+viewPlaying shared ({ meters, persona } as model) =
     Theme.column [ width fill ]
-        [ viewOrgans model
+        [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
         , Theme.row []
             [ Theme.button [ width fill ]
@@ -719,8 +725,8 @@ viewPlaying ({ meters, persona } as model) =
         ]
 
 
-viewOrgans : PlayingModel -> Element PlayingMsg
-viewOrgans model =
+viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
+viewOrgans shared model =
     Theme.column [ width fill ]
         [ el [ Font.bold ] (text "Organs")
         , model.organsPositions
@@ -752,20 +758,27 @@ viewOrgans model =
                                     []
 
                                 Just organ ->
-                                    [ viewOrgan pos organ ]
+                                    [ viewOrgan persona pos organ ]
                 )
-            |> (::) (TypedSvg.style [] [ TypedSvg.Core.text """svg text { cursor: default; }""" ])
-            |> TypedSvg.svg
-                [ TypedSvg.Attributes.width (TypedSvg.Types.percent 100)
-                , TypedSvg.Attributes.viewBox 0 0 svgWidth svgHeight
-                , TypedSvg.Events.on "mousedown" (VirtualDom.Custom (positionDecoder MouseDown))
+            |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
+            |> Svg.svg
+                [ Svg.Attributes.width "100%"
+                , [ 0
+                  , 0
+                  , svgWidth shared
+                  , svgHeight shared
+                  ]
+                    |> List.map String.fromFloat
+                    |> String.join " "
+                    |> Svg.Attributes.viewBox
+                , Svg.Events.custom "mousedown" (positionDecoder MouseDown)
                 , case model.dragging of
                     Just _ ->
-                        TypedSvg.Events.on "mousemove" (VirtualDom.Custom (positionDecoder MouseMove))
+                        Svg.Events.custom "mousemove" (positionDecoder MouseMove)
 
                     Nothing ->
-                        TypedSvg.Attributes.class []
-                , TypedSvg.Events.onMouseUp MouseUp
+                        Svg.Attributes.class ""
+                , Svg.Events.onMouseUp MouseUp
                 ]
             |> Element.html
             |> Element.el [ width fill ]
@@ -794,14 +807,14 @@ positionDecoder toMsg =
         )
 
 
-svgWidth : number
-svgWidth =
-    800
+svgWidth : Shared.Model -> Float
+svgWidth shared =
+    toFloat (shared.width - 2 * Theme.rhythm)
 
 
-svgHeight : number
-svgHeight =
-    600
+svgHeight : Shared.Model -> Float
+svgHeight shared =
+    svgWidth shared * 9 / 16
 
 
 organWidth : number
@@ -814,72 +827,79 @@ organHeight =
     160
 
 
-viewOrgan : Point2d Pixels () -> Organ -> TypedSvg.Core.Svg msg
-viewOrgan pos organ =
+viewOrgan : Persona -> Point2d Pixels () -> Organ -> Svg.Svg msg
+viewOrgan persona pos organ =
     let
         { x, y } =
             Point2d.toPixels pos
 
-        iifLeft : Bool -> String -> Float -> TypedSvg.Core.Svg msg
+        iifLeft : Bool -> String -> Float -> Svg.Svg msg
         iifLeft condition label dy =
-            TypedSvg.text_
-                [ TypedSvg.Attributes.InPx.x 8
-                , TypedSvg.Attributes.InPx.y (32 + 24 * dy)
-                , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorStart
-                , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+            Svg.text_
+                [ Svg.Attributes.x (String.fromFloat 8)
+                , Svg.Attributes.y (String.fromFloat (32 + 24 * dy))
+                , Svg.Attributes.textAnchor "start"
+                , Svg.Attributes.dominantBaseline "hanging"
                 , if condition then
-                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
+                    Svg.Attributes.stroke "black"
 
                   else
-                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.gray)
+                    Svg.Attributes.stroke "gray"
                 ]
-                [ TypedSvg.Core.text ("--> " ++ label) ]
+                [ Svg.text ("--> " ++ label) ]
 
-        iifRight : Bool -> String -> Float -> TypedSvg.Core.Svg msg
+        iifRight : Bool -> String -> Float -> Svg.Svg msg
         iifRight condition label dy =
-            TypedSvg.text_
-                [ TypedSvg.Attributes.InPx.x (organWidth - 8)
-                , TypedSvg.Attributes.InPx.y (32 + 24 * dy)
-                , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorEnd
-                , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+            Svg.text_
+                [ Svg.Attributes.x (String.fromFloat (organWidth - 8))
+                , Svg.Attributes.y (String.fromFloat (32 + 24 * dy))
+                , Svg.Attributes.textAnchor "end"
+                , Svg.Attributes.dominantBaseline "hanging"
                 , if condition then
-                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
+                    Svg.Attributes.stroke "black"
 
                   else
-                    TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.gray)
+                    Svg.Attributes.stroke "gray"
                 ]
-                [ TypedSvg.Core.text (label ++ " -->") ]
+                [ Svg.text (label ++ " -->") ]
     in
-    TypedSvg.g
-        [ TypedSvg.Attributes.transform [ TypedSvg.Types.Translate x y ] ]
-        [ TypedSvg.rect
-            [ TypedSvg.Attributes.InPx.width organWidth
-            , TypedSvg.Attributes.InPx.height organHeight
-            , TypedSvg.Attributes.stroke (TypedSvg.Types.Paint Color.black)
-            , TypedSvg.Attributes.fill (TypedSvg.Types.Paint Color.white)
+    Svg.g
+        [ Svg.Attributes.transform
+            ("translate(" ++ String.fromFloat x ++ " " ++ String.fromFloat y ++ ")")
+        ]
+        [ Svg.rect
+            [ Svg.Attributes.width (String.fromFloat organWidth)
+            , Svg.Attributes.height (String.fromFloat organHeight)
+            , Svg.Attributes.stroke "black"
+            , Svg.Attributes.fill "white"
             ]
             []
-        , TypedSvg.text_
-            [ TypedSvg.Attributes.InPx.x (organWidth / 2)
-            , TypedSvg.Attributes.InPx.y 8
-            , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorMiddle
-            , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+        , Svg.text_
+            [ Svg.Attributes.x (String.fromFloat (organWidth / 2))
+            , Svg.Attributes.y (String.fromFloat 8)
+            , Svg.Attributes.textAnchor "middle"
+            , Svg.Attributes.dominantBaseline "hanging"
             ]
-            [ TypedSvg.Core.text organ.name ]
-        , TypedSvg.text_
-            [ TypedSvg.Attributes.InPx.x 8
-            , TypedSvg.Attributes.InPx.y 32
-            , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorStart
-            , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+            [ Persona.Data.gendertropeIcon persona.gendertrope
+                |> Phosphor.toHtml []
+            , Svg.text organ.name
+            , Persona.Data.gendertropeIcon persona.gendertrope
+                |> Phosphor.toHtml []
             ]
-            [ TypedSvg.Core.text ("Contour: " ++ String.fromInt organ.contour) ]
-        , TypedSvg.text_
-            [ TypedSvg.Attributes.InPx.x (organWidth - 8)
-            , TypedSvg.Attributes.InPx.y 32
-            , TypedSvg.Attributes.textAnchor TypedSvg.Types.AnchorEnd
-            , TypedSvg.Attributes.dominantBaseline TypedSvg.Types.DominantBaselineHanging
+        , Svg.text_
+            [ Svg.Attributes.x (String.fromFloat 8)
+            , Svg.Attributes.y (String.fromFloat 32)
+            , Svg.Attributes.textAnchor "start"
+            , Svg.Attributes.dominantBaseline "hanging"
             ]
-            [ TypedSvg.Core.text ("Erogeny: " ++ String.fromInt organ.erogeny) ]
+            [ Svg.text ("Contour: " ++ String.fromInt organ.contour) ]
+        , Svg.text_
+            [ Svg.Attributes.x (String.fromFloat (organWidth - 8))
+            , Svg.Attributes.y (String.fromFloat 32)
+            , Svg.Attributes.textAnchor "end"
+            , Svg.Attributes.dominantBaseline "hanging"
+            ]
+            [ Svg.text ("Erogeny: " ++ String.fromInt organ.erogeny) ]
         , iifLeft organ.isSquishable "IS" 1
         , iifLeft organ.isGrippable "IG" 2
         , iifLeft organ.isPenetrable "IP" 3

@@ -1,12 +1,19 @@
-module Persona.Data exposing (breasts, gendertropeIcon, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, yonic)
+module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, yonic)
 
 import Dict
 import Element exposing (Element)
 import Icons
+import Phosphor
 import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
 
 
-gendertropeIcon : Gendertrope -> Element msg
+gendertropeIconElement : Gendertrope -> Element msg
+gendertropeIconElement gendertrope =
+    gendertropeIcon gendertrope
+        |> Icons.toElement
+
+
+gendertropeIcon : Gendertrope -> Phosphor.IconVariant
 gendertropeIcon gendertrope =
     case gendertrope of
         Butterfly ->
@@ -27,8 +34,13 @@ gendertropeIcon gendertrope =
         Doll ->
             Icons.doll
 
-        Custom _ ->
-            Icons.custom
+        Custom { name } ->
+            case gendertropeFromName name of
+                Just g ->
+                    gendertropeIcon g
+
+                Nothing ->
+                    Icons.custom
 
 
 gendertropeToRecord : Gendertrope -> GendertropeRecord
@@ -770,3 +782,28 @@ A detached Organ:
 
 If you do _not_ at the time have the **Subspace** effect, you may spend **1 Ichor Point** to sever your connection to one of your detached Organs."""
     }
+
+
+gendertropeFromName : String -> Maybe Gendertrope
+gendertropeFromName name =
+    case name of
+        "The Butterfly" ->
+            Just Butterfly
+
+        "The Flower" ->
+            Just Flower
+
+        "The Vixen" ->
+            Just Vixen
+
+        "The Buck" ->
+            Just Buck
+
+        "The Fiend" ->
+            Just Fiend
+
+        "The Doll" ->
+            Just Doll
+
+        _ ->
+            Nothing
