@@ -444,7 +444,7 @@ trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
         leftSnap : Point2d Pixels ()
         leftSnap =
             targetPos
-                |> Point2d.translateBy (Vector2d.pixels -organWidth 0)
+                |> Point2d.translateBy (Vector2d.pixels (-4 - organWidth) 0)
 
         leftVector : Vector2d Pixels ()
         leftVector =
@@ -461,7 +461,7 @@ trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
             rightSnap : Point2d Pixels ()
             rightSnap =
                 targetPos
-                    |> Point2d.translateBy (Vector2d.pixels organWidth 0)
+                    |> Point2d.translateBy (Vector2d.pixels (4 + organWidth) 0)
 
             rightVector : Vector2d Pixels ()
             rightVector =
