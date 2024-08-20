@@ -2,7 +2,7 @@ module Icons exposing
     ( flip, download, upload, minus, plus
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
-    , stack, toElement, arrange
+    , remove, reset, stack, toElement
     )
 
 {-|
@@ -177,6 +177,11 @@ stack =
     icon Phosphor.stack Phosphor.Duotone
 
 
-arrange : Element msg
-arrange =
-    icon Phosphor.cards Phosphor.Duotone
+reset : Element msg
+reset =
+    icon Phosphor.arrowCounterClockwise Phosphor.Regular
+
+
+remove : Element msg
+remove =
+    icon Phosphor.trash Phosphor.Duotone

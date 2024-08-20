@@ -10,7 +10,6 @@ import Icons
 import Persona
 import Persona.Codec
 import Persona.Data
-import Phosphor
 import Site
 import Theme
 import Types exposing (Feature, GendertropeRecord, Organ, Persona)
@@ -19,6 +18,7 @@ import Types exposing (Feature, GendertropeRecord, Organ, Persona)
 type alias Config msg =
     { update : Persona -> msg
     , upload : msg
+    , remove : Maybe msg
     , persona : Persona
     }
 
@@ -229,6 +229,15 @@ topButtons config =
         { onPress = Just config.upload
         , label = Icons.upload
         }
+    , case config.remove of
+        Nothing ->
+            Element.none
+
+        Just remove ->
+            Theme.button [ alignRight ]
+                { onPress = Just remove
+                , label = Icons.remove
+                }
     ]
 
 

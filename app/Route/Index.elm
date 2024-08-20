@@ -79,6 +79,7 @@ type PlayingMsg
     | MouseUp
     | ReStack
     | Rearrange
+    | Remove Int
 
 
 type Model
@@ -357,6 +358,29 @@ innerUpdate shared msg model =
         ReadUpdateOther _ (Err _) ->
             -- TODO
             ( model, Effect.none )
+
+        Remove index ->
+            ( { model
+                | others = List.Extra.removeAt index model.others
+                , organsPositions =
+                    model.organsPositions
+                        |> Dict.toList
+                        |> List.map
+                            (\( ( i, name ), value ) ->
+                                ( ( if i >= index then
+                                        i - 1
+
+                                    else
+                                        i
+                                  , name
+                                  )
+                                , value
+                                )
+                            )
+                        |> Dict.fromList
+              }
+            , Effect.none
+            )
 
         MouseDown position ->
             case raycast model position of
@@ -665,6 +689,7 @@ view _ shared model =
                         [ alignTop ]
                         { update = UpdatePersona
                         , upload = UpdateFromFile
+                        , remove = Nothing
                         , persona = playingModel.persona
                         }
                         :: List.indexedMap
@@ -673,6 +698,7 @@ view _ shared model =
                                     [ alignTop ]
                                     { update = UpdateOther i
                                     , upload = UpdateOtherFromFile i
+                                    , remove = Just (Remove i)
                                     , persona = other
                                     }
                             )
@@ -935,7 +961,7 @@ viewOrgans shared model =
                 [ alignRight
                 , Theme.title "Rearrange"
                 ]
-                { label = Icons.arrange
+                { label = Icons.reset
                 , onPress = Just Rearrange
                 }
             , Theme.button
