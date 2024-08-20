@@ -603,6 +603,7 @@ viewPlaying ({ meters, persona } as model) =
                 ]
             , Theme.column [ alignTop ]
                 [ el [ Font.bold ] (text "Temperaments")
+                , text "(Optionally) choose a Temperament"
                 , viewTemperaments model
                 ]
             ]
