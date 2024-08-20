@@ -2,6 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
 import Dict exposing (Dict)
+import Dict.Extra
 import Effect exposing (Effect)
 import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, scrollbarX, scrollbars, shrink, text, width)
 import Element.Background as Background
@@ -419,30 +420,18 @@ innerUpdate shared msg model =
             ( { model | dragging = Nothing }, Effect.none )
 
         ReStack ->
-            ( { model
-                | organsPositions =
-                    model.organsPositions
-                        |> Dict.toList
-                        |> List.sortBy
-                            (\( _, ( pos, _ ) ) ->
-                                let
-                                    { x, y } =
-                                        Point2d.toPixels pos
-                                in
-                                x + 8 * y
-                            )
-                        |> List.indexedMap (\i ( key, ( pos, _ ) ) -> ( key, ( pos, i ) ))
-                        |> Dict.fromList
-              }
-                |> trySnap
-            , Effect.none
-            )
+            ( { model | organsPositions = reStack model.organsPositions }, Effect.none )
 
         Rearrange ->
             ( { model
                 | organsPositions =
-                    model.organsPositions
-                        |> Dict.toList
+                    let
+                        ( paired, unpaired ) =
+                            model.organsPositions
+                                |> Dict.toList
+                                |> List.partition (isPaired model.organsPositions)
+                    in
+                    unpaired
                         |> List.Extra.gatherEqualsBy
                             (\( ( i, _ ), _ ) -> i)
                         |> List.concatMap
@@ -465,16 +454,45 @@ innerUpdate shared msg model =
                                                         + (32 * toFloat j)
                                                         + 8
                                                     )
-                                              , i * 100 + j
+                                              , 0
                                               )
                                             )
                                         )
                             )
                         |> Dict.fromList
+                        |> Dict.union (Dict.fromList paired)
+                        |> reStack
               }
-                |> trySnap
             , Effect.none
             )
+
+
+isPaired : Dict ( Int, String ) ( Point2d Pixels (), Int ) -> ( ( Int, String ), ( Point2d Pixels (), Int ) ) -> Bool
+isPaired organsPositions organ =
+    Dict.Extra.find
+        (\key option ->
+            trySnapTo ( key, option ) organ /= Nothing
+        )
+        organsPositions
+        /= Nothing
+
+
+reStack :
+    Dict ( Int, String ) ( Point2d Pixels (), Int )
+    -> Dict ( Int, String ) ( Point2d Pixels (), Int )
+reStack organsPositions =
+    organsPositions
+        |> Dict.toList
+        |> List.sortBy
+            (\( _, ( pos, _ ) ) ->
+                let
+                    { x, y } =
+                        Point2d.toPixels pos
+                in
+                x + 8 * y
+            )
+        |> List.indexedMap (\i ( key, ( pos, _ ) ) -> ( key, ( pos, i ) ))
+        |> Dict.fromList
 
 
 trySnap : PlayingModel -> PlayingModel
