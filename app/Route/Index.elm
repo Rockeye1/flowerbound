@@ -77,6 +77,7 @@ type PlayingMsg
     | MouseDown (Point2d Pixels ())
     | MouseMove (Point2d Pixels ())
     | MouseUp
+    | Rearrange
 
 
 type Model
@@ -390,6 +391,26 @@ innerUpdate shared msg model =
 
         MouseUp ->
             ( { model | dragging = Nothing }, Effect.none )
+
+        Rearrange ->
+            ( { model
+                | organsPositions =
+                    model.organsPositions
+                        |> Dict.toList
+                        |> List.sortBy
+                            (\( _, ( pos, _ ) ) ->
+                                let
+                                    { x, y } =
+                                        Point2d.toPixels pos
+                                in
+                                x + 10 * y
+                            )
+                        |> List.indexedMap (\i ( key, ( pos, _ ) ) -> ( key, ( pos, i ) ))
+                        |> Dict.fromList
+              }
+                |> trySnap
+            , Effect.none
+            )
 
 
 trySnap : PlayingModel -> PlayingModel
@@ -806,68 +827,77 @@ organColors =
 
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
 viewOrgans shared model =
-    Theme.column [ width fill ]
-        [ el [ Font.bold ] (text "Organs")
-        , model.organsPositions
-            |> Dict.toList
-            |> List.sortBy (\( _, ( _, zOrder ) ) -> zOrder)
-            |> List.concatMap
-                (\( ( i, organName ), ( pos, _ ) ) ->
-                    let
-                        maybePersona : Maybe Persona
-                        maybePersona =
-                            if i < 0 then
-                                Just model.persona
+    let
+        svgSurface =
+            model.organsPositions
+                |> Dict.toList
+                |> List.sortBy (\( _, ( _, zOrder ) ) -> zOrder)
+                |> List.concatMap
+                    (\( ( i, organName ), ( pos, _ ) ) ->
+                        let
+                            maybePersona : Maybe Persona
+                            maybePersona =
+                                if i < 0 then
+                                    Just model.persona
 
-                            else
-                                List.Extra.getAt i model.others
-                    in
-                    case maybePersona of
+                                else
+                                    List.Extra.getAt i model.others
+                        in
+                        case maybePersona of
+                            Nothing ->
+                                []
+
+                            Just persona ->
+                                case
+                                    persona.gendertrope
+                                        |> Persona.Data.gendertropeToRecord
+                                        |> .organs
+                                        |> List.Extra.find (\organ -> organ.name == organName)
+                                of
+                                    Nothing ->
+                                        []
+
+                                    Just organ ->
+                                        let
+                                            color : String
+                                            color =
+                                                organColors
+                                                    |> List.drop (modBy (List.length organColors) i)
+                                                    |> List.head
+                                                    |> Maybe.withDefault "white"
+                                        in
+                                        [ viewOrgan persona color pos organ ]
+                    )
+                |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
+                |> Svg.svg
+                    [ Svg.Attributes.width "100%"
+                    , [ 0
+                      , 0
+                      , svgWidth shared
+                      , svgHeight shared
+                      ]
+                        |> List.map String.fromFloat
+                        |> String.join " "
+                        |> Svg.Attributes.viewBox
+                    , Svg.Events.custom "mousedown" (positionDecoder MouseDown)
+                    , case model.dragging of
+                        Just _ ->
+                            Svg.Events.custom "mousemove" (positionDecoder MouseMove)
+
                         Nothing ->
-                            []
-
-                        Just persona ->
-                            case
-                                persona.gendertrope
-                                    |> Persona.Data.gendertropeToRecord
-                                    |> .organs
-                                    |> List.Extra.find (\organ -> organ.name == organName)
-                            of
-                                Nothing ->
-                                    []
-
-                                Just organ ->
-                                    let
-                                        color : String
-                                        color =
-                                            organColors
-                                                |> List.drop (modBy (List.length organColors) i)
-                                                |> List.head
-                                                |> Maybe.withDefault "white"
-                                    in
-                                    [ viewOrgan persona color pos organ ]
-                )
-            |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
-            |> Svg.svg
-                [ Svg.Attributes.width "100%"
-                , [ 0
-                  , 0
-                  , svgWidth shared
-                  , svgHeight shared
-                  ]
-                    |> List.map String.fromFloat
-                    |> String.join " "
-                    |> Svg.Attributes.viewBox
-                , Svg.Events.custom "mousedown" (positionDecoder MouseDown)
-                , case model.dragging of
-                    Just _ ->
-                        Svg.Events.custom "mousemove" (positionDecoder MouseMove)
-
-                    Nothing ->
-                        Svg.Attributes.class ""
-                , Svg.Events.onMouseUp MouseUp
-                ]
-            |> Element.html
+                            Svg.Attributes.class ""
+                    , Svg.Events.onMouseUp MouseUp
+                    ]
+    in
+    Theme.column [ width fill ]
+        [ Theme.row []
+            [ el [ Font.bold ] (text "Organs")
+            , Theme.button []
+                { label = Icons.rearrange
+                , onPress = Just Rearrange
+                }
+            ]
+        , Element.html svgSurface
             |> Theme.el
                 [ centerX
                 , width <| Element.maximum (floor <| svgWidth shared) fill
