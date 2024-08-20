@@ -39,6 +39,11 @@ type Msg
 type PlayingMsg
     = StimulationCost Int
     | UpdatePersona Persona
+    | UpdateFromFile
+    | UpdateOther Int Persona
+    | UpdateOtherFromFile Int
+    | AddFromFile
+    | AddFromUrl String
     | UpdateMeters Meters
     | SelectMove (Maybe String)
     | SelectTemperament (Maybe String)
@@ -50,15 +55,22 @@ type PlayingMsg
     | RolledValiantModifier Int
     | RollStimulation
     | RolledStimulation (List ( Int, Int ))
+    | PickedUpdate File
+    | ReadUpdate (Result String Persona)
+    | PickedAdd File
+    | ReadAdd (Result String Persona)
+    | PickedUpdateOther Int File
+    | ReadUpdateOther Int (Result String Persona)
 
 
 type Model
-    = WaitingForPersona String
+    = WaitingForPersona
     | Playing PlayingModel
 
 
 type alias PlayingModel =
     { persona : Persona
+    , others : List Persona
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
@@ -105,7 +117,7 @@ route =
 
 init : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect msg )
 init _ _ =
-    ( WaitingForPersona "", Effect.none )
+    ( WaitingForPersona, Effect.none )
 
 
 update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -114,30 +126,17 @@ update _ _ msg model =
         LoadFromUrl url ->
             case Persona.Codec.fromUrl url of
                 Err _ ->
-                    case model of
-                        WaitingForPersona _ ->
-                            ( WaitingForPersona url, Effect.none )
-
-                        Playing _ ->
-                            ( model, Effect.none )
+                    -- TODO
+                    ( model, Effect.none )
 
                 Ok persona ->
-                    case model of
-                        WaitingForPersona _ ->
-                            ( Playing (initPlayingModel persona), Effect.none )
-
-                        Playing playingModel ->
-                            ( Playing { playingModel | persona = persona }, Effect.none )
-
-        LoadedFromFile (Ok persona) ->
-            case model of
-                WaitingForPersona _ ->
                     ( Playing (initPlayingModel persona), Effect.none )
 
-                Playing playingModel ->
-                    ( Playing { playingModel | persona = persona }, Effect.none )
+        LoadedFromFile (Ok persona) ->
+            ( Playing (initPlayingModel persona), Effect.none )
 
         LoadedFromFile (Err _) ->
+            -- TODO
             ( model, Effect.none )
 
         LoadFromFile ->
@@ -145,7 +144,7 @@ update _ _ msg model =
 
         PlayingMsg playingMsg ->
             case model of
-                WaitingForPersona _ ->
+                WaitingForPersona ->
                     ( model, Effect.none )
 
                 Playing playingModel ->
@@ -174,9 +173,6 @@ innerUpdate msg model =
               }
             , Effect.none
             )
-
-        UpdatePersona persona ->
-            ( { model | persona = persona }, Effect.none )
 
         UpdateMeters newMeters ->
             ( { model | meters = newMeters }, Effect.none )
@@ -243,10 +239,65 @@ innerUpdate msg model =
         RolledStimulation stimulationRoll ->
             ( { model | stimulationRoll = Just stimulationRoll }, Effect.none )
 
+        UpdatePersona persona ->
+            ( { model | persona = persona }, Effect.none )
+
+        UpdateFromFile ->
+            ( model, Effect.PickMarkdown PickedUpdate )
+
+        PickedUpdate file ->
+            ( model, Effect.ReadPersonaFromMarkdown file ReadUpdate )
+
+        ReadUpdate (Ok persona) ->
+            ( { model | persona = persona }, Effect.none )
+
+        ReadUpdate (Err _) ->
+            -- TODO
+            ( model, Effect.none )
+
+        AddFromFile ->
+            ( model, Effect.PickMarkdown PickedAdd )
+
+        PickedAdd file ->
+            ( model, Effect.ReadPersonaFromMarkdown file ReadAdd )
+
+        ReadAdd (Ok persona) ->
+            ( { model | others = model.others ++ [ persona ] }, Effect.none )
+
+        ReadAdd (Err _) ->
+            -- TODO
+            ( model, Effect.none )
+
+        AddFromUrl url ->
+            case Persona.Codec.fromUrl url of
+                Err _ ->
+                    -- TODO
+                    ( model, Effect.none )
+
+                Ok persona ->
+                    ( { model | others = model.others ++ [ persona ] }, Effect.none )
+
+        UpdateOther index persona ->
+            ( { model | others = List.Extra.setAt index persona model.others }, Effect.none )
+
+        UpdateOtherFromFile index ->
+            ( model, Effect.PickMarkdown (PickedUpdateOther index) )
+
+        PickedUpdateOther index file ->
+            ( model, Effect.ReadPersonaFromMarkdown file (ReadUpdateOther index) )
+
+        ReadUpdateOther index (Ok persona) ->
+            ( { model | others = List.Extra.setAt index persona model.others }, Effect.none )
+
+        ReadUpdateOther _ (Err _) ->
+            -- TODO
+            ( model, Effect.none )
+
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
     { persona = persona
+    , others = []
     , stimulationCost = 1
     , meters =
         { sensitivity = 0
@@ -298,8 +349,8 @@ view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Model -> 
 view _ _ model =
     { title = Site.manifest.name
     , body =
-        case model of
-            WaitingForPersona url ->
+        (case model of
+            WaitingForPersona ->
                 Theme.column
                     [ Theme.padding
                     , centerX
@@ -314,59 +365,94 @@ view _ _ model =
                         , text "Welcome to Flowerbound"
                         , Icons.flower
                         ]
-                    , Theme.el
-                        [ Border.width 1
-                        , Theme.padding
-                        , width fill
-                        ]
-                        (Theme.input [ width <| Element.minimum 300 fill ]
-                            { label = Input.labelAbove [] (text "URL")
-                            , text = url
-                            , onChange = LoadFromUrl
-                            , placeholder = Just (Input.placeholder [] (text "Paste the Persona URL here"))
-                            }
-                        )
-                    , el
-                        [ centerX
-                        , Font.color Theme.purple
-                        ]
-                        (text "or")
-                    , Theme.row
-                        [ Border.width 1
-                        , Theme.padding
-                        , width fill
-                        ]
-                        [ text "Load from a Markdown file"
-                        , Theme.button [ alignRight ]
-                            { onPress = Just LoadFromFile
-                            , label = Icons.upload
-                            }
-                        ]
+                    , loadPersona
+                        { loadFromFile = LoadFromFile
+                        , loadFromUrl = LoadFromUrl
+                        }
                     ]
-                    |> Element.map PagesMsg.fromMsg
 
             Playing playingModel ->
-                [ viewPersona playingModel
+                [ Theme.wrappedRow [ centerX ]
+                    (el [ alignTop ]
+                        (Persona.View.persona
+                            { update = UpdatePersona
+                            , upload = UpdateFromFile
+                            }
+                            playingModel.persona
+                        )
+                        :: List.indexedMap
+                            (\i other ->
+                                el [ alignTop ]
+                                    (Persona.View.persona
+                                        { update = UpdateOther i
+                                        , upload = UpdateOtherFromFile i
+                                        }
+                                        other
+                                    )
+                            )
+                            playingModel.others
+                        ++ [ Theme.column []
+                                [ Theme.row
+                                    [ Font.color Theme.purple
+                                    , centerX
+                                    , Font.center
+                                    ]
+                                    [ Icons.flower
+                                    , text "Add another player"
+                                    , Icons.flower
+                                    ]
+                                , loadPersona
+                                    { loadFromFile = AddFromFile
+                                    , loadFromUrl = AddFromUrl
+                                    }
+                                ]
+                           ]
+                    )
                 , viewPlaying playingModel
-                    |> Element.map PlayingMsg
                 ]
                     |> Theme.column [ Theme.padding ]
-                    |> Element.map PagesMsg.fromMsg
+                    |> Element.map PlayingMsg
+        )
+            |> Element.map PagesMsg.fromMsg
     }
 
 
-viewPersona : PlayingModel -> Element Msg
-viewPersona model =
-    el [ centerX ] <|
-        Persona.View.persona
-            { update =
-                \newPersona ->
-                    newPersona
-                        |> UpdatePersona
-                        |> PlayingMsg
-            , upload = LoadFromFile
-            }
-            model.persona
+loadPersona :
+    { loadFromUrl : String -> msg
+    , loadFromFile : msg
+    }
+    -> Element msg
+loadPersona config =
+    Theme.column [ centerX ]
+        [ Theme.el
+            [ Border.width 1
+            , Theme.padding
+            , width fill
+            ]
+            (Theme.input [ width <| Element.minimum 240 fill ]
+                { label = Input.labelAbove [] (text "URL")
+                , text = ""
+                , onChange = config.loadFromUrl
+                , placeholder = Just (Input.placeholder [] (text "Paste the Persona URL here"))
+                }
+            )
+        , el
+            [ centerX
+            , Font.color Theme.purple
+            ]
+            (text "or")
+        , Theme.row
+            [ Border.width 1
+            , Theme.padding
+            , width fill
+            ]
+            [ text "Load from a Markdown file"
+            , Theme.button [ alignRight ]
+                { onPress = Just config.loadFromFile
+                , label = Icons.upload
+                }
+            ]
+        ]
 
 
 viewPlaying : PlayingModel -> Element PlayingMsg

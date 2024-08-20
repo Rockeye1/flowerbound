@@ -1,7 +1,7 @@
-module Persona.View exposing (Config, organs, persona, tallyGroup)
+module Persona.View exposing (Config, persona, tallyGroup, viewOrgans)
 
 import Dict
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -31,7 +31,6 @@ persona config input =
     Theme.column
         [ Border.width 1
         , Theme.padding
-        , width <| Element.maximum 640 shrink
         ]
         [ Theme.row [ width fill ]
             (Theme.input [ width fill ]
@@ -55,8 +54,8 @@ persona config input =
             , Persona.Data.gendertropeIcon input.gendertrope
             ]
         , Theme.row [ centerX ]
-            [ abilitiesView input
-            , statusView input
+            [ viewAbilities input
+            , viewStatus input
             ]
         , Theme.row
             [ centerX
@@ -72,13 +71,13 @@ persona config input =
             ]
             [ text gendertropeRecord.description
             ]
-        , organs gendertropeRecord.organs
+        , viewOrgans gendertropeRecord.organs
         , viewStandardFeatures input.features gendertropeRecord
         ]
 
 
-abilitiesView : Persona -> Element msg
-abilitiesView input =
+viewAbilities : Persona -> Element msg
+viewAbilities input =
     let
         viewRow : ( Element msg, Int ) -> Element msg
         viewRow ( _, value ) =
@@ -109,8 +108,8 @@ abilitiesView input =
         }
 
 
-statusView : Persona -> Element msg
-statusView input =
+viewStatus : Persona -> Element msg
+viewStatus input =
     let
         statusRow : String -> Int -> ( String, Int )
         statusRow label bonusToCap =
@@ -226,24 +225,25 @@ topButtons config =
     ]
 
 
-organs : List Organ -> Element msg
-organs input =
+viewOrgans : List Organ -> Element msg
+viewOrgans input =
     let
-        wrap : Int -> Element msg -> Element msg
-        wrap index child =
+        wrap : Int -> List (Attribute msg) -> Element msg -> Element msg
+        wrap index attrs child =
             el
-                [ width fill
-                , height fill
-                , padding (Theme.rhythm // 2)
-                , Background.color
-                    (if modBy 2 index == 0 then
-                        Theme.lightGray
+                (width fill
+                    :: height fill
+                    :: padding (Theme.rhythm // 2)
+                    :: Background.color
+                        (if modBy 2 index == 0 then
+                            Theme.lightGray
 
-                     else
-                        Theme.white
-                    )
-                ]
-                child
+                         else
+                            Theme.white
+                        )
+                    :: attrs
+                )
+                (paragraph [ centerY ] [ child ])
 
         intColumn :
             String
@@ -256,6 +256,7 @@ organs input =
             , view =
                 \index organ ->
                     wrap index
+                        [ Font.center ]
                         -- (el
                         --     [ Font.color Theme.purple
                         --     , Font.size 24
@@ -263,11 +264,7 @@ organs input =
                         --     ]
                         --     (text (intToDots (prop organ)))
                         -- )
-                        (el
-                            [ centerX
-                            ]
-                            (text (String.fromInt (prop organ)))
-                        )
+                        (text (String.fromInt (prop organ)))
             }
 
         boolColumn :
@@ -282,10 +279,10 @@ organs input =
             , view =
                 \index organ ->
                     if prop organ then
-                        wrap index (el [ centerX, Font.color Theme.purple ] img)
+                        wrap index [ centerX, Font.color Theme.purple ] img
 
                     else
-                        wrap index Element.none
+                        wrap index [] Element.none
             }
 
         spacer : Element.IndexedColumn organ msg
@@ -299,12 +296,12 @@ organs input =
         { data = input
         , columns =
             [ spacer
-            , { width = shrink
+            , { width = fill
               , header = Element.none
-              , view = \index { name } -> wrap index (text name)
+              , view = \index { name } -> wrap index [] (text name)
               }
-            , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour
-            , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny
+            , intColumn "Con" "Contour - how pleasing the Organ is to the sense of touch" .contour
+            , intColumn "Ero" "Erogeny - how much of an erogenous zone that Organ is" .erogeny
             , boolColumn "CS" "Can Squish" .canSquish Icons.squish
             , boolColumn "CG" "Can Grip" .canGrip Icons.grip
             , boolColumn "CP" "Can Penetrate" .canPenetrate Icons.penetrate

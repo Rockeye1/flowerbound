@@ -444,7 +444,7 @@ viewGendertrope ({ gendertrope } as persona) =
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
-            , Persona.View.organs gendertropeRecord.organs
+            , Persona.View.viewOrgans gendertropeRecord.organs
             , Element.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
 
