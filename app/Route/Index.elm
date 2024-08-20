@@ -1,6 +1,7 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, text, width)
 import Element.Background as Background
@@ -18,8 +19,10 @@ import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona
 import Persona.Codec
+import Persona.Data
 import Persona.View
 import RouteBuilder exposing (StatefulRoute)
+import Set exposing (Set)
 import Shared
 import Site
 import Theme
@@ -71,6 +74,7 @@ type Model
 type alias PlayingModel =
     { persona : Persona
     , others : List Persona
+    , organsPositions : Dict ( Int, String ) ( Int, Int )
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
@@ -152,10 +156,47 @@ update _ _ msg model =
                         ( newModel, effect ) =
                             innerUpdate playingMsg playingModel
                     in
-                    ( Playing newModel, Effect.map PlayingMsg effect )
+                    ( Playing (checkOrgans newModel), Effect.map PlayingMsg effect )
 
         PickedFile file ->
             ( model, Effect.ReadPersonaFromMarkdown file LoadedFromFile )
+
+
+checkOrgans : PlayingModel -> PlayingModel
+checkOrgans model =
+    let
+        expected : Set ( Int, String )
+        expected =
+            (model.persona :: model.others)
+                |> List.indexedMap
+                    (\index persona ->
+                        persona.gendertrope
+                            |> Persona.Data.gendertropeToRecord
+                            |> .organs
+                            |> List.map (\{ name } -> ( index - 1, name ))
+                    )
+                |> List.concat
+                |> Set.fromList
+    in
+    { model
+        | organsPositions =
+            Set.foldl
+                (\( i, organ ) ( pos, acc ) ->
+                    case Dict.get ( i, organ ) acc of
+                        Nothing ->
+                            ( pos + 10, Dict.insert ( i, organ ) ( pos, pos ) acc )
+
+                        Just _ ->
+                            ( pos, acc )
+                )
+                ( 10
+                , Dict.filter
+                    (\key _ -> Set.member key expected)
+                    model.organsPositions
+                )
+                expected
+                |> Tuple.second
+    }
 
 
 innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
@@ -278,7 +319,7 @@ innerUpdate msg model =
                     ( { model | others = model.others ++ [ persona ] }, Effect.none )
 
         UpdateOther index persona ->
-            ( { model | others = List.Extra.setAt index persona model.others }, Effect.none )
+            ( { model | others = List.Extra.setAt index persona model.others } |> checkOrgans, Effect.none )
 
         UpdateOtherFromFile index ->
             ( model, Effect.PickMarkdown (PickedUpdateOther index) )
@@ -299,6 +340,7 @@ initPlayingModel persona =
     { persona = persona
     , others = []
     , stimulationCost = 1
+    , organsPositions = Dict.empty
     , meters =
         { sensitivity = 0
         , arousal = 0
@@ -488,7 +530,7 @@ viewPlaying ({ meters, persona } as model) =
             }
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model
-        , Theme.row [ width fill ]
+        , Theme.wrappedRow [ width fill ]
             [ Theme.column
                 [ width fill
                 , alignTop
@@ -559,9 +601,11 @@ viewPlaying ({ meters, persona } as model) =
                         }
                     ]
                 ]
+            , Theme.column [ alignTop ]
+                [ el [ Font.bold ] (text "Temperaments")
+                , viewTemperaments model
+                ]
             ]
-        , el [ Font.bold ] (text "Temperaments")
-        , viewTemperaments model
         ]
 
 
@@ -843,7 +887,18 @@ staminaTable model =
 
                     else
                         dice
-                            |> List.map (\die -> "d" ++ String.fromInt die)
+                            |> List.Extra.gatherEquals
+                            |> List.map
+                                (\( die, other ) ->
+                                    (if List.isEmpty other then
+                                        "1"
+
+                                     else
+                                        String.fromInt (1 + List.length other)
+                                    )
+                                        ++ "d"
+                                        ++ String.fromInt die
+                                )
                             |> String.join " and "
             ]
     in
