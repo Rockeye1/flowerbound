@@ -439,7 +439,7 @@ trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
     let
         snapLimit : Quantity Float Pixels
         snapLimit =
-            Pixels.pixels 10
+            Pixels.pixels 16
 
         leftSnap : Point2d Pixels ()
         leftSnap =
