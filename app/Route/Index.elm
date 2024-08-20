@@ -1,7 +1,6 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, RouteParams, route)
 
 import BackendTask exposing (BackendTask)
-import Color
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, shrink, text, width)
@@ -26,6 +25,7 @@ import Persona.View
 import Phosphor
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
+import Quantity exposing (Quantity)
 import RouteBuilder exposing (StatefulRoute)
 import Set exposing (Set)
 import Shared
@@ -417,11 +417,7 @@ trySnap model =
                     (\( organ, options ) ->
                         List.Extra.findMap
                             (\option ->
-                                if canSnapTo option organ then
-                                    Nothing
-
-                                else
-                                    Nothing
+                                trySnapTo option organ
                             )
                             options
                     )
@@ -435,12 +431,50 @@ trySnap model =
     }
 
 
-canSnapTo :
+trySnapTo :
     ( ( Int, String ), ( Point2d Pixels (), Int ) )
     -> ( ( Int, String ), ( Point2d Pixels (), Int ) )
-    -> Bool
-canSnapTo target organ =
-    False
+    -> Maybe ( ( Int, String ), ( Point2d Pixels (), Int ) )
+trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
+    let
+        snapLimit : Quantity Float Pixels
+        snapLimit =
+            Pixels.pixels 10
+
+        leftSnap : Point2d Pixels ()
+        leftSnap =
+            targetPos
+                |> Point2d.translateBy (Vector2d.pixels -organWidth 0)
+
+        leftVector : Vector2d Pixels ()
+        leftVector =
+            Vector2d.from organPos leftSnap
+    in
+    if
+        Vector2d.length leftVector
+            |> Quantity.lessThan snapLimit
+    then
+        Just ( key, ( leftSnap, zOrder ) )
+
+    else
+        let
+            rightSnap : Point2d Pixels ()
+            rightSnap =
+                targetPos
+                    |> Point2d.translateBy (Vector2d.pixels organWidth 0)
+
+            rightVector : Vector2d Pixels ()
+            rightVector =
+                Vector2d.from organPos rightSnap
+        in
+        if
+            Vector2d.length rightVector
+                |> Quantity.lessThan snapLimit
+        then
+            Just ( key, ( rightSnap, zOrder ) )
+
+        else
+            Nothing
 
 
 clipOrganPosition : Shared.Model -> Point2d Pixels () -> Point2d Pixels ()
