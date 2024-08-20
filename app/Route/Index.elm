@@ -762,6 +762,14 @@ viewPlaying shared ({ meters, persona } as model) =
         ]
 
 
+organColors : List String
+organColors =
+    [ "#f0e0e0"
+    , "#e0f0e0"
+    , "#e0e0f0"
+    ]
+
+
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
 viewOrgans shared model =
     Theme.column [ width fill ]
@@ -795,7 +803,15 @@ viewOrgans shared model =
                                     []
 
                                 Just organ ->
-                                    [ viewOrgan persona pos organ ]
+                                    let
+                                        color : String
+                                        color =
+                                            organColors
+                                                |> List.drop (modBy (List.length organColors) i)
+                                                |> List.head
+                                                |> Maybe.withDefault "white"
+                                    in
+                                    [ viewOrgan persona color pos organ ]
                 )
             |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
             |> Svg.svg
@@ -879,8 +895,8 @@ type TextAnchor
     | AnchorEnd
 
 
-viewOrgan : Persona -> Point2d Pixels () -> Organ -> Svg.Svg msg
-viewOrgan persona pos organ =
+viewOrgan : Persona -> String -> Point2d Pixels () -> Organ -> Svg.Svg msg
+viewOrgan persona color pos organ =
     let
         { x, y } =
             Point2d.toPixels pos
@@ -964,7 +980,7 @@ viewOrgan persona pos organ =
             [ Svg.Attributes.width (String.fromFloat organWidth)
             , Svg.Attributes.height (String.fromFloat organHeight)
             , Svg.Attributes.stroke "black"
-            , Svg.Attributes.fill "white"
+            , Svg.Attributes.fill color
             ]
             []
         , Persona.Data.gendertropeIcon persona.gendertrope
