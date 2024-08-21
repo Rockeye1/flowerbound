@@ -75,7 +75,7 @@ type PlayingMsg
     | MouseMove (Point2d Pixels ())
     | MouseUp
     | Rearrange
-    | Remove Int
+    | RemoveOther Int
 
 
 type Model
@@ -363,7 +363,7 @@ innerUpdate msg model =
             -- TODO
             ( model, Effect.none )
 
-        Remove index ->
+        RemoveOther index ->
             ( { model
                 | others = List.Extra.removeAt index model.others
                 , organsPositions =
@@ -711,41 +711,7 @@ view _ shared model =
 
             Playing playingModel ->
                 [ Theme.wrappedRow []
-                    (Persona.View.persona
-                        [ alignTop ]
-                        { update = UpdatePersona
-                        , upload = UpdateFromFile
-                        , remove = Nothing
-                        , persona = playingModel.persona
-                        }
-                        :: List.indexedMap
-                            (\i other ->
-                                Persona.View.persona
-                                    [ alignTop ]
-                                    { update = UpdateOther i
-                                    , upload = UpdateOtherFromFile i
-                                    , remove = Just (Remove i)
-                                    , persona = other
-                                    }
-                            )
-                            playingModel.others
-                        ++ [ Theme.column []
-                                [ Theme.row
-                                    [ Font.color Theme.purple
-                                    , centerX
-                                    , Font.center
-                                    ]
-                                    [ Icons.flower |> Icons.toElement
-                                    , text "Add another player"
-                                    , Icons.flower |> Icons.toElement
-                                    ]
-                                , loadPersona
-                                    { loadFromFile = AddFromFile
-                                    , loadFromUrl = AddFromUrl
-                                    }
-                                ]
-                           ]
-                    )
+                    (viewPersonas playingModel)
                 , viewPlaying shared playingModel
                 ]
                     |> Theme.column [ Theme.padding ]
@@ -753,6 +719,44 @@ view _ shared model =
         )
             |> Element.map PagesMsg.fromMsg
     }
+
+
+viewPersonas : PlayingModel -> List (Element PlayingMsg)
+viewPersonas playingModel =
+    Persona.View.persona
+        [ alignTop ]
+        { update = UpdatePersona
+        , upload = UpdateFromFile
+        , remove = Nothing
+        , persona = playingModel.persona
+        }
+        :: List.indexedMap
+            (\i other ->
+                Persona.View.persona
+                    [ alignTop ]
+                    { update = UpdateOther i
+                    , upload = UpdateOtherFromFile i
+                    , remove = Just (RemoveOther i)
+                    , persona = other
+                    }
+            )
+            playingModel.others
+        ++ [ Theme.column []
+                [ Theme.row
+                    [ Font.color Theme.purple
+                    , centerX
+                    , Font.center
+                    ]
+                    [ Icons.flower |> Icons.toElement
+                    , text "Add another player"
+                    , Icons.flower |> Icons.toElement
+                    ]
+                , loadPersona
+                    { loadFromFile = AddFromFile
+                    , loadFromUrl = AddFromUrl
+                    }
+                ]
+           ]
 
 
 loadPersona :

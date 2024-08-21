@@ -1,5 +1,5 @@
 module Icons exposing
-    ( flip, download, upload, minus, plus, remove, reset, stack
+    ( flip, download, upload, minus, plus, remove, reset
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
     , toElement
@@ -10,7 +10,7 @@ module Icons exposing
 
 ## Actions
 
-@docs flip, download, upload, minus, plus, remove, reset, stack
+@docs flip, download, upload, minus, plus, remove, reset
 
 
 ## Moves
@@ -169,11 +169,6 @@ upload =
 download : Element msg
 download =
     icon Phosphor.download Phosphor.Duotone
-
-
-stack : Element msg
-stack =
-    icon Phosphor.stack Phosphor.Duotone
 
 
 reset : Element msg
