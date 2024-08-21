@@ -4,7 +4,7 @@ import BackendTask exposing (BackendTask)
 import Dict exposing (Dict)
 import Dict.Extra
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, scrollbarX, shrink, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, row, scrollbarX, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -838,83 +838,211 @@ viewPlaying shared ({ meters, persona } as model) =
             }
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model
-        , Theme.row [ width fill ]
+        , Theme.wrappedRow [ width <| Element.maximum (shared.width - 2 * Theme.rhythm) fill ]
             [ Theme.column
                 [ alignTop
                 , width fill
                 ]
-                [ el [ Font.bold ] (text "Moves")
+                [ el [ Font.bold, width <| Element.minimum 300 fill ] (text "Moves")
                 , text "Choose a move."
                 , viewMoves model
                 ]
-            , Theme.column [ alignTop ]
-                [ el [ Font.bold ] (text "Stimulation")
-                , text "Choose a stamina cost."
-                , staminaTable model
-                , Theme.row [ width fill ]
-                    [ case model.stimulationRoll of
-                        Nothing ->
-                            Element.none
+            , Theme.column
+                [ alignTop
+                , width fill
+                ]
+                [ Theme.column [ centerX ]
+                    [ el [ Font.bold ] (text "Stimulation")
+                    , text "Choose a stamina cost."
+                    , Theme.row [ width fill ]
+                        [ viewRoll model
+                        , Theme.button [ alignRight ]
+                            { onPress = Just RollStimulation
+                            , label =
+                                case model.stimulationRoll of
+                                    Nothing ->
+                                        text "Roll"
 
-                        Just results ->
-                            let
-                                ( ardents, timids ) =
-                                    List.unzip results
-
-                                raw : Int
-                                raw =
-                                    List.sum ardents - List.sum timids
-
-                                corrected : Int
-                                corrected =
-                                    if raw < 0 then
-                                        min 0 (raw + model.persona.prowess)
-
-                                    else if raw == 0 then
-                                        0
-
-                                    else
-                                        max 0 (raw - model.persona.prowess)
-                            in
-                            paragraph []
-                                [ text
-                                    "Rolled "
-                                , results
-                                    |> List.map
-                                        (\( ardent, timid ) ->
-                                            String.fromInt ardent
-                                                ++ " - "
-                                                ++ String.fromInt timid
-                                        )
-                                    |> String.join " + "
-                                    |> text
-                                , text " = "
-                                , text (String.fromInt raw)
-                                , if raw == corrected then
-                                    Element.none
-
-                                  else
-                                    text (" ⇒ " ++ String.fromInt corrected ++ " (PRW = " ++ String.fromInt model.persona.prowess ++ ")")
-                                ]
-                    , Theme.button [ alignRight ]
-                        { onPress = Just RollStimulation
-                        , label =
-                            case model.stimulationRoll of
-                                Nothing ->
-                                    text "Roll"
-
-                                Just _ ->
-                                    text "Reroll"
-                        }
+                                    Just _ ->
+                                        text "Reroll"
+                            }
+                        ]
+                    , staminaTable model
                     ]
                 ]
-            ]
-        , Theme.column []
-            [ el [ Font.bold ] (text "Temperaments")
-            , text "(Optionally) choose a Temperament"
-            , viewTemperaments model
+            , Theme.column
+                [ alignTop
+                , width fill
+                ]
+                [ el [ Font.bold, width <| Element.minimum 300 fill ] (text "Temperaments")
+                , text "(Optionally) choose a Temperament"
+                , viewTemperaments model
+                ]
             ]
         ]
+
+
+viewRoll : PlayingModel -> Element PlayingMsg
+viewRoll model =
+    case model.stimulationRoll of
+        Nothing ->
+            el [ Font.color Theme.gray ]
+                (text "No roll yet.")
+
+        Just results ->
+            let
+                ( ardents, timids ) =
+                    List.unzip results
+
+                raw : Int
+                raw =
+                    List.sum ardents - List.sum timids
+
+                corrected : Int
+                corrected =
+                    if raw < 0 then
+                        min 0 (raw + model.persona.prowess)
+
+                    else if raw == 0 then
+                        0
+
+                    else
+                        max 0 (raw - model.persona.prowess)
+
+                firstColumn : Element.Column Bool msg
+                firstColumn =
+                    { width = shrink
+                    , header = Element.none
+                    , view =
+                        \firstRow ->
+                            let
+                                label : String
+                                label =
+                                    if firstRow then
+                                        "+"
+
+                                    else
+                                        "-"
+
+                                topBorder : Int
+                                topBorder =
+                                    if firstRow then
+                                        1
+
+                                    else
+                                        0
+                            in
+                            Theme.el
+                                [ Background.color Theme.lightPurple
+                                , Theme.padding
+                                , Font.center
+                                , Border.widthEach
+                                    { top = topBorder
+                                    , bottom = 1
+                                    , left = 1
+                                    , right = 0
+                                    }
+                                ]
+                                (text label)
+                    }
+
+                otherColumns : List (Element.Column Bool msg)
+                otherColumns =
+                    List.map
+                        (\( ardent, timid ) ->
+                            { width = shrink
+                            , header = Element.none
+                            , view =
+                                \firstRow ->
+                                    let
+                                        label : String
+                                        label =
+                                            if firstRow then
+                                                String.fromInt ardent
+
+                                            else
+                                                String.fromInt timid
+
+                                        topBorder : Int
+                                        topBorder =
+                                            if firstRow then
+                                                1
+
+                                            else
+                                                0
+                                    in
+                                    Theme.el
+                                        [ Background.color Theme.lightPurple
+                                        , Theme.padding
+                                        , Font.alignRight
+                                        , Border.widthEach
+                                            { top = topBorder
+                                            , bottom = 1
+                                            , left = 1
+                                            , right = 0
+                                            }
+                                        ]
+                                        (text label)
+                            }
+                        )
+                        results
+            in
+            row [ width fill ]
+                [ Theme.table
+                    [ Element.spacing 0
+                    , width shrink
+                    ]
+                    { data = [ True, False ]
+                    , columns = firstColumn :: otherColumns
+                    }
+                , Theme.el
+                    [ Background.color Theme.lightPurple
+                    , Theme.padding
+                    , Border.width 1
+                    , height fill
+                    ]
+                    (el [ centerY ] (text (String.fromInt raw)))
+                , if raw == corrected then
+                    Element.none
+
+                  else
+                    Theme.column
+                        [ Background.color Theme.lightPurple
+                        , Theme.padding
+                        , Border.widthEach
+                            { top = 1
+                            , bottom = 1
+                            , left = 0
+                            , right = 1
+                            }
+                        , height fill
+                        , spacing 0
+                        ]
+                        [ text ("PRW " ++ String.fromInt model.persona.prowess)
+                        , el [ centerX ] (text "⇒")
+                        ]
+                , if raw == corrected then
+                    Element.none
+
+                  else
+                    Theme.el
+                        [ Background.color Theme.lightPurple
+                        , Theme.padding
+                        , Border.widthEach
+                            { top = 1
+                            , bottom = 1
+                            , left = 0
+                            , right = 1
+                            }
+                        , height fill
+                        ]
+                        (el
+                            [ centerY
+                            ]
+                            (text (String.fromInt corrected))
+                        )
+                , el [ width fill ] Element.none
+                ]
 
 
 organColors : List String
