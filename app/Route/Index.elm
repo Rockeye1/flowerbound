@@ -92,15 +92,23 @@ type Model
 type alias PlayingModel =
     { persona : Persona
     , others : List Persona
-    , organsPositions : Dict ( Int, String ) ( Point2d Pixels (), Int )
+    , organsPositions : Dict OrganKey OrganPosition
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
     , selectedTemperament : Maybe String
     , valiantModifier : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
-    , dragging : Maybe ( ( Int, String ), Vector2d Pixels () )
+    , dragging : Maybe ( OrganKey, Vector2d Pixels () )
     }
+
+
+type alias OrganKey =
+    ( Int, String )
+
+
+type alias OrganPosition =
+    ( Point2d Pixels (), Int )
 
 
 type alias Meters =
@@ -184,7 +192,7 @@ update _ shared msg model =
 checkOrgans : PlayingModel -> PlayingModel
 checkOrgans model =
     let
-        expected : Set ( Int, String )
+        expected : Set OrganKey
         expected =
             (model.persona :: model.others)
                 |> List.indexedMap
@@ -197,7 +205,7 @@ checkOrgans model =
                 |> List.concat
                 |> Set.fromList
 
-        filtered : Dict ( Int, String ) ( Point2d Pixels (), Int )
+        filtered : Dict OrganKey OrganPosition
         filtered =
             Dict.filter
                 (\key _ -> Set.member key expected)
@@ -434,9 +442,15 @@ innerUpdate shared msg model =
                     unpaired
                         |> List.Extra.gatherEqualsBy
                             (\( ( i, _ ), _ ) -> i)
-                        |> List.concatMap
-                            (\( ( ( i, _ ), _ ) as h, t ) ->
-                                (h :: t)
+                        |> List.foldl
+                            (\( h, t ) ( fromY, acc ) ->
+                                let
+                                    group : List ( OrganKey, OrganPosition )
+                                    group =
+                                        h :: t
+                                in
+                                ( fromY + organHeight + 32 * toFloat (List.length group)
+                                , (group
                                     |> List.sortBy
                                         (\( _, ( pos, _ ) ) ->
                                             let
@@ -450,15 +464,17 @@ innerUpdate shared msg model =
                                             ( key
                                             , ( Point2d.pixels
                                                     (16 * toFloat j + 8)
-                                                    (((organHeight + 32) * toFloat (i + 1))
-                                                        + (32 * toFloat j)
-                                                        + 8
-                                                    )
+                                                    (fromY + (32 * toFloat j))
                                               , 0
                                               )
                                             )
                                         )
+                                  )
+                                    ++ acc
+                                )
                             )
+                            ( 8, [] )
+                        |> Tuple.second
                         |> Dict.fromList
                         |> Dict.union (Dict.fromList paired)
                         |> reStack
@@ -467,7 +483,7 @@ innerUpdate shared msg model =
             )
 
 
-isPaired : Dict ( Int, String ) ( Point2d Pixels (), Int ) -> ( ( Int, String ), ( Point2d Pixels (), Int ) ) -> Bool
+isPaired : Dict OrganKey OrganPosition -> ( OrganKey, OrganPosition ) -> Bool
 isPaired organsPositions organ =
     Dict.Extra.find
         (\key option ->
@@ -478,8 +494,8 @@ isPaired organsPositions organ =
 
 
 reStack :
-    Dict ( Int, String ) ( Point2d Pixels (), Int )
-    -> Dict ( Int, String ) ( Point2d Pixels (), Int )
+    Dict OrganKey OrganPosition
+    -> Dict OrganKey OrganPosition
 reStack organsPositions =
     organsPositions
         |> Dict.toList
@@ -498,7 +514,7 @@ reStack organsPositions =
 trySnap : PlayingModel -> PlayingModel
 trySnap model =
     let
-        sorted : List ( ( Int, String ), ( Point2d Pixels (), Int ) )
+        sorted : List ( OrganKey, OrganPosition )
         sorted =
             model.organsPositions
                 |> Dict.toList
@@ -513,7 +529,7 @@ trySnap model =
                 h :: tail ->
                     pair tail (( h, tail ) :: acc)
 
-        toSnap : List ( ( Int, String ), ( Point2d Pixels (), Int ) )
+        toSnap : List ( OrganKey, OrganPosition )
         toSnap =
             pair sorted []
                 |> List.filterMap
@@ -535,9 +551,9 @@ trySnap model =
 
 
 trySnapTo :
-    ( ( Int, String ), ( Point2d Pixels (), Int ) )
-    -> ( ( Int, String ), ( Point2d Pixels (), Int ) )
-    -> Maybe ( ( Int, String ), ( Point2d Pixels (), Int ) )
+    ( OrganKey, OrganPosition )
+    -> ( OrganKey, OrganPosition )
+    -> Maybe ( OrganKey, OrganPosition )
 trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
     let
         snapLimit : Quantity Float Pixels
@@ -591,7 +607,7 @@ clipOrganPosition position =
         (clamp 0 (svgHeight - organHeight) y)
 
 
-getNewZOrder : Dict ( Int, String ) ( Point2d Pixels (), Int ) -> Int
+getNewZOrder : Dict OrganKey OrganPosition -> Int
 getNewZOrder organsPositions =
     Dict.foldl
         (\_ ( _, z ) acc -> max (z + 1) acc)
@@ -599,7 +615,7 @@ getNewZOrder organsPositions =
         organsPositions
 
 
-raycast : PlayingModel -> Point2d Pixels () -> Maybe ( ( Int, String ), Vector2d Pixels () )
+raycast : PlayingModel -> Point2d Pixels () -> Maybe ( OrganKey, Vector2d Pixels () )
 raycast model position =
     model.organsPositions
         |> Dict.toList
