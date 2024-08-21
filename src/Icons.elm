@@ -1,8 +1,8 @@
 module Icons exposing
-    ( flip, download, upload, minus, plus
+    ( flip, download, upload, minus, plus, remove, reset, stack
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
-    , remove, reset, stack, toElement
+    , toElement
     )
 
 {-|
@@ -10,7 +10,7 @@ module Icons exposing
 
 ## Actions
 
-@docs flip, download, upload, minus, plus
+@docs flip, download, upload, minus, plus, remove, reset, stack
 
 
 ## Moves
@@ -21,6 +21,11 @@ module Icons exposing
 ## Gendertropes
 
 @docs buck, butterfly, custom, doll, fiend, flower, vixen
+
+
+## Utils
+
+@docs toElement
 
 -}
 
@@ -93,14 +98,8 @@ ensheathe =
         []
     ]
         |> Svg.g
-            [ Svg.Attributes.width "1em"
-            , Svg.Attributes.height "1em"
-            , Svg.Attributes.fill "currentColor"
-            , Svg.Attributes.stroke "currentColor"
-            , Svg.Attributes.strokeWidth "2"
-            , Svg.Attributes.strokeLinecap "round"
-            , Svg.Attributes.strokeLinejoin "round"
-            , Svg.Attributes.transform "scale(32)"
+            [ Svg.Attributes.strokeWidth "2"
+            , Svg.Attributes.transform "scale(8)"
             ]
         |> List.singleton
         |> Phosphor.customIcon
