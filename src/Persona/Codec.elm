@@ -288,6 +288,7 @@ toString persona =
      , block 2
         "Unlocked features"
         (persona.features
+            |> (::) 1
             |> List.map
                 (\l -> "- Level " ++ String.fromInt l)
         )
