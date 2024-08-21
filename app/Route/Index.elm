@@ -13,19 +13,16 @@ import FatalError exposing (FatalError)
 import File exposing (File)
 import Head
 import Head.Seo as Seo
-import Html
-import Html.Lazy
 import Icons
-import Json.Decode
 import List.Extra
 import MimeType
+import OrgansSurface
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona
 import Persona.Codec
 import Persona.Data
 import Persona.View
-import Phosphor
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
 import Quantity exposing (Quantity)
@@ -33,13 +30,9 @@ import RouteBuilder exposing (StatefulRoute)
 import Set exposing (Set)
 import Shared
 import Site
-import Svg
-import Svg.Attributes
-import Svg.Events
-import Svg.Keyed
 import Theme
 import Triple
-import Types exposing (Attribute(..), Move, Organ, Persona, StimulationType(..))
+import Types exposing (Attribute(..), Move, Persona, StimulationType(..))
 import UrlPath exposing (UrlPath)
 import Vector2d exposing (Vector2d)
 import View exposing (View)
@@ -450,7 +443,7 @@ rearrange organsPositions =
                     group =
                         h :: t
                 in
-                ( fromY + organHeight + 32 * toFloat (List.length t) + 8
+                ( fromY + OrgansSurface.organHeight + 32 * toFloat (List.length t) + 8
                 , (group
                     |> List.sortBy
                         (\( _, ( pos, _ ) ) ->
@@ -561,7 +554,7 @@ trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
         leftSnap : Point2d Pixels ()
         leftSnap =
             targetPos
-                |> Point2d.translateBy (Vector2d.pixels (-4 - organWidth) 0)
+                |> Point2d.translateBy (Vector2d.pixels (-4 - OrgansSurface.organWidth) 0)
 
         leftVector : Vector2d Pixels ()
         leftVector =
@@ -578,7 +571,7 @@ trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
             rightSnap : Point2d Pixels ()
             rightSnap =
                 targetPos
-                    |> Point2d.translateBy (Vector2d.pixels (4 + organWidth) 0)
+                    |> Point2d.translateBy (Vector2d.pixels (4 + OrgansSurface.organWidth) 0)
 
             rightVector : Vector2d Pixels ()
             rightVector =
@@ -601,8 +594,8 @@ clipOrganPosition position =
             Point2d.toPixels position
     in
     Point2d.pixels
-        (clamp 0 (svgWidth - organWidth) x)
-        (clamp 0 (svgHeight - organHeight) y)
+        (clamp 0 (OrgansSurface.width - OrgansSurface.organWidth) x)
+        (clamp 0 (OrgansSurface.height - OrgansSurface.organHeight) y)
 
 
 getNewZOrder : Dict OrganKey OrganPosition -> Int
@@ -628,7 +621,7 @@ raycast model position =
                     { x, y } =
                         Vector2d.toPixels vec
                 in
-                if x <= 0 && x >= -organWidth && y <= 0 && y >= -organHeight then
+                if x <= 0 && x >= -OrgansSurface.organWidth && y <= 0 && y >= -OrgansSurface.organHeight then
                     Just ( key, vec )
 
                 else
@@ -1043,79 +1036,8 @@ viewRoll model =
                 ]
 
 
-organColors : List String
-organColors =
-    [ "#f0e0e0"
-    , "#e0f0e0"
-    , "#e0e0f0"
-    ]
-
-
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
 viewOrgans shared model =
-    let
-        svgSurface : Html.Html PlayingMsg
-        svgSurface =
-            model.organsPositions
-                |> Dict.toList
-                |> List.sortBy (\( _, ( _, zOrder ) ) -> zOrder)
-                |> List.concatMap
-                    (\( ( i, organName ), ( pos, _ ) ) ->
-                        let
-                            maybePersona : Maybe Persona
-                            maybePersona =
-                                if i < 0 then
-                                    Just model.persona
-
-                                else
-                                    List.Extra.getAt i model.others
-                        in
-                        case maybePersona of
-                            Nothing ->
-                                []
-
-                            Just persona ->
-                                case
-                                    persona.gendertrope
-                                        |> Persona.Data.gendertropeToRecord
-                                        |> .organs
-                                        |> List.Extra.find (\organ -> organ.name == organName)
-                                of
-                                    Nothing ->
-                                        []
-
-                                    Just organ ->
-                                        let
-                                            color : String
-                                            color =
-                                                organColors
-                                                    |> List.drop (modBy (List.length organColors) i)
-                                                    |> List.head
-                                                    |> Maybe.withDefault "white"
-                                        in
-                                        [ Html.Lazy.lazy4 viewOrgan persona color pos organ ]
-                    )
-                |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
-                |> Svg.svg
-                    [ Svg.Attributes.width "100%"
-                    , [ 0
-                      , 0
-                      , svgWidth
-                      , svgHeight
-                      ]
-                        |> List.map String.fromFloat
-                        |> String.join " "
-                        |> Svg.Attributes.viewBox
-                    , Svg.Events.custom "mousedown" (positionDecoder MouseDown)
-                    , case model.dragging of
-                        Just _ ->
-                            Svg.Events.custom "mousemove" (positionDecoder MouseMove)
-
-                        Nothing ->
-                            Svg.Attributes.class ""
-                    , Svg.Events.onMouseUp MouseUp
-                    ]
-    in
     Theme.column [ width fill ]
         [ Theme.row [ width fill ]
             [ el [ Font.bold ] (text "Organs")
@@ -1127,194 +1049,28 @@ viewOrgans shared model =
                 , onPress = Just Rearrange
                 }
             ]
-        , Element.html svgSurface
+        , OrgansSurface.view
+            { mouseDown = MouseDown
+            , mouseUp = MouseUp
+            , mouseMove = MouseMove
+            }
+            model
+            |> Element.html
             |> Theme.el
-                [ width <| px svgWidth
-                , height <| px (ceiling svgHeight)
+                [ width <| px OrgansSurface.width
+                , height <| px (ceiling OrgansSurface.height)
                 , Border.width 1
                 , Background.color Theme.lightPurple
                 ]
             |> Theme.el
                 [ centerX
-                , (floor <| svgWidth + 8)
+                , (floor <| OrgansSurface.width + 8)
                     |> min (shared.width - 2 * Theme.rhythm)
                     |> px
                     |> width
-                , height <| px <| floor (svgHeight + 8)
+                , height <| px <| floor (OrgansSurface.height + 8)
                 , scrollbarX
                 ]
-        ]
-
-
-positionDecoder :
-    (Point2d Pixels () -> msg)
-    ->
-        Json.Decode.Decoder
-            { message : msg
-            , stopPropagation : Bool
-            , preventDefault : Bool
-            }
-positionDecoder toMsg =
-    Json.Decode.field "__svgCoordinates"
-        (Json.Decode.map2
-            (\x y ->
-                { message = toMsg (Point2d.pixels x y)
-                , stopPropagation = True
-                , preventDefault = True
-                }
-            )
-            (Json.Decode.field "x" Json.Decode.float)
-            (Json.Decode.field "y" Json.Decode.float)
-        )
-
-
-svgWidth : number
-svgWidth =
-    1600
-
-
-svgHeight : Float
-svgHeight =
-    svgWidth * 9 / 16
-
-
-organWidth : number
-organWidth =
-    260
-
-
-organHeight : number
-organHeight =
-    24 * 6 + 16
-
-
-type TextAnchor
-    = AnchorStart
-    | AnchorMiddle
-    | AnchorEnd
-
-
-viewOrgan : Persona -> String -> Point2d Pixels () -> Organ -> Svg.Svg msg
-viewOrgan persona color pos organ =
-    let
-        { x, y } =
-            Point2d.toPixels pos
-
-        textAt :
-            List (Svg.Attribute msg)
-            ->
-                { x : Float
-                , y : Float
-                , label : String
-                , anchor : TextAnchor
-                }
-            -> Svg.Svg msg
-        textAt attrs config =
-            Svg.text_
-                (Svg.Attributes.x
-                    (String.fromFloat
-                        (case config.anchor of
-                            AnchorStart ->
-                                8 + config.x
-
-                            AnchorMiddle ->
-                                organWidth / 2
-
-                            AnchorEnd ->
-                                organWidth - 8 - config.x
-                        )
-                    )
-                    :: Svg.Attributes.y (String.fromFloat (8 + 24 * config.y))
-                    :: Svg.Attributes.textAnchor
-                        (case config.anchor of
-                            AnchorStart ->
-                                "start"
-
-                            AnchorMiddle ->
-                                "middle"
-
-                            AnchorEnd ->
-                                "end"
-                        )
-                    :: Svg.Attributes.dominantBaseline "hanging"
-                    :: attrs
-                )
-                [ Svg.text config.label ]
-
-        iifLeft : Bool -> String -> Float -> Svg.Svg msg
-        iifLeft condition label dy =
-            textAt
-                [ if condition then
-                    Svg.Attributes.fill "black"
-
-                  else
-                    Svg.Attributes.fill "gray"
-                ]
-                { x = 0
-                , y = dy
-                , label = "⇒ " ++ label
-                , anchor = AnchorStart
-                }
-
-        iifRight : Bool -> String -> Float -> Svg.Svg msg
-        iifRight condition label dy =
-            textAt
-                [ if condition then
-                    Svg.Attributes.fill "black"
-
-                  else
-                    Svg.Attributes.fill "gray"
-                ]
-                { x = 0
-                , y = dy
-                , label = label ++ " ⇒"
-                , anchor = AnchorEnd
-                }
-    in
-    Svg.g
-        [ Svg.Attributes.transform
-            ("translate(" ++ String.fromFloat x ++ " " ++ String.fromFloat y ++ ")")
-        ]
-        [ Svg.rect
-            [ Svg.Attributes.width (String.fromFloat organWidth)
-            , Svg.Attributes.height (String.fromFloat organHeight)
-            , Svg.Attributes.stroke "black"
-            , Svg.Attributes.fill color
-            ]
-            []
-        , Persona.Data.gendertropeIcon persona.gendertrope
-            |> Phosphor.withSize 24
-            |> Phosphor.withSizeUnit "px"
-            |> Phosphor.toHtml
-                [ Svg.Attributes.transform
-                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 8 ++ ")")
-                ]
-        , textAt []
-            { x = 32
-            , y = 0
-            , label = organ.name
-            , anchor = AnchorStart
-            }
-        , textAt []
-            { x = 0
-            , y = 1
-            , label = "Contour: " ++ String.fromInt organ.contour
-            , anchor = AnchorStart
-            }
-        , textAt []
-            { x = 0
-            , y = 1
-            , label = "Erogeny: " ++ String.fromInt organ.erogeny
-            , anchor = AnchorEnd
-            }
-        , iifLeft organ.isSquishable "IS" 2
-        , iifLeft organ.isGrippable "IG" 3
-        , iifLeft organ.isPenetrable "IP" 4
-        , iifLeft organ.isEnsheatheable "IE" 5
-        , iifRight organ.canSquish "CS" 2
-        , iifRight organ.canGrip "CG" 3
-        , iifRight organ.canPenetrate "CP" 4
-        , iifRight organ.canEnsheathe "CE" 5
         ]
 
 
