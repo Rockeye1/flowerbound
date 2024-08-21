@@ -4,7 +4,7 @@ import BackendTask exposing (BackendTask)
 import Dict exposing (Dict)
 import Dict.Extra
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, scrollbarX, scrollbars, shrink, text, width)
+import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, scrollbarX, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -152,7 +152,7 @@ init _ _ =
 
 
 update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
-update _ shared msg model =
+update _ _ msg model =
     case msg of
         LoadFromUrl url ->
             case Persona.Codec.fromUrl url of
@@ -181,7 +181,7 @@ update _ shared msg model =
                 Playing playingModel ->
                     let
                         ( newModel, effect ) =
-                            innerUpdate shared playingMsg playingModel
+                            innerUpdate playingMsg playingModel
                     in
                     ( Playing (checkOrgans newModel), Effect.map PlayingMsg effect )
 
@@ -234,8 +234,8 @@ checkOrgans model =
     }
 
 
-innerUpdate : Shared.Model -> PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
-innerUpdate shared msg model =
+innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
+innerUpdate msg model =
     let
         alterMeters : (Meters -> Meters) -> ( PlayingModel, Effect msg )
         alterMeters f =
@@ -431,56 +431,56 @@ innerUpdate shared msg model =
             ( { model | organsPositions = reStack model.organsPositions }, Effect.none )
 
         Rearrange ->
-            ( { model
-                | organsPositions =
-                    let
-                        ( paired, unpaired ) =
-                            model.organsPositions
-                                |> Dict.toList
-                                |> List.partition (isPaired model.organsPositions)
-                    in
-                    unpaired
-                        |> List.Extra.gatherEqualsBy
-                            (\( ( i, _ ), _ ) -> i)
-                        |> List.foldl
-                            (\( h, t ) ( fromY, acc ) ->
-                                let
-                                    group : List ( OrganKey, OrganPosition )
-                                    group =
-                                        h :: t
-                                in
-                                ( fromY + organHeight + 32 * toFloat (List.length group)
-                                , (group
-                                    |> List.sortBy
-                                        (\( _, ( pos, _ ) ) ->
-                                            let
-                                                { x, y } =
-                                                    Point2d.toPixels pos
-                                            in
-                                            x + 8 * y
-                                        )
-                                    |> List.indexedMap
-                                        (\j ( key, _ ) ->
-                                            ( key
-                                            , ( Point2d.pixels
-                                                    (16 * toFloat j + 8)
-                                                    (fromY + (32 * toFloat j))
-                                              , 0
-                                              )
-                                            )
-                                        )
-                                  )
-                                    ++ acc
-                                )
+            ( { model | organsPositions = rearrange model.organsPositions }, Effect.none )
+
+
+rearrange : Dict OrganKey OrganPosition -> Dict OrganKey OrganPosition
+rearrange organsPositions =
+    let
+        ( paired, unpaired ) =
+            organsPositions
+                |> Dict.toList
+                |> List.partition (isPaired organsPositions)
+    in
+    unpaired
+        |> List.Extra.gatherEqualsBy
+            (\( ( i, _ ), _ ) -> i)
+        |> List.foldl
+            (\( h, t ) ( fromY, acc ) ->
+                let
+                    group : List ( OrganKey, OrganPosition )
+                    group =
+                        h :: t
+                in
+                ( fromY + organHeight + 32 * toFloat (List.length t) + 8
+                , (group
+                    |> List.sortBy
+                        (\( _, ( pos, _ ) ) ->
+                            let
+                                { x, y } =
+                                    Point2d.toPixels pos
+                            in
+                            x + 8 * y
+                        )
+                    |> List.indexedMap
+                        (\j ( key, _ ) ->
+                            ( key
+                            , ( Point2d.pixels
+                                    (16 * toFloat j + 8)
+                                    (fromY + (32 * toFloat j))
+                              , 0
+                              )
                             )
-                            ( 8, [] )
-                        |> Tuple.second
-                        |> Dict.fromList
-                        |> Dict.union (Dict.fromList paired)
-                        |> reStack
-              }
-            , Effect.none
+                        )
+                  )
+                    ++ acc
+                )
             )
+            ( 8, [] )
+        |> Tuple.second
+        |> Dict.fromList
+        |> Dict.union (Dict.fromList paired)
+        |> reStack
 
 
 isPaired : Dict OrganKey OrganPosition -> ( OrganKey, OrganPosition ) -> Bool
