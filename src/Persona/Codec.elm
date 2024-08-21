@@ -525,8 +525,9 @@ gendertropeRecordParser name =
                     in
                     Just { semitransparent = semitransparent, opaque = opaque }
                 )
+                |. headerParser 3 (Parser.keyword "Icon")
                 |= Parser.sequence
-                    { start = "### Icon"
+                    { start = ""
                     , end = ""
                     , separator = ""
                     , spaces = Parser.spaces
