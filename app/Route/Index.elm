@@ -14,6 +14,7 @@ import File exposing (File)
 import Head
 import Head.Seo as Seo
 import Html
+import Html.Lazy
 import Icons
 import Json.Decode
 import List.Extra
@@ -35,6 +36,7 @@ import Site
 import Svg
 import Svg.Attributes
 import Svg.Events
+import Svg.Keyed
 import Theme
 import Triple
 import Types exposing (Attribute(..), Move, Organ, Persona, StimulationType(..))
@@ -1091,7 +1093,7 @@ viewOrgans shared model =
                                                     |> List.head
                                                     |> Maybe.withDefault "white"
                                         in
-                                        [ viewOrgan persona color pos organ ]
+                                        [ Html.Lazy.lazy4 viewOrgan persona color pos organ ]
                     )
                 |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
                 |> Svg.svg
