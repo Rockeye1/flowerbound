@@ -79,7 +79,6 @@ type PlayingMsg
     | MouseDown (Point2d Pixels ())
     | MouseMove (Point2d Pixels ())
     | MouseUp
-    | ReStack
     | Rearrange
     | Remove Int
 
@@ -425,10 +424,7 @@ innerUpdate msg model =
                     )
 
         MouseUp ->
-            ( { model | dragging = Nothing }, Effect.none )
-
-        ReStack ->
-            ( { model | organsPositions = reStack model.organsPositions }, Effect.none )
+            ( { model | dragging = Nothing, organsPositions = reStack model.organsPositions }, Effect.none )
 
         Rearrange ->
             ( { model | organsPositions = rearrange model.organsPositions }, Effect.none )
@@ -1123,17 +1119,10 @@ viewOrgans shared model =
             [ el [ Font.bold ] (text "Organs")
             , Theme.button
                 [ alignRight
-                , Theme.title "Rearrange"
+                , Theme.title "Rearrange unpaired organs"
                 ]
                 { label = Icons.reset
                 , onPress = Just Rearrange
-                }
-            , Theme.button
-                [ alignRight
-                , Theme.title "Restack"
-                ]
-                { label = Icons.stack
-                , onPress = Just ReStack
                 }
             ]
         , Element.html svgSurface
