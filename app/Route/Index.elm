@@ -56,7 +56,7 @@ type PlayingMsg
     | AddFromUrl String
     | UpdateMeters Meters
     | SelectMove (Maybe String)
-    | SelectTemperament (Maybe String)
+    | SelectTemperament (Maybe Temperament)
     | BeginEncounter
     | Rest
     | RestedSatiation Int
@@ -90,11 +90,18 @@ type alias PlayingModel =
     , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
-    , selectedTemperament : Maybe String
+    , selectedTemperament : Maybe Temperament
     , valiantModifier : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
     , dragging : Maybe ( OrganKey, Vector2d Pixels () )
     }
+
+
+type Temperament
+    = Innocent
+    | Thoughtful
+    | Perverse
+    | Valiant
 
 
 type alias OrganKey =
@@ -1083,7 +1090,7 @@ viewOrgasm model =
     let
         modifiers : Int
         modifiers =
-            if model.selectedTemperament == Just "Valiant" then
+            if model.selectedTemperament == Just Valiant then
                 if model.valiantModifier < model.meters.stamina then
                     model.valiantModifier
 
@@ -1111,7 +1118,7 @@ viewOrgasm model =
                 , Background.color Theme.purple
                 , Font.color Theme.white
                 ]
-                (if model.selectedTemperament == Just "Valiant" then
+                (if model.selectedTemperament == Just Valiant then
                     [ text "You are having an orgasm!"
                     ]
 
@@ -1127,7 +1134,7 @@ viewOrgasm model =
                 [ Theme.padding
                 , Border.width 1
                 ]
-                (if model.selectedTemperament == Just "Valiant" && model.meters.arousal > model.meters.sensitivity + model.meters.satiation then
+                (if model.selectedTemperament == Just Valiant && model.meters.arousal > model.meters.sensitivity + model.meters.satiation then
                     [ text "You are resisting "
                     , el [ Font.bold ] (text "Valiant")
                     , text "ly."
@@ -1155,7 +1162,7 @@ viewOrgasm model =
                     ++ String.fromInt orgasmThreshold
                 )
             ]
-        , if model.selectedTemperament == Just "Valiant" then
+        , if model.selectedTemperament == Just Valiant then
             Theme.row [ width fill ]
                 [ if model.valiantModifier < model.meters.stamina then
                     paragraph []
@@ -1188,16 +1195,16 @@ viewOrgasm model =
 
 viewTemperaments : PlayingModel -> Element PlayingMsg
 viewTemperaments model =
-    [ ( "Innocent", "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**." )
-    , ( "Thoughtful", "You are dwelling on the emotions and emotional implications and the shape of your future.", "When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**." )
-    , ( "Perverse", "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Sensitivity** value, add the result to your **Craving** value." )
-    , ( "Valiant", "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "When calculating whether or not you are currently having an **Orgasm**, roll a **Moxie Check**. If the result is _less_ than your current **Stamina** value, add the result to your Orgasm Threshold as a Modifier." )
+    [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**." )
+    , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**." )
+    , ( Perverse, "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Sensitivity** value, add the result to your **Craving** value." )
+    , ( Valiant, "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "When calculating whether or not you are currently having an **Orgasm**, roll a **Moxie Check**. If the result is _less_ than your current **Stamina** value, add the result to your Orgasm Threshold as a Modifier." )
     ]
         |> List.map (viewTemperament model)
         |> Theme.wrappedRow [ width fill ]
 
 
-viewTemperament : PlayingModel -> ( String, String, String ) -> Element PlayingMsg
+viewTemperament : PlayingModel -> ( Temperament, String, String ) -> Element PlayingMsg
 viewTemperament model ( name, description, consequence ) =
     let
         selected : Bool
@@ -1219,13 +1226,29 @@ viewTemperament model ( name, description, consequence ) =
         , label =
             Theme.column [ alignTop ]
                 (paragraph []
-                    [ el [ Font.bold ] (text name)
+                    [ el [ Font.bold ] (text (temperamentToString name))
                     , text " "
                     , text description
                     ]
                     :: Theme.viewMarkdown consequence
                 )
         }
+
+
+temperamentToString : Temperament -> String
+temperamentToString temperament =
+    case temperament of
+        Valiant ->
+            "Valiant"
+
+        Innocent ->
+            "Innocent"
+
+        Thoughtful ->
+            "Thoughtful"
+
+        Perverse ->
+            "Perverse"
 
 
 viewMoves : PlayingModel -> Element PlayingMsg
