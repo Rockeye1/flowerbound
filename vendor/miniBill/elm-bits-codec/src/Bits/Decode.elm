@@ -1,4 +1,4 @@
-module Bits.Decode exposing (Decoder, Error(..), Step(..), andMap, andThen, array, bit, bits, bool, bytes, fail, int, list, loop, map, map2, map3, map4, map5, nonNegativeInt, positiveInt, problem, run, string, succeed)
+module Bits.Decode exposing (Decoder, Error(..), Step(..), andMap, andThen, array, bit, bits, bool, bytes, fail, int, list, loop, map, map2, map3, map4, map5, maybe, nonNegativeInt, positiveInt, problem, run, string, succeed)
 
 import Array exposing (Array)
 import Bit exposing (Bit)
@@ -234,6 +234,20 @@ list item =
                                     )
                     )
                     ( len, [] )
+            )
+
+
+maybe : Decoder x a -> Decoder x (Maybe a)
+maybe item =
+    bit
+        |> andThen
+            (\b ->
+                case b of
+                    Bit.O ->
+                        succeed Nothing
+
+                    Bit.I ->
+                        map Just item
             )
 
 

@@ -4,6 +4,8 @@ import Dict
 import Element exposing (Element)
 import Icons
 import Phosphor
+import Svg
+import Svg.Attributes
 import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
 
 
@@ -34,13 +36,35 @@ gendertropeIcon gendertrope =
         Doll ->
             Icons.doll
 
-        Custom { name } ->
-            case gendertropeFromName name of
-                Just g ->
-                    gendertropeIcon g
+        Custom { name, icon } ->
+            case icon of
+                Just { semitransparent, opaque } ->
+                    (List.map
+                        (\path ->
+                            Svg.path
+                                [ Svg.Attributes.d path
+                                , Svg.Attributes.opacity "0.2"
+                                ]
+                                []
+                        )
+                        semitransparent
+                        ++ List.map
+                            (\path ->
+                                Svg.path
+                                    [ Svg.Attributes.d path ]
+                                    []
+                            )
+                            opaque
+                    )
+                        |> Phosphor.customIcon
 
                 Nothing ->
-                    Icons.custom
+                    case gendertropeFromName name of
+                        Just g ->
+                            gendertropeIcon g
+
+                        Nothing ->
+                            Icons.custom
 
 
 gendertropeToRecord : Gendertrope -> GendertropeRecord
@@ -207,6 +231,7 @@ butterfly =
         , phallic "Veiny Futa Phallus"
         , legs "Long Shapely Legs"
         ]
+    , icon = Nothing
     }
 
 
@@ -308,6 +333,7 @@ flower =
         , yonic "Yielding Silken Quim"
         , legs "Cute Limber Legs"
         ]
+    , icon = Nothing
     }
 
 
@@ -409,6 +435,7 @@ vixen =
         , yonic "Juicy Nether Cleft"
         , legs "Beastly Hunter Legs"
         ]
+    , icon = Nothing
     }
 
 
@@ -513,6 +540,7 @@ buck =
         , phallic "Throbbing Meat Pole"
         , legs "Quick Springy Legs"
         ]
+    , icon = Nothing
     }
 
 
@@ -600,6 +628,7 @@ fiend =
         , phallic "Darkly Dreaming Dick"
         , legs "Fit Flexible Legs"
         ]
+    , icon = Nothing
     }
 
 
@@ -689,6 +718,7 @@ doll =
     , organs =
         -- TODO
         [ hips "Pliable Femme Hips" ]
+    , icon = Nothing
     }
 
 

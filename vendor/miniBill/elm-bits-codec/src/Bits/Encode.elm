@@ -1,4 +1,4 @@
-module Bits.Encode exposing (array, bool, int, list, nonNegativeInt, positiveInt, string)
+module Bits.Encode exposing (array, bool, int, list, maybe, nonNegativeInt, positiveInt, string)
 
 import Array exposing (Array)
 import Bit exposing (Bit)
@@ -57,6 +57,17 @@ list f input =
         (\e acc -> acc |> Rope.prependTo (f e))
         (nonNegativeInt (List.length input))
         input
+
+
+maybe : (a -> Rope Bit) -> Maybe a -> Rope Bit
+maybe f input =
+    case input of
+        Nothing ->
+            Rope.singleton Bit.O
+
+        Just value ->
+            Rope.singleton Bit.I
+                |> Rope.prependTo (f value)
 
 
 string : String -> Rope Bit

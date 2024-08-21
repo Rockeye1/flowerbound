@@ -80,6 +80,11 @@ type alias GendertropeRecord =
     , description : String
     , organs : List Organ
     , features : Dict Int Feature
+    , icon :
+        Maybe
+            { opaque : List String
+            , semitransparent : List String
+            }
     }
 
 

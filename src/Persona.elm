@@ -189,6 +189,7 @@ partialGendertropeToGendertrope gendertrope maybeGendertrope =
                     , description = ""
                     , features = Dict.empty
                     , organs = []
+                    , icon = Nothing
                     }
                 |> Custom
 

@@ -13,6 +13,7 @@ import Parser exposing ((|.), (|=), Parser)
 import Parser.Workaround
 import Persona
 import Persona.Data as Data
+import Result.Extra
 import Rope
 import Route exposing (Route)
 import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona)
@@ -322,6 +323,15 @@ gendertropeRecordToString gendertrope =
         )
     ]
         ++ List.map featureToString (Dict.toList gendertrope.features)
+        ++ (case gendertrope.icon of
+                Nothing ->
+                    []
+
+                Just { semitransparent, opaque } ->
+                    List.map (Tuple.pair "Semitransparent") semitransparent
+                        ++ List.map (Tuple.pair "Opaque") opaque
+                        |> ul
+           )
 
 
 featureToString : ( Int, Feature ) -> String
@@ -484,28 +494,60 @@ gendertropeRecordParser name =
             , item = organParser
             , trailing = Parser.Optional
             }
-        |= (Parser.sequence
-                { start = ""
-                , end = ""
-                , separator = ""
-                , spaces = Parser.spaces
-                , item =
-                    Parser.succeed Tuple.pair
-                        |= headerParser 3
-                            (Parser.succeed identity
-                                |. Parser.keyword "Level"
-                                |. Parser.spaces
-                                |= Parser.int
-                                |. Parser.spaces
-                                |. Parser.keyword "Feature"
-                                |. Parser.spaces
-                                |. Parser.symbol ":"
-                            )
-                        |= featureParser
-                , trailing = Parser.Optional
-                }
-                |> Parser.map Dict.fromList
+        |= (Parser.succeed Dict.fromList
+                |= Parser.sequence
+                    { start = ""
+                    , end = ""
+                    , separator = ""
+                    , spaces = Parser.spaces
+                    , item =
+                        Parser.succeed Tuple.pair
+                            |= headerParser 3
+                                (Parser.succeed identity
+                                    |. Parser.keyword "Level"
+                                    |. Parser.spaces
+                                    |= Parser.int
+                                    |. Parser.spaces
+                                    |. Parser.keyword "Feature"
+                                    |. Parser.spaces
+                                    |. Parser.symbol ":"
+                                )
+                            |= featureParser
+                    , trailing = Parser.Optional
+                    }
            )
+        |= Parser.oneOf
+            [ Parser.succeed
+                (\pieces ->
+                    let
+                        ( semitransparent, opaque ) =
+                            pieces |> Result.Extra.partition
+                    in
+                    Just { semitransparent = semitransparent, opaque = opaque }
+                )
+                |= Parser.sequence
+                    { start = "### Icon"
+                    , end = ""
+                    , separator = ""
+                    , spaces = Parser.spaces
+                    , item =
+                        Parser.succeed identity
+                            |. Parser.symbol "-"
+                            |. Parser.spaces
+                            |= Parser.oneOf
+                                [ Parser.succeed Err
+                                    |. Parser.symbol "Semitransparent"
+                                , Parser.succeed Ok
+                                    |. Parser.symbol "Opaque"
+                                ]
+                            |. Parser.spaces
+                            |. Parser.symbol ":"
+                            |. Parser.spaces
+                            |= Parser.getChompedString (Parser.Workaround.chompUntilEndOrBefore "\n")
+                    , trailing = Parser.Optional
+                    }
+            , Parser.succeed Nothing
+            ]
 
 
 organParser : Parser Organ
@@ -720,6 +762,20 @@ gendertropeRecord =
         |> Codec.field .description Codec.string
         |> Codec.field .organs (Codec.list organ)
         |> Codec.field .features (Codec.dict Codec.positiveInt feature)
+        |> Codec.field .icon (Codec.maybe iconCodec)
+        |> Codec.buildObject
+
+
+iconCodec : Codec e { opaque : List String, semitransparent : List String }
+iconCodec =
+    Codec.object
+        (\opaque semitransparent ->
+            { opaque = opaque
+            , semitransparent = semitransparent
+            }
+        )
+        |> Codec.field .opaque (Codec.list Codec.string)
+        |> Codec.field .semitransparent (Codec.list Codec.string)
         |> Codec.buildObject
 
 

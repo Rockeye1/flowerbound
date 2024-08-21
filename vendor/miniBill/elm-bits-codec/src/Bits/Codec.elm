@@ -1,4 +1,4 @@
-module Bits.Codec exposing (Codec, CustomCodec, ObjectCodec, array, bool, buildCustom, buildObject, custom, dict, field, int, intWithMinimum, list, map, nonNegativeInt, object, positiveInt, string, succeed, tuple, variant0, variant1)
+module Bits.Codec exposing (Codec, CustomCodec, ObjectCodec, array, bool, buildCustom, buildObject, custom, dict, field, int, intWithMinimum, list, map, maybe, nonNegativeInt, object, positiveInt, string, succeed, tuple, variant0, variant1)
 
 import Array exposing (Array)
 import Bit exposing (Bit)
@@ -57,6 +57,11 @@ array inner =
 list : Codec e a -> Codec e (List a)
 list inner =
     composite Bits.Encode.list Bits.Decode.list inner
+
+
+maybe : Codec e a -> Codec e (Maybe a)
+maybe inner =
+    composite Bits.Encode.maybe Bits.Decode.maybe inner
 
 
 composite :
