@@ -64,11 +64,29 @@ gendertropeFuzzer =
 
 gendertropeRecordFuzzer : Fuzzer Persona.GendertropeRecord
 gendertropeRecordFuzzer =
-    Fuzz.map4 Persona.GendertropeRecord
+    Fuzz.map5 Persona.GendertropeRecord
         tameString
         tameString
         (Fuzz.list organFuzzer)
         (Fuzz.map Dict.fromList (Fuzz.list (Fuzz.pair (Fuzz.intAtLeast 1) featureFuzzer)))
+        (Fuzz.maybe iconFuzzer)
+
+
+iconFuzzer : Fuzzer { opaque : List String, semitransparent : List String }
+iconFuzzer =
+    Fuzz.map2
+        (\opaque semitransparent ->
+            { opaque = opaque
+            , semitransparent = semitransparent
+            }
+        )
+        (Fuzz.list tameString)
+        (Fuzz.list tameString)
+        |> Fuzz.filter
+            (\icon ->
+                not (List.isEmpty icon.opaque)
+                    || not (List.isEmpty icon.semitransparent)
+            )
 
 
 featureFuzzer : Fuzzer Persona.Feature

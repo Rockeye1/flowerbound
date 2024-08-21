@@ -328,9 +328,13 @@ gendertropeRecordToString gendertrope =
                     []
 
                 Just { semitransparent, opaque } ->
-                    List.map (Tuple.pair "Semitransparent") semitransparent
-                        ++ List.map (Tuple.pair "Opaque") opaque
-                        |> ul
+                    [ block 3
+                        "Icon"
+                        (List.map (Tuple.pair "Semitransparent") semitransparent
+                            ++ List.map (Tuple.pair "Opaque") opaque
+                            |> ul
+                        )
+                    ]
            )
 
 
@@ -520,8 +524,8 @@ gendertropeRecordParser name =
             [ Parser.succeed
                 (\pieces ->
                     let
-                        ( semitransparent, opaque ) =
-                            pieces |> Result.Extra.partition
+                        ( opaque, semitransparent ) =
+                            Result.Extra.partition pieces
                     in
                     Just { semitransparent = semitransparent, opaque = opaque }
                 )
@@ -676,9 +680,12 @@ headerParser level inner =
             String.repeat level "#"
     in
     Parser.succeed identity
-        |. Parser.symbol hashes
-        |. Parser.spaces
+        |. Parser.backtrackable
+            (Parser.symbol hashes
+                |. Parser.spaces
+            )
         |= inner
+        |. Parser.commit ()
         |. Parser.spaces
 
 
