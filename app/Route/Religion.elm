@@ -422,7 +422,7 @@ children religions =
             ]
       , g [ stroke (Paint purple) ] lines
       , g
-            [ fontSize (baseWidth / 20) ]
+            [ fontSize (baseWidth / 14) ]
             (List.indexedMap viewReligion religions)
       ]
     )
