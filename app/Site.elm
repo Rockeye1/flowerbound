@@ -1,11 +1,14 @@
-module Site exposing (config, manifest)
+module Site exposing (config, defaultSummary, image, manifest)
 
 import BackendTask exposing (BackendTask)
 import Color
 import Element
 import FatalError exposing (FatalError)
 import Head
+import Head.Seo as Seo
 import Hex
+import LanguageTag.Language
+import LanguageTag.Region
 import MimeType
 import Pages.Manifest as Manifest
 import Pages.Url
@@ -20,6 +23,24 @@ config =
         -- "http://localhost:1234"
         "https://uriel.tail1b193.ts.net"
     , head = head
+    }
+
+
+defaultSummary :
+    { canonicalUrlOverride : Maybe String
+    , siteName : String
+    , image : Seo.Image
+    , description : String
+    , locale : Maybe ( LanguageTag.Language.Language, LanguageTag.Region.Region )
+    , title : String
+    }
+defaultSummary =
+    { canonicalUrlOverride = Nothing
+    , siteName = manifest.name
+    , image = image
+    , description = manifest.description
+    , locale = Nothing
+    , title = manifest.name
     }
 
 
@@ -81,4 +102,17 @@ androidChromeIcon size =
     , mimeType = Just MimeType.Png
     , sizes = [ ( size, size ) ]
     , purposes = []
+    }
+
+
+image : { url : Pages.Url.Url, alt : String, dimensions : Maybe { width : Int, height : Int }, mimeType : Maybe MimeType.MimeType }
+image =
+    let
+        icon =
+            androidChromeIcon 192
+    in
+    { url = icon.src
+    , alt = "An orchid"
+    , dimensions = Just { width = 192, height = 192 }
+    , mimeType = Maybe.map MimeType.Image icon.mimeType
     }

@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, lightPurple, link, multiline, noAttribute, padding, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, input, lightGray, lightPurple, link, multiline, noAttribute, padding, pageTitle, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -532,3 +532,15 @@ slider attrs config =
                     , Background.color lightPurple
                     ]
             }
+
+
+pageTitle : String -> Element msg
+pageTitle label =
+    Element.el
+        [ Font.size 40
+        , Font.bold
+        , Font.color purple
+        , Font.center
+        , Element.width Element.fill
+        ]
+        (Element.text label)

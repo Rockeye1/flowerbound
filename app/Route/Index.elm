@@ -15,9 +15,7 @@ import Head
 import Head.Seo as Seo
 import Icons
 import List.Extra
-import MimeType
 import OrgansSurface
-import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Persona
 import Persona.Codec
@@ -665,24 +663,7 @@ subscriptions _ _ _ _ =
 
 head : RouteBuilder.App Data ActionData RouteParams -> List Head.Tag
 head _ =
-    let
-        image : Seo.Image
-        image =
-            { url = Pages.Url.fromPath [ "/android-chrome-192x192.png" ]
-            , alt = "An orchid"
-            , dimensions = Nothing
-            , mimeType = Just (MimeType.Image MimeType.Png)
-            }
-    in
-    Seo.summary
-        { canonicalUrlOverride = Nothing
-        , siteName = Site.manifest.name
-        , image = image
-        , description = Site.manifest.description
-        , locale = Nothing
-        , title = Site.manifest.name
-        }
-        |> Seo.website
+    Seo.summary Site.defaultSummary |> Seo.website
 
 
 data : BackendTask FatalError Data

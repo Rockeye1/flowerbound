@@ -8,6 +8,7 @@ import Pages.Manifest as Manifest
 import Persona.Codec
 import Route exposing (Route)
 import Route.Persona.Name_.Data__ as Persona
+import Route.Religion
 import Site
 import Sitemap
 import Url
