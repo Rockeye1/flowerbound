@@ -419,25 +419,6 @@ children religions =
                     )
                 |> String.join "\n\n"
                 |> text
-            , let
-                _ =
-                    Debug.todo
-              in
-              text
-                ("""
-                #religion-2 > .movable {
-                    stroke-width: """ ++ String.fromFloat (baseWidth / 275) ++ """px;
-                    transform: matrix(""" ++ String.fromFloat maxScale ++ """, 0, 0, """ ++ String.fromFloat maxScale ++ """, 0, 0);
-                }
-
-                #religion-2 > .hidable {
-                    opacity: 0;
-                }
-
-                #religion-2 > .showable {
-                    opacity: 1;
-                }
-                """)
             ]
       , g [ stroke (Paint purple) ] lines
       , g
@@ -490,11 +471,11 @@ viewReligion i religion =
             [ let
                 pWidth : Float
                 pWidth =
-                    religionRadius * 1.45
+                    religionRadius * 1.6
 
                 pHeight : Float
                 pHeight =
-                    religionRadius * 1.6
+                    religionRadius * 2
               in
               foreignObject
                 [ x -(pWidth / 2)
@@ -505,26 +486,75 @@ viewReligion i religion =
                 [ Html.p
                     [ Html.Attributes.attribute "xmlns" "http://www.w3.org/1999/xhtml"
                     , Html.Attributes.style "text-align" "center"
-                    , Html.Attributes.style "font-size" "36px"
-                    , Html.Attributes.style "line-height" "1.1"
+                    , Html.Attributes.style "font-size" "28px"
+                    , Html.Attributes.style "gap" "8px"
+                    , Html.Attributes.style "margin" "0"
+                    , Html.Attributes.style "display" "flex"
+                    , Html.Attributes.style "flex-direction" "column"
+                    , Html.Attributes.style "align-items" "center"
+                    , Html.Attributes.style "justify-content" "center"
+                    , Html.Attributes.style "height" "inherit"
                     ]
                     (Html.b [] [ Html.u [] [ Html.text ("The Apoasteri of " ++ name) ] ]
                         :: Html.br [] []
-                        :: (case religion of
+                        :: List.map (Html.span [])
+                            (case religion of
                                 Named named ->
                                     (named.story
-                                        |> List.map (\line -> Html.i [] [ Html.text line ])
-                                        |> List.intersperse (Html.br [] [])
+                                        |> List.map (\line -> [ Html.i [] [ Html.text line ] ])
                                     )
-                                        ++ []
+                                        ++ [ [ Html.b [] [ Html.text named.deity.name ]
+                                             , Html.text ", the "
+                                             , Html.b [] [ Html.text named.deity.title ]
+                                             , Html.text " is the goddess of "
+                                             , named.deity.description
+                                                |> parsed
+                                             ]
+                                           , [ Html.text "Her holy symbol is "
+                                             , Html.b [] [ Html.text named.deity.holySymbol ]
+                                             , Html.text ", and her divine realm is called "
+                                             , Html.b [] [ Html.text named.deity.realm.name ]
+                                             , Html.text (", the " ++ named.deity.realm.meaning ++ ". It is not a place, but rather a nature any place can take on.")
+                                             ]
+                                           ]
 
-                                Apotheosis _ ->
-                                    []
-                           )
+                                Apotheosis { description } ->
+                                    description
+                                        |> List.map (\line -> [ parsed line ])
+                            )
                     )
                 ]
             ]
         ]
+
+
+parsed : String -> Html msg
+parsed line =
+    let
+        splitB segment =
+            segment
+                |> String.split "*"
+                |> List.indexedMap
+                    (\i subSegment ->
+                        if modBy 2 i == 1 then
+                            Html.b [] [ Html.text subSegment ]
+
+                        else
+                            Html.text subSegment
+                    )
+    in
+    line
+        |> String.split "_"
+        |> List.indexedMap
+            (\i segment ->
+                if modBy 2 i == 1 then
+                    [ Html.i [] (splitB segment) ]
+
+                else
+                    splitB segment
+            )
+        |> List.concat
+        |> Html.span []
 
 
 purple : Color
