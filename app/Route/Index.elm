@@ -795,17 +795,22 @@ viewPlaying shared ({ meters, persona } as model) =
     Theme.column [ width fill ]
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
-        , Theme.row []
-            [ Theme.iconAndTextButton [ width fill ]
-                { onPress = Just BeginEncounter
-                , label = "Begin Encounter"
-                , icon = Icons.beginEncounter
-                }
-            , Theme.iconAndTextButton [ width fill ]
+        , paragraph [ width fill ]
+            [ text "Before an encounter you should probably "
+            , Theme.iconAndTextButton [ width shrink ]
                 { onPress = Just Rest
                 , icon = Icons.rest
                 , label = "Rest"
                 }
+            , text " to reset your "
+            , el [ Font.bold ] (text "Satiation")
+            , text " and Craving and then "
+            , Theme.iconAndTextButton [ width fill ]
+                { onPress = Just BeginEncounter
+                , label = "Begin the Encounter"
+                , icon = Icons.beginEncounter
+                }
+            , el [ width fill ] Element.none
             ]
         , Theme.table [ width fill ]
             { data =
