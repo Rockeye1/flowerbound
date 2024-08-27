@@ -10,7 +10,7 @@ import Pages.PageUrl exposing (PageUrl)
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
 import Ui
-import Ui.Font
+import Ui.Font as Font
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -114,13 +114,13 @@ view _ _ _ _ pageView =
               --         }
               -- },
               Ui.height Ui.fill
-            , Ui.Font.family
-                [ Ui.Font.typeface "Open Sans"
-                , Ui.Font.typeface "Helvetica"
-                , Ui.Font.typeface "Verdana"
-                , Ui.Font.sansSerif
+            , Font.family
+                [ Font.typeface "Open Sans"
+                , Font.typeface "Helvetica"
+                , Font.typeface "Verdana"
+                , Font.sansSerif
                 ]
-            , Ui.Font.size 20
+            , Font.size 20
             ]
             pageView.body
         ]

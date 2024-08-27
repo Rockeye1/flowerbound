@@ -11,7 +11,7 @@ import Types exposing (Action(..), Feature, GendertropeRecord, Organ, Persona)
 import Ui exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, px, row, shrink, spacing, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
-import Ui.Layout
+import Ui.Layout as Layout
 import Ui.Prose exposing (paragraph)
 
 
@@ -100,7 +100,7 @@ viewAbilities input =
                 , el [ Font.alignRight ] (text (String.fromInt value))
                 ]
             )
-        |> Ui.Layout.rowWithConstraints [ Ui.Layout.fill, Ui.Layout.byContent ] [ Theme.spacing ]
+        |> Layout.rowWithConstraints [ Layout.fill, Layout.byContent ] [ Theme.spacing ]
 
 
 viewStatus : Persona -> Element msg
@@ -125,7 +125,7 @@ viewStatus input =
                 , el [ Font.alignRight ] (text (String.fromInt value))
                 ]
             )
-        |> Ui.Layout.rowWithConstraints [ Ui.Layout.fill, Ui.Layout.byContent ]
+        |> Layout.rowWithConstraints [ Layout.fill, Layout.byContent ]
             [ Ui.paddingWith
                 { left = Theme.rhythm
                 , top = 0
@@ -151,6 +151,7 @@ tallyGroup count =
     else
         row
             [ spacing (Theme.rhythm // 2)
+            , width shrink
             , Ui.inFront
                 (if count == 5 then
                     el
@@ -162,6 +163,7 @@ tallyGroup count =
                             }
                         , centerY
                         , Ui.rotate (Ui.radians (degrees -10))
+                        , width fill
                         ]
                         Ui.none
 
@@ -175,7 +177,12 @@ tallyGroup count =
 
 tallyMark : Element msg
 tallyMark =
-    el [ Ui.border 1, height <| px 16 ] Ui.none
+    el
+        [ Ui.border 1
+        , width <| px 1
+        , height <| px 16
+        ]
+        Ui.none
 
 
 viewStandardFeatures : List Int -> GendertropeRecord -> Element msg
@@ -317,17 +324,17 @@ viewOrgans input =
             , isHeader Ensheathes
             ]
         |> List.concat
-        |> Ui.Layout.rowWithConstraints
-            [ Ui.Layout.fill
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
-            , Ui.Layout.byContent
+        |> Layout.rowWithConstraints
+            [ Layout.fill
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
+            , Layout.byContent
             ]
             []

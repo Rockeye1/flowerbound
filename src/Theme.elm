@@ -1,4 +1,4 @@
-module Theme exposing (black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Color exposing (Color)
 import Html
@@ -11,12 +11,12 @@ import Markdown.Renderer
 import Phosphor
 import Route
 import Ui exposing (Attribute, Element)
-import Ui.Accessibility
+import Ui.Accessibility as Accessibility
 import Ui.Font as Font
 import Ui.Input as Input
-import Ui.Prose
-import Ui.Shadow
-import Ui.Table
+import Ui.Prose as Prose
+import Ui.Shadow as Shadow
+import Ui.Table as Table
 
 
 rhythm : number
@@ -46,11 +46,11 @@ el attrs child =
 
 table :
     List (Attribute msg)
-    -> Ui.Table.Config () () data msg
+    -> Table.Config () () data msg
     -> List data
     -> Element msg
 table attrs config data =
-    Ui.Table.view (spacing :: Ui.borderColor purple :: attrs) config data
+    Table.view (spacing :: Ui.borderColor purple :: attrs) config data
 
 
 spacing : Attribute msg
@@ -218,7 +218,7 @@ purpleCheckbox checked =
         , Font.center
         , Ui.rounded 3
         , Ui.borderColor purple
-        , Ui.Shadow.shadows
+        , Shadow.shadows
             [ { x = 0
               , y = 0
               , blur = 1
@@ -295,7 +295,7 @@ viewMarkdownBlocks blocks =
 markdownRenderer : Markdown.Renderer.Renderer (Element msg)
 markdownRenderer =
     { heading = viewHeading
-    , paragraph = Ui.Prose.paragraph [ spacing ]
+    , paragraph = Prose.paragraph [ spacing ]
     , blockQuote =
         column
             [ padding
@@ -315,7 +315,7 @@ markdownRenderer =
                 , style "display" "inline-flex"
                 , Ui.linkNewTab data.destination
                 ]
-                (Ui.Prose.paragraph
+                (Prose.paragraph
                     [ Font.color (Color.rgb255 0 0 255)
                     ]
                     body
@@ -353,7 +353,7 @@ markdownRenderer =
             ]
     , tableCell =
         \maybeAlignment ->
-            Ui.Prose.paragraph
+            Prose.paragraph
                 (toAlignAttribute maybeAlignment
                     :: Ui.borderWith
                         { top = 1
@@ -363,7 +363,7 @@ markdownRenderer =
                         }
                     :: tableBorder
                 )
-    , tableHeaderCell = \_ -> Ui.Prose.paragraph tableBorder
+    , tableHeaderCell = \_ -> Prose.paragraph tableBorder
     }
 
 
@@ -394,7 +394,7 @@ tableBorder =
 
 viewHeading : { level : Markdown.Block.HeadingLevel, rawText : String, children : List (Element msg) } -> Element msg
 viewHeading { level, rawText, children } =
-    Ui.Prose.paragraph
+    Prose.paragraph
         [ Font.size
             (case level of
                 Markdown.Block.H1 ->
@@ -409,22 +409,22 @@ viewHeading { level, rawText, children } =
         , Font.bold
         , case level of
             Markdown.Block.H1 ->
-                Ui.Accessibility.h1
+                Accessibility.h1
 
             Markdown.Block.H2 ->
-                Ui.Accessibility.h2
+                Accessibility.h2
 
             Markdown.Block.H3 ->
-                Ui.Accessibility.h3
+                Accessibility.h3
 
             Markdown.Block.H4 ->
-                Ui.Accessibility.h4
+                Accessibility.h4
 
             Markdown.Block.H5 ->
-                Ui.Accessibility.h5
+                Accessibility.h5
 
             Markdown.Block.H6 ->
-                Ui.Accessibility.h6
+                Accessibility.h6
         , Ui.htmlAttribute
             (Html.Attributes.attribute "name" (rawTextToId rawText))
         , Ui.htmlAttribute
@@ -458,7 +458,7 @@ viewUnorderedListItem (Markdown.Block.ListItem task children) =
     in
     row []
         [ Ui.el [ Ui.alignTop ] (Ui.text (" " ++ mark ++ " "))
-        , Ui.Prose.paragraph [] children
+        , Prose.paragraph [] children
         ]
 
 
@@ -469,6 +469,7 @@ withHint hint label =
         , Font.underline
         , style "text-decoration-style" "dotted"
         , style "cursor" "help"
+        , Ui.width Ui.shrink
         ]
         label
 

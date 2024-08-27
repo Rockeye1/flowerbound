@@ -8,11 +8,12 @@ import Persona.Data
 import Persona.View
 import Theme
 import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
-import Ui exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, text, width)
+import Ui exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
+import Ui.Layout as Layout
 import Ui.Prose exposing (paragraph)
-import Ui.Table
+import Ui.Table as Table
 
 
 type alias Config msg =
@@ -91,9 +92,9 @@ view config { flipped, persona } =
                 )
             )
             (Theme.row []
-                (text "Gendertrope"
-                    :: topButtons config
-                )
+                [ text "Gendertrope"
+                , topButtons config
+                ]
                 :: List.map
                     (Ui.map
                         (\msg ->
@@ -126,36 +127,40 @@ nameRow config persona =
             , bottom = 1
             }
         ]
-        (el [ Font.color Theme.purple ]
+        [ el
+            [ Font.color Theme.purple
+            , width shrink
+            ]
             (Persona.Data.gendertropeIconElement persona.gendertrope)
-            :: Theme.input []
-                { label = Input.labelHidden "Name"
-                , text = persona.name
-                , onChange = \newValue -> config.update { persona | name = newValue }
-                , placeholder = Just "Name"
-                }
-            :: topButtons config
-        )
+        , Theme.input []
+            { label = Input.labelHidden "Name"
+            , text = persona.name
+            , onChange = \newValue -> config.update { persona | name = newValue }
+            , placeholder = Just "Name"
+            }
+        , topButtons config
+        ]
 
 
-topButtons : Config msg -> List (Element msg)
+topButtons : Config msg -> Element msg
 topButtons config =
-    [ Theme.iconButton [ alignRight ]
-        { onPress = Just config.upload
-        , icon = Icons.upload
-        , title = "Upload"
-        }
-    , Theme.iconButton [ alignRight ]
-        { onPress = Just config.download
-        , icon = Icons.download
-        , title = "Download"
-        }
-    , Theme.iconButton [ alignRight ]
-        { onPress = Just config.flip
-        , icon = Icons.flip
-        , title = "Flip"
-        }
-    ]
+    Theme.row [ alignRight ]
+        [ Theme.iconButton []
+            { onPress = Just config.upload
+            , icon = Icons.upload
+            , title = "Upload"
+            }
+        , Theme.iconButton []
+            { onPress = Just config.download
+            , icon = Icons.download
+            , title = "Download"
+            }
+        , Theme.iconButton []
+            { onPress = Just config.flip
+            , icon = Icons.flip
+            , title = "Flip"
+            }
+        ]
 
 
 abilitiesView : Persona -> Element Persona
@@ -172,72 +177,54 @@ abilitiesView persona =
                 - persona.prowess
                 - persona.moxie
 
-        viewRow : ( String, Int, Int -> Persona ) -> Ui.Table.Cell Persona
-        viewRow ( _, value, setter ) =
-            Ui.Table.cell []
-                (Theme.row
-                    [ alignRight ]
-                    [ el [ alignRight ] (text (String.fromInt value))
-                    , Theme.iconButton
-                        [ alignRight
-                        ]
-                        { icon = Icons.minus
-                        , title = "Decrease"
-                        , onPress =
-                            if value > 2 then
-                                Just (setter (value - 1))
+        viewRow : ( String, Int, Int -> Persona ) -> List (Element Persona)
+        viewRow ( label, value, setter ) =
+            [ el [ centerY ] (text label)
+            , el [ Font.alignRight, centerY ] (text (String.fromInt value))
+            , Theme.iconButton []
+                { icon = Icons.minus
+                , title = "Decrease"
+                , onPress =
+                    if value > 2 then
+                        Just (setter (value - 1))
 
-                            else
-                                Nothing
-                        }
-                    , Theme.iconButton
-                        [ alignRight
-                        ]
-                        { icon = Icons.plus
-                        , title = "Increase"
-                        , onPress =
-                            if availablePoints > 0 && value < 20 then
-                                Just (setter (value + 1))
+                    else
+                        Nothing
+                }
+            , Theme.iconButton []
+                { icon = Icons.plus
+                , title = "Increase"
+                , onPress =
+                    if availablePoints > 0 && value < 20 then
+                        Just (setter (value + 1))
 
-                            else
-                                Nothing
-                        }
-                    ]
-                )
+                    else
+                        Nothing
+                }
+            ]
     in
     Theme.column [ height fill ]
         [ text "Ability Scores"
-        , Theme.table []
-            (Ui.Table.columns
-                [ Ui.Table.column
-                    { header = Ui.Table.cell [] Ui.none
-                    , view = \( label, _, _ ) -> Ui.Table.cell [ centerY ] (text label)
-                    }
-                    |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
-                , Ui.Table.column
-                    { header = Ui.Table.cell [] Ui.none
-                    , view = viewRow
-                    }
-                ]
-            )
-            [ ( "Fitness", persona.fitness, \newValue -> { persona | fitness = newValue } )
-            , ( "Grace", persona.grace, \newValue -> { persona | grace = newValue } )
-            , ( "Ardor", persona.ardor, \newValue -> { persona | ardor = newValue } )
-            , ( "Sanity", persona.sanity, \newValue -> { persona | sanity = newValue } )
-            , ( "Prowess", persona.prowess, \newValue -> { persona | prowess = newValue } )
-            , ( "Moxie", persona.moxie, \newValue -> { persona | moxie = newValue } )
-            ]
+        , [ ( "Fitness", persona.fitness, \newValue -> { persona | fitness = newValue } )
+          , ( "Grace", persona.grace, \newValue -> { persona | grace = newValue } )
+          , ( "Ardor", persona.ardor, \newValue -> { persona | ardor = newValue } )
+          , ( "Sanity", persona.sanity, \newValue -> { persona | sanity = newValue } )
+          , ( "Prowess", persona.prowess, \newValue -> { persona | prowess = newValue } )
+          , ( "Moxie", persona.moxie, \newValue -> { persona | moxie = newValue } )
+          ]
+            |> List.concatMap viewRow
+            |> Layout.rowWithConstraints [ Layout.fill, Layout.fill, Layout.byContent, Layout.byContent ] [ Theme.spacing ]
         ]
 
 
-statusView : Persona -> Element Persona
+statusView : Persona -> Element msg
 statusView persona =
     let
-        statusRow : String -> (Persona -> Int) -> ( String, Int )
-        statusRow label toCap =
-            ( label
-            , toCap persona
-            )
+        statusRow : ( String, Persona -> Int ) -> List (Element msg)
+        statusRow ( label, toCap ) =
+            [ text label
+            , text (String.fromInt (toCap persona))
+            ]
     in
     Theme.column
         [ Ui.borderWith
@@ -255,25 +242,14 @@ statusView persona =
         , height fill
         ]
         [ text "Status meters"
-        , Theme.table []
-            (Ui.Table.columns
-                [ Ui.Table.column
-                    { header = Ui.Table.cell [] Ui.none
-                    , view = \( label, _ ) -> Ui.Table.cell [] (text label)
-                    }
-                    |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
-                , Ui.Table.column
-                    { header = Ui.Table.cell [] Ui.none
-                    , view = \( _, maximum ) -> Ui.Table.cell [] (text (String.fromInt maximum))
-                    }
-                ]
-            )
-            [ statusRow "Max Stamina" Persona.maxStamina
-            , statusRow "Max Satiation" Persona.maxSatiation
-            , statusRow "Max Craving" Persona.maxCraving
-            , statusRow "Max Arousal" Persona.maxArousal
-            , statusRow "Max Sensitivity" Persona.maxSensitivity
-            ]
+        , [ ( "Max Stamina", Persona.maxStamina )
+          , ( "Max Satiation", Persona.maxSatiation )
+          , ( "Max Craving", Persona.maxCraving )
+          , ( "Max Arousal", Persona.maxArousal )
+          , ( "Max Sensitivity", Persona.maxSensitivity )
+          ]
+            |> List.concatMap statusRow
+            |> Layout.rowWithConstraints [ Layout.fill, Layout.byContent ] [ Theme.spacing ]
         , Theme.row
             [ alignBottom
             , Ui.borderWith
@@ -329,7 +305,7 @@ viewPoints label fullName value used setter =
     in
     Theme.row []
         [ Theme.withHint fullName (text label)
-        , Theme.wrappedRow [ width <| px (Theme.rhythm * 8) ]
+        , Theme.wrappedRow []
             (List.repeat (unused // 5) (Persona.View.tallyGroup 5)
                 ++ [ Persona.View.tallyGroup (modBy 5 unused) ]
             )
@@ -385,8 +361,7 @@ viewGendertrope ({ gendertrope } as persona) =
                                     :: Ui.borderColor Theme.purple
                                     :: common option
                             )
-                            [ el [] Ui.none
-                            , Theme.row []
+                            [ Theme.row [ centerX ]
                                 [ Persona.Data.gendertropeIconElement option
                                 , case option of
                                     Custom _ ->
@@ -395,7 +370,6 @@ viewGendertrope ({ gendertrope } as persona) =
                                     _ ->
                                         text (Persona.Data.gendertropeToRecord option).name
                                 ]
-                            , el [] Ui.none
                             ]
                     )
                 |> Theme.wrappedRow []
@@ -453,9 +427,9 @@ viewGendertrope ({ gendertrope } as persona) =
 viewOrgans : GendertropeRecord -> Element (List Organ)
 viewOrgans gendertropeRecord =
     let
-        wrap : Int -> Element Organ -> Ui.Table.Cell (List Organ)
+        wrap : Int -> Element Organ -> Table.Cell (List Organ)
         wrap index child =
-            Ui.Table.cell
+            Table.cell
                 [ height fill
                 , padding (Theme.rhythm // 2)
                 , Ui.background
@@ -475,10 +449,16 @@ viewOrgans gendertropeRecord =
             -> String
             -> (Organ -> Int)
             -> (Int -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column globalState rowState Organ (List Organ)
         intColumn label hint prop setter =
-            Ui.Table.columnWithState
-                { header = \_ -> Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
+            Table.columnWithState
+                { header =
+                    \_ ->
+                        Table.cell
+                            [ padding (Theme.rhythm // 2)
+                            , Font.center
+                            ]
+                            (Theme.withHint hint (text label))
                 , view =
                     \index _ organ ->
                         wrap index
@@ -500,10 +480,16 @@ viewOrgans gendertropeRecord =
             -> String
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column globalState rowState Organ (List Organ)
         boolColumn label hint getter setter =
-            Ui.Table.columnWithState
-                { header = \_ -> Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
+            Table.columnWithState
+                { header =
+                    \_ ->
+                        Table.cell
+                            [ padding (Theme.rhythm // 2)
+                            , Font.center
+                            ]
+                            (Theme.withHint hint (text label))
                 , view =
                     \index _ organ ->
                         wrap index
@@ -516,19 +502,19 @@ viewOrgans gendertropeRecord =
                             )
                 }
 
-        spacer : Ui.Table.Column globalState rowState Organ (List Organ)
+        spacer : Table.Column globalState rowState Organ (List Organ)
         spacer =
-            Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \_ -> Ui.Table.cell [] Ui.none
+            Table.column
+                { header = Table.cell [] Ui.none
+                , view = \_ -> Table.cell [] Ui.none
                 }
-                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+                |> Table.withWidth { fill = True, min = Nothing, max = Nothing }
 
         canColumn :
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column globalState rowState Organ (List Organ)
         canColumn attribute getter setter =
             boolColumn ("C" ++ Types.actionToInitial attribute) (Types.actionToCan attribute) getter setter
 
@@ -536,14 +522,14 @@ viewOrgans gendertropeRecord =
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column globalState rowState Organ (List Organ)
         isColumn attribute getter setter =
             boolColumn ("I" ++ Types.actionToInitial attribute) (Types.actionToIs attribute) getter setter
 
-        nameColumn : Ui.Table.Column globalState rowState Organ (List Organ)
+        nameColumn : Table.Column globalState rowState Organ (List Organ)
         nameColumn =
-            Ui.Table.columnWithState
-                { header = \_ -> Ui.Table.cell [] Ui.none
+            Table.columnWithState
+                { header = \_ -> Table.cell [] Ui.none
                 , view =
                     \index _ organ ->
                         wrap index
@@ -556,10 +542,9 @@ viewOrgans gendertropeRecord =
                             )
                 }
     in
-    Ui.Table.view []
-        (Ui.Table.columns
-            [ spacer
-            , nameColumn
+    Table.view [ centerX ]
+        (Table.columns
+            [ nameColumn
             , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour <| \value organ -> { organ | contour = value }
             , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny <| \value organ -> { organ | erogeny = value }
             , canColumn Squishes .canSquish <| \value organ -> { organ | canSquish = value }
@@ -570,7 +555,6 @@ viewOrgans gendertropeRecord =
             , isColumn Grips .isGrippable <| \value organ -> { organ | isGrippable = value }
             , isColumn Penetrates .isPenetrable <| \value organ -> { organ | isPenetrable = value }
             , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
-            , spacer
             ]
         )
         gendertropeRecord.organs

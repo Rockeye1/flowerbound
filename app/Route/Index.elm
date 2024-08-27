@@ -28,10 +28,10 @@ import Site
 import Theme
 import Triple
 import Types exposing (Action(..), Move, Persona, StimulationType(..))
-import Ui exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, spacing, text, width)
+import Ui exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
-import Ui.Layout
+import Ui.Layout as Layout
 import Ui.Prose exposing (paragraph)
 import UrlPath exposing (UrlPath)
 import Vector2d exposing (Vector2d)
@@ -823,7 +823,7 @@ viewPlaying shared ({ meters, persona } as model) =
           , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
           ]
             |> List.concat
-            |> Ui.Layout.rowWithConstraints [ Ui.Layout.byContent, Ui.Layout.fill ] []
+            |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model
         , Theme.row
@@ -1331,7 +1331,7 @@ staminaTable model =
             )
         |> (::) [ header "Stamina", header "Stimulation", header "Dice Type" ]
         |> List.concat
-        |> Ui.Layout.rowWithConstraints (List.repeat 3 Ui.Layout.byContent) [ Theme.spacing ]
+        |> Layout.rowWithConstraints (List.repeat 3 Layout.byContent) [ Theme.spacing ]
 
 
 stimulationDice : List ( Int, List Int )
