@@ -524,7 +524,7 @@ slider attrs config =
                                     , Ui.behindContent
                                         (el
                                             [ Ui.centerX
-                                            , Ui.move (Ui.down 4)
+                                            , Ui.move (Ui.down 6)
                                             ]
                                             (Ui.text (String.fromInt v))
                                         )
