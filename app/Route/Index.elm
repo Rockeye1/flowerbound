@@ -777,9 +777,12 @@ loadPersona config =
             , width fill
             ]
             [ text "Load from a Markdown file"
-            , Theme.button [ alignRight ]
+            , Theme.iconButton
+                [ alignRight
+                ]
                 { onPress = Just config.loadFromFile
-                , label = Icons.upload
+                , icon = Icons.upload
+                , title = "Upload"
                 }
             ]
         ]
@@ -791,13 +794,13 @@ viewPlaying shared ({ meters, persona } as model) =
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
         , Theme.row []
-            [ Theme.button [ width fill ]
+            [ Theme.textButton [ width fill ]
                 { onPress = Just BeginEncounter
-                , label = text "Begin Encounter"
+                , label = "Begin Encounter"
                 }
-            , Theme.button [ width fill ]
+            , Theme.textButton [ width fill ]
                 { onPress = Just Rest
-                , label = text "Rest"
+                , label = "Rest"
                 }
             ]
         , Theme.table [ width fill ]
@@ -839,15 +842,15 @@ viewPlaying shared ({ meters, persona } as model) =
                     , text "Choose a stamina cost."
                     , Theme.row [ width fill ]
                         [ viewRoll model
-                        , Theme.button [ alignRight ]
+                        , Theme.textButton [ alignRight ]
                             { onPress = Just RollStimulation
                             , label =
                                 case model.stimulationRoll of
                                     Nothing ->
-                                        text "Roll"
+                                        "Roll"
 
                                     Just _ ->
-                                        text "Reroll"
+                                        "Reroll"
                             }
                         ]
                     , staminaTable model
@@ -1033,11 +1036,11 @@ viewOrgans shared model =
     Theme.column [ width fill ]
         [ Theme.row [ width fill ]
             [ el [ Font.bold ] (text "Organs")
-            , Theme.button
+            , Theme.iconButton
                 [ alignRight
-                , Theme.title "Rearrange unpaired organs"
                 ]
-                { label = Icons.reset
+                { icon = Icons.reset
+                , title = "Rearrange unpaired organs"
                 , onPress = Just Rearrange
                 }
             ]
@@ -1163,9 +1166,9 @@ viewOrgasm model =
                         , text " modifier to your Orgasm Threshold, if you had enough "
                         , el [ Font.bold ] (text "Stamina")
                         ]
-                , Theme.button [ width shrink, alignRight ]
+                , Theme.textButton [ width shrink, alignRight ]
                     { onPress = Just RollValiantModifier
-                    , label = text "Re-Roll"
+                    , label = "Re-Roll"
                     }
                 ]
 

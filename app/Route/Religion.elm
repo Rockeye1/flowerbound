@@ -1,4 +1,4 @@
-module Route.Religion exposing (ActionData, Data, Model, Msg, Religion, RouteParams, route)
+module Route.Religion exposing (ActionData, Data, Model, Msg, Religion, RouteParams, data, image, route)
 
 import BackendTask exposing (BackendTask)
 import Color exposing (Color)
@@ -136,8 +136,8 @@ data =
         , religions =
             [ dreams
             , invention
-            , perversity
             , daring
+            , perversity
             , apotheosis
             ]
         }
@@ -346,7 +346,7 @@ children religions =
         lines =
             List.Extra.lift2
                 (\( lx, ly, _ ) ( rx, ry, _ ) ->
-                    if lx == rx && ly == ry then
+                    if lx == rx && ly == ry || ((lx - rx) ^ 2 + (ly - ry) ^ 2 <= (religionRadius * 6) ^ 2) then
                         g [] []
 
                     else
@@ -420,7 +420,14 @@ children religions =
                 |> String.join "\n\n"
                 |> text
             ]
-      , g [ stroke (Paint purple) ] lines
+      , circle
+            [ r baseWidth
+            , fill PaintNone
+            , stroke (Paint purple)
+            ]
+            []
+
+      --   , g [ stroke (Paint purple) ] lines
       , g
             [ fontSize (baseWidth / 14) ]
             (List.indexedMap viewReligion religions)
@@ -495,33 +502,33 @@ viewReligion i religion =
                     , Html.Attributes.style "justify-content" "center"
                     , Html.Attributes.style "height" "inherit"
                     ]
-                    (Html.b [] [ Html.u [] [ Html.text ("The Apoasteri of " ++ name) ] ]
-                        :: Html.br [] []
-                        :: List.map (Html.span [])
-                            (case religion of
-                                Named named ->
-                                    (named.story
-                                        |> List.map (\line -> [ Html.i [] [ Html.text line ] ])
-                                    )
-                                        ++ [ [ Html.b [] [ Html.text named.deity.name ]
-                                             , Html.text ", the "
-                                             , Html.b [] [ Html.text named.deity.title ]
-                                             , Html.text " is the goddess of "
-                                             , named.deity.description
-                                                |> parsed
-                                             ]
-                                           , [ Html.text "Her holy symbol is "
-                                             , Html.b [] [ Html.text named.deity.holySymbol ]
-                                             , Html.text ", and her divine realm is called "
-                                             , Html.b [] [ Html.text named.deity.realm.name ]
-                                             , Html.text (", the " ++ named.deity.realm.meaning ++ ". It is not a place, but rather a nature any place can take on.")
-                                             ]
-                                           ]
+                    (List.map (Html.span [])
+                        ([ Html.b [] [ Html.u [] [ Html.text ("The Apoasteri of " ++ name) ] ] ]
+                            :: (case religion of
+                                    Named named ->
+                                        (named.story
+                                            |> List.map (\line -> [ Html.i [] [ Html.text line ] ])
+                                        )
+                                            ++ [ [ Html.b [] [ Html.text named.deity.name ]
+                                                 , Html.text ", the "
+                                                 , Html.b [] [ Html.text named.deity.title ]
+                                                 , Html.text " is the goddess of "
+                                                 , named.deity.description
+                                                    |> parsed
+                                                 ]
+                                               , [ Html.text "Her holy symbol is "
+                                                 , Html.b [] [ Html.text named.deity.holySymbol ]
+                                                 , Html.text ", and her divine realm is called "
+                                                 , Html.b [] [ Html.text named.deity.realm.name ]
+                                                 , Html.text (", the " ++ named.deity.realm.meaning ++ ". It is not a place, but rather a nature any place can take on.")
+                                                 ]
+                                               ]
 
-                                Apotheosis { description } ->
-                                    description
-                                        |> List.map (\line -> [ parsed line ])
-                            )
+                                    Apotheosis { description } ->
+                                        description
+                                            |> List.map (\line -> [ parsed line ])
+                               )
+                        )
                     )
                 ]
             ]

@@ -144,17 +144,20 @@ nameRow config persona =
 
 topButtons : Config msg -> List (Element msg)
 topButtons config =
-    [ Theme.button [ alignRight ]
+    [ Theme.iconButton [ alignRight ]
         { onPress = Just config.upload
-        , label = Icons.upload
+        , icon = Icons.upload
+        , title = "Upload"
         }
-    , Theme.button [ alignRight ]
+    , Theme.iconButton [ alignRight ]
         { onPress = Just config.download
-        , label = Icons.download
+        , icon = Icons.download
+        , title = "Download"
         }
-    , Theme.button [ alignRight ]
+    , Theme.iconButton [ alignRight ]
         { onPress = Just config.flip
-        , label = Icons.flip
+        , icon = Icons.flip
+        , title = "Flip"
         }
     ]
 
@@ -178,8 +181,11 @@ abilitiesView persona =
             Theme.row
                 [ alignRight ]
                 [ el [ alignRight ] (text (String.fromInt value))
-                , Theme.button [ alignRight ]
-                    { label = Icons.minus
+                , Theme.iconButton
+                    [ alignRight
+                    ]
+                    { icon = Icons.minus
+                    , title = "Decrease"
                     , onPress =
                         if value > 2 then
                             Just (setter (value - 1))
@@ -187,8 +193,11 @@ abilitiesView persona =
                         else
                             Nothing
                     }
-                , Theme.button [ alignRight ]
-                    { label = Icons.plus
+                , Theme.iconButton
+                    [ alignRight
+                    ]
+                    { icon = Icons.plus
+                    , title = "Increase"
                     , onPress =
                         if availablePoints > 0 && value < 20 then
                             Just (setter (value + 1))
@@ -331,8 +340,9 @@ viewPoints label fullName value used setter =
             (List.repeat (unused // 5) (Persona.View.tallyGroup 5)
                 ++ [ Persona.View.tallyGroup (modBy 5 unused) ]
             )
-        , Theme.button [ alignRight ]
-            { label = Icons.minus
+        , Theme.iconButton [ alignRight ]
+            { icon = Icons.minus
+            , title = "Decrease"
             , onPress =
                 if unused > 0 then
                     Just (setter (value - 1))
@@ -340,8 +350,9 @@ viewPoints label fullName value used setter =
                 else
                     Nothing
             }
-        , Theme.button [ alignRight ]
-            { label = Icons.plus
+        , Theme.iconButton [ alignRight ]
+            { icon = Icons.plus
+            , title = "Increase"
             , onPress = Just (setter (value + 1))
             }
         ]

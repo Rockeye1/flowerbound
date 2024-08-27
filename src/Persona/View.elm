@@ -10,6 +10,7 @@ import Icons
 import Persona
 import Persona.Codec
 import Persona.Data
+import Phosphor
 import Site
 import Theme
 import Types exposing (Feature, GendertropeRecord, Organ, Persona)
@@ -225,18 +226,20 @@ viewStandardFeatures features gendertropeRecord =
 
 topButtons : Config msg -> List (Element msg)
 topButtons config =
-    [ Theme.button [ alignRight ]
+    [ Theme.iconButton [ alignRight ]
         { onPress = Just config.upload
-        , label = Icons.upload
+        , icon = Icons.upload
+        , title = "Upload"
         }
     , case config.remove of
         Nothing ->
             Element.none
 
         Just remove ->
-            Theme.button [ alignRight ]
+            Theme.iconButton [ alignRight ]
                 { onPress = Just remove
-                , label = Icons.remove
+                , icon = Icons.remove
+                , title = "Remove"
                 }
     ]
 
@@ -287,7 +290,7 @@ viewOrgans input =
             String
             -> String
             -> (Organ -> Bool)
-            -> Element msg
+            -> Phosphor.IconVariant
             -> Element.IndexedColumn Organ msg
         boolColumn label hint prop img =
             { width = shrink
@@ -295,7 +298,7 @@ viewOrgans input =
             , view =
                 \index organ ->
                     if prop organ then
-                        wrap index [ centerX, Font.color Theme.purple ] img
+                        wrap index [ centerX, Font.color Theme.purple ] (Icons.toElement img)
 
                     else
                         wrap index [] Element.none

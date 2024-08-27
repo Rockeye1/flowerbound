@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, input, lightGray, lightPurple, link, multiline, noAttribute, padding, pageTitle, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, iconButton, input, lightGray, lightPurple, link, multiline, noAttribute, padding, pageTitle, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, textButton, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -8,10 +8,12 @@ import Element.Input as Input
 import Element.Region
 import Html
 import Html.Attributes
+import Icons
 import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer
+import Phosphor
 import Route
 
 
@@ -544,3 +546,32 @@ pageTitle label =
         , Element.width Element.fill
         ]
         (Element.text label)
+
+
+iconButton :
+    List (Attribute msg)
+    ->
+        { onPress : Maybe msg
+        , icon : Phosphor.IconVariant
+        , title : String
+        }
+    -> Element msg
+iconButton attrs config =
+    button (title config.title :: attrs)
+        { onPress = config.onPress
+        , label = Icons.toElement config.icon
+        }
+
+
+textButton :
+    List (Attribute msg)
+    ->
+        { onPress : Maybe msg
+        , label : String
+        }
+    -> Element msg
+textButton attrs config =
+    button attrs
+        { onPress = config.onPress
+        , label = Element.text config.label
+        }
