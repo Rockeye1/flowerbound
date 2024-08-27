@@ -1288,13 +1288,13 @@ viewMove model move =
                                 |> List.map
                                     (\attribute ->
                                         attribute
-                                            |> Types.attributeToIcon
+                                            |> Types.attributeToCanIcon
                                             |> Phosphor.toHtml
                                                 [ Html.Attributes.style "border-bottom" "1px dotted black"
                                                 , Html.Attributes.style "margin-bottom" "-3px"
                                                 ]
                                             |> Element.html
-                                            |> Theme.withHint (Types.attributeToString attribute)
+                                            |> Theme.withHint (Types.attributeToAction attribute)
                                     )
                                 |> List.intersperse (text "/")
                            )

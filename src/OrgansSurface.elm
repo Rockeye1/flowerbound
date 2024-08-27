@@ -13,7 +13,7 @@ import Point2d exposing (Point2d)
 import Svg
 import Svg.Attributes
 import Svg.Events
-import Types exposing (Organ, Persona)
+import Types exposing (Attribute(..), Organ, Persona)
 
 
 type alias OrganKey =
@@ -197,8 +197,8 @@ viewOrgan persona color pos organ =
                         )
                     ]
 
-        iifLeft : Bool -> String -> String -> Float -> IconVariant -> Svg.Svg msg
-        iifLeft condition short long dy icon =
+        iifLeft : Bool -> Attribute -> Float -> Svg.Svg msg
+        iifLeft condition attribute dy =
             Svg.g []
                 [ textAt
                     [ if condition then
@@ -209,17 +209,17 @@ viewOrgan persona color pos organ =
                     ]
                     { x = 0
                     , y = dy
-                    , label = "⇒ " ++ short
+                    , label = "⇒ I" ++ Types.attributeToInitial attribute
                     , anchor = AnchorStart
                     }
-                , iconAt (72 - 16) dy icon
-                , Svg.title [] [ Svg.text long ]
+                , iconAt (72 - 16) dy (Types.attributeToIsIcon attribute)
+                , Svg.title [] [ Svg.text (Types.attributeToIs attribute) ]
                 ]
 
-        iifRight : Bool -> String -> String -> Float -> IconVariant -> Svg.Svg msg
-        iifRight condition short long dy icon =
+        iifRight : Bool -> Attribute -> Float -> Svg.Svg msg
+        iifRight condition attribute dy =
             Svg.g []
-                [ iconAt (organWidth - 72 - 16) dy icon
+                [ iconAt (organWidth - 72 - 16) dy (Types.attributeToCanIcon attribute)
                 , textAt
                     [ if condition then
                         Svg.Attributes.fill "black"
@@ -229,10 +229,10 @@ viewOrgan persona color pos organ =
                     ]
                     { x = 0
                     , y = dy
-                    , label = short ++ " ⇒"
+                    , label = "C" ++ Types.attributeToInitial attribute ++ " ⇒"
                     , anchor = AnchorEnd
                     }
-                , Svg.title [] [ Svg.text long ]
+                , Svg.title [] [ Svg.text (Types.attributeToCan attribute) ]
                 ]
     in
     Svg.g
@@ -271,14 +271,14 @@ viewOrgan persona color pos organ =
             , label = "Erogeny: " ++ String.fromInt organ.erogeny
             , anchor = AnchorEnd
             }
-        , iifRight organ.canSquish "CS" "Can Squish" 2 Icons.squish
-        , iifRight organ.canGrip "CG" "Can Grip" 3 Icons.grip
-        , iifRight organ.canPenetrate "CP" "Can Penetrate" 4 Icons.penetrate
-        , iifRight organ.canEnsheathe "CE" "Can Ensheathe" 5 Icons.ensheathe
-        , iifLeft organ.isSquishable "IS" "Is Squishable" 2 Icons.squishable
-        , iifLeft organ.isGrippable "IG" "Is Grippable" 3 Icons.grippable
-        , iifLeft organ.isPenetrable "IP" "Is Penetrable" 4 Icons.penetrable
-        , iifLeft organ.isEnsheatheable "IE" "Is Ensheatheable" 5 Icons.ensheatheable
+        , iifRight organ.canSquish Squishes 2
+        , iifRight organ.canGrip Grips 3
+        , iifRight organ.canPenetrate Penetrates 4
+        , iifRight organ.canEnsheathe Ensheathes 5
+        , iifLeft organ.isSquishable Squishes 2
+        , iifLeft organ.isGrippable Grips 3
+        , iifLeft organ.isPenetrable Penetrates 4
+        , iifLeft organ.isEnsheatheable Ensheathes 5
         ]
 
 

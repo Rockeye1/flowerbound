@@ -1,4 +1,4 @@
-module Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), attributeToIcon, attributeToString, standardGendertropes, stimulationTypeToString)
+module Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), attributeToAction, attributeToCan, attributeToCanIcon, attributeToInitial, attributeToIs, attributeToIsIcon, standardGendertropes, stimulationTypeToString)
 
 import Dict exposing (Dict)
 import Icons
@@ -146,8 +146,8 @@ stimulationTypeToString type_ =
             "Thrust"
 
 
-attributeToString : Attribute -> String
-attributeToString attribute =
+attributeToAction : Attribute -> String
+attributeToAction attribute =
     case attribute of
         Squishes ->
             "Squishes"
@@ -162,8 +162,40 @@ attributeToString attribute =
             "Ensheathes"
 
 
-attributeToIcon : Attribute -> IconVariant
-attributeToIcon attribute =
+attributeToCan : Attribute -> String
+attributeToCan attribute =
+    case attribute of
+        Squishes ->
+            "Can Squish"
+
+        Grips ->
+            "Can Grip"
+
+        Penetrates ->
+            "Can Penetrate"
+
+        Ensheathes ->
+            "Can Ensheathe"
+
+
+attributeToIs : Attribute -> String
+attributeToIs attribute =
+    case attribute of
+        Squishes ->
+            "Is Squishable"
+
+        Grips ->
+            "Is Grippable"
+
+        Penetrates ->
+            "Is Penetrable"
+
+        Ensheathes ->
+            "Is Ensheatheable"
+
+
+attributeToCanIcon : Attribute -> IconVariant
+attributeToCanIcon attribute =
     case attribute of
         Squishes ->
             Icons.squish
@@ -176,3 +208,35 @@ attributeToIcon attribute =
 
         Ensheathes ->
             Icons.ensheathe
+
+
+attributeToIsIcon : Attribute -> IconVariant
+attributeToIsIcon attribute =
+    case attribute of
+        Squishes ->
+            Icons.squishable
+
+        Grips ->
+            Icons.grippable
+
+        Penetrates ->
+            Icons.penetrable
+
+        Ensheathes ->
+            Icons.ensheatheable
+
+
+attributeToInitial : Attribute -> String
+attributeToInitial attribute =
+    case attribute of
+        Squishes ->
+            "S"
+
+        Grips ->
+            "G"
+
+        Penetrates ->
+            "P"
+
+        Ensheathes ->
+            "E"

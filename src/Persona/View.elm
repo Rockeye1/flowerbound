@@ -1,7 +1,7 @@
 module Persona.View exposing (Config, persona, tallyGroup, viewOrgans)
 
 import Dict
-import Element exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -13,7 +13,7 @@ import Persona.Data
 import Phosphor
 import Site
 import Theme
-import Types exposing (Feature, GendertropeRecord, Organ, Persona)
+import Types exposing (Attribute(..), Feature, GendertropeRecord, Organ, Persona)
 
 
 type alias Config msg =
@@ -24,7 +24,7 @@ type alias Config msg =
     }
 
 
-persona : List (Attribute msg) -> Config msg -> Element msg
+persona : List (Element.Attribute msg) -> Config msg -> Element msg
 persona attrs config =
     let
         input : Persona
@@ -247,7 +247,7 @@ topButtons config =
 viewOrgans : List Organ -> Element msg
 viewOrgans input =
     let
-        wrap : Int -> List (Attribute msg) -> Element msg -> Element msg
+        wrap : Int -> List (Element.Attribute msg) -> Element msg -> Element msg
         wrap index attrs child =
             el
                 (width fill
@@ -289,10 +289,10 @@ viewOrgans input =
         boolColumn :
             String
             -> String
-            -> (Organ -> Bool)
             -> Phosphor.IconVariant
+            -> (Organ -> Bool)
             -> Element.IndexedColumn Organ msg
-        boolColumn label hint prop img =
+        boolColumn label hint img prop =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
             , view =
@@ -310,6 +310,20 @@ viewOrgans input =
             , header = Element.none
             , view = \_ _ -> Element.none
             }
+
+        canColumn :
+            Attribute
+            -> (Organ -> Bool)
+            -> Element.IndexedColumn Organ msg
+        canColumn attribute getter =
+            boolColumn ("C" ++ Types.attributeToInitial attribute) (Types.attributeToCan attribute) (Types.attributeToCanIcon attribute) getter
+
+        isColumn :
+            Attribute
+            -> (Organ -> Bool)
+            -> Element.IndexedColumn Organ msg
+        isColumn attribute getter =
+            boolColumn ("I" ++ Types.attributeToInitial attribute) (Types.attributeToIs attribute) (Types.attributeToIsIcon attribute) getter
     in
     Element.indexedTable [ width fill ]
         { data = input
@@ -321,14 +335,14 @@ viewOrgans input =
               }
             , intColumn "Con" "Contour - how pleasing the Organ is to the sense of touch" .contour
             , intColumn "Ero" "Erogeny - how much of an erogenous zone that Organ is" .erogeny
-            , boolColumn "CS" "Can Squish" .canSquish Icons.squish
-            , boolColumn "CG" "Can Grip" .canGrip Icons.grip
-            , boolColumn "CP" "Can Penetrate" .canPenetrate Icons.penetrate
-            , boolColumn "CE" "Can Ensheathe" .canEnsheathe Icons.ensheathe
-            , boolColumn "IS" "Is Squishable" .isSquishable Icons.squishable
-            , boolColumn "IG" "Is Grippable" .isGrippable Icons.grippable
-            , boolColumn "IP" "Is Penetrable" .isPenetrable Icons.penetrable
-            , boolColumn "IE" "Is Ensheatheable" .isEnsheatheable Icons.ensheatheable
+            , canColumn Squishes .canSquish
+            , canColumn Grips .canGrip
+            , canColumn Penetrates .canPenetrate
+            , canColumn Ensheathes .canEnsheathe
+            , isColumn Squishes .isSquishable
+            , isColumn Grips .isGrippable
+            , isColumn Penetrates .isPenetrable
+            , isColumn Ensheathes .isEnsheatheable
             , spacer
             ]
         }

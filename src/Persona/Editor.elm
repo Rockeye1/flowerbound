@@ -1,7 +1,7 @@
 module Persona.Editor exposing (Config, GendertropeMsg(..), view)
 
 import Dict
-import Element exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, paragraph, px, shrink, text, width)
+import Element exposing (Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, paragraph, px, shrink, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -12,7 +12,7 @@ import Persona
 import Persona.Data
 import Persona.View
 import Theme
-import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
+import Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
 
 
 type alias Config msg =
@@ -42,7 +42,7 @@ view config { flipped, persona } =
         fullWidth =
             800
 
-        commonAttrs : Int -> List (Attribute msg)
+        commonAttrs : Int -> List (Element.Attribute msg)
         commonAttrs rotate =
             [ Border.width 1
             , width <| px fullWidth
@@ -368,7 +368,7 @@ viewGendertrope ({ gendertrope } as persona) =
         radioRow : Element GendertropeMsg
         radioRow =
             let
-                common : List (Attribute msg)
+                common : List (Element.Attribute msg)
                 common =
                     [ Border.width 1
                     , Theme.padding
@@ -511,7 +511,7 @@ viewOrgans gendertropeRecord =
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
             -> Element.IndexedColumn Organ (List Organ)
-        boolColumn label hint prop setter =
+        boolColumn label hint getter setter =
             { width = shrink
             , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
             , view =
@@ -519,7 +519,7 @@ viewOrgans gendertropeRecord =
                     wrap index
                         (el [ centerX, centerY ] <|
                             Input.checkbox []
-                                { checked = prop organ
+                                { checked = getter organ
                                 , label = Input.labelHidden label
                                 , onChange = \newValue -> setter newValue organ
                                 , icon = Theme.purpleCheckbox
@@ -533,6 +533,22 @@ viewOrgans gendertropeRecord =
             , header = Element.none
             , view = \_ _ -> Element.none
             }
+
+        canColumn :
+            Attribute
+            -> (Organ -> Bool)
+            -> (Bool -> Organ -> Organ)
+            -> Element.IndexedColumn Organ (List Organ)
+        canColumn attribute getter setter =
+            boolColumn ("C" ++ Types.attributeToInitial attribute) (Types.attributeToCan attribute) getter setter
+
+        isColumn :
+            Attribute
+            -> (Organ -> Bool)
+            -> (Bool -> Organ -> Organ)
+            -> Element.IndexedColumn Organ (List Organ)
+        isColumn attribute getter setter =
+            boolColumn ("I" ++ Types.attributeToInitial attribute) (Types.attributeToIs attribute) getter setter
     in
     Element.indexedTable [ width fill ]
         { data = gendertropeRecord.organs
@@ -553,14 +569,14 @@ viewOrgans gendertropeRecord =
               }
             , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour <| \value organ -> { organ | contour = value }
             , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny <| \value organ -> { organ | erogeny = value }
-            , boolColumn "CS" "Can Squish" .canSquish <| \value organ -> { organ | canSquish = value }
-            , boolColumn "CG" "Can Grip" .canGrip <| \value organ -> { organ | canGrip = value }
-            , boolColumn "CP" "Can Penetrate" .canPenetrate <| \value organ -> { organ | canPenetrate = value }
-            , boolColumn "CE" "Can Ensheathe" .canEnsheathe <| \value organ -> { organ | canEnsheathe = value }
-            , boolColumn "IS" "Is Squishable" .isSquishable <| \value organ -> { organ | isSquishable = value }
-            , boolColumn "IG" "Is Grippable" .isGrippable <| \value organ -> { organ | isGrippable = value }
-            , boolColumn "IP" "Is Penetrable" .isPenetrable <| \value organ -> { organ | isPenetrable = value }
-            , boolColumn "IE" "Is Ensheatheable" .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
+            , canColumn Squishes .canSquish <| \value organ -> { organ | canSquish = value }
+            , canColumn Grips .canGrip <| \value organ -> { organ | canGrip = value }
+            , canColumn Penetrates .canPenetrate <| \value organ -> { organ | canPenetrate = value }
+            , canColumn Ensheathes .canEnsheathe <| \value organ -> { organ | canEnsheathe = value }
+            , isColumn Squishes .isSquishable <| \value organ -> { organ | isSquishable = value }
+            , isColumn Grips .isGrippable <| \value organ -> { organ | isGrippable = value }
+            , isColumn Penetrates .isPenetrable <| \value organ -> { organ | isPenetrable = value }
+            , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
             , spacer
             ]
         }
