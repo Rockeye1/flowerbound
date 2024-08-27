@@ -1,6 +1,8 @@
-module Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), attributeToString, standardGendertropes, stimulationTypeToString)
+module Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), attributeToIcon, attributeToString, standardGendertropes, stimulationTypeToString)
 
 import Dict exposing (Dict)
+import Icons
+import Phosphor exposing (IconVariant)
 
 
 type alias PartialPersona =
@@ -158,3 +160,19 @@ attributeToString attribute =
 
         Ensheathes ->
             "Ensheathes"
+
+
+attributeToIcon : Attribute -> IconVariant
+attributeToIcon attribute =
+    case attribute of
+        Squishes ->
+            Icons.squish
+
+        Grips ->
+            Icons.grip
+
+        Penetrates ->
+            Icons.penetrate
+
+        Ensheathes ->
+            Icons.ensheathe

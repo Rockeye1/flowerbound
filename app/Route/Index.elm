@@ -13,6 +13,7 @@ import FatalError exposing (FatalError)
 import File exposing (File)
 import Head
 import Head.Seo as Seo
+import Html.Attributes
 import Icons
 import List.Extra
 import OrgansSurface
@@ -21,6 +22,7 @@ import Persona
 import Persona.Codec
 import Persona.Data
 import Persona.View
+import Phosphor
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
 import Quantity exposing (Quantity)
@@ -1275,20 +1277,34 @@ viewMove model move =
         , label =
             Theme.column [ width fill ]
                 [ paragraph []
-                    [ el [ Font.bold ] (text move.name)
-                    , text
+                    ([ el [ Font.bold ] (text move.name)
+                     , text
                         (" ("
                             ++ Types.stimulationTypeToString move.stimulationType
                             ++ ") ["
-                            ++ String.join "/"
-                                (List.map Types.attributeToString move.attributeCompatibility)
-                            ++ "] | "
                         )
-                    , Theme.withHint "Craving Threshold" (text "CT")
-                    , text ": "
-                    , el [ Font.bold ] (text (String.fromInt move.cravingThreshold))
-                    , text " |"
-                    ]
+                     ]
+                        ++ (move.attributeCompatibility
+                                |> List.map
+                                    (\attribute ->
+                                        attribute
+                                            |> Types.attributeToIcon
+                                            |> Phosphor.toHtml
+                                                [ Html.Attributes.style "border-bottom" "1px dotted black"
+                                                , Html.Attributes.style "margin-bottom" "-3px"
+                                                ]
+                                            |> Element.html
+                                            |> Theme.withHint (Types.attributeToString attribute)
+                                    )
+                                |> List.intersperse (text "/")
+                           )
+                        ++ [ text "] | "
+                           , Theme.withHint "Craving Threshold" (text "CT")
+                           , text ": "
+                           , el [ Font.bold ] (text (String.fromInt move.cravingThreshold))
+                           , text " |"
+                           ]
+                    )
                 , paragraph []
                     [ text move.description
                     ]
