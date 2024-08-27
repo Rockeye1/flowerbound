@@ -5,6 +5,7 @@ import Icons
 import Persona
 import Persona.Codec
 import Persona.Data
+import Phosphor exposing (IconVariant)
 import Site
 import Theme
 import Types exposing (Action(..), Feature, GendertropeRecord, Organ, Persona)
@@ -261,32 +262,38 @@ viewOrgans input =
             -- )
             el [ Font.center ] (text (String.fromInt (prop organ)))
 
-        boolColumn img prop index organ =
+        boolColumn : IconVariant -> (c -> Bool) -> c -> Element msg
+        boolColumn img prop organ =
             if prop organ then
-                wrap index [] (el [ centerX, Font.color Theme.purple ] (Icons.toElement img))
+                el [ centerX, Font.color Theme.purple ] (Icons.toElement img)
 
             else
-                wrap index [] Ui.none
+                Ui.none
 
+        boolHeader : String -> String -> Element msg
         boolHeader label hint =
             el [ padding (Theme.rhythm // 2) ]
                 (Theme.withHint hint (text label))
 
+        canColumn : Action -> (c -> Bool) -> c -> Element msg
         canColumn attribute getter =
             boolColumn
                 (Types.actionToCanIcon attribute)
                 getter
 
+        canHeader : Action -> Element msg
         canHeader attribute =
             boolHeader
                 ("C" ++ Types.actionToInitial attribute)
                 (Types.actionToCan attribute)
 
+        isColumn : Action -> (c -> Bool) -> c -> Element msg
         isColumn attribute getter =
             boolColumn
                 (Types.actionToIsIcon attribute)
                 getter
 
+        isHeader : Action -> Element msg
         isHeader attribute =
             boolHeader
                 ("I" ++ Types.actionToInitial attribute)
@@ -295,18 +302,19 @@ viewOrgans input =
     input
         |> List.indexedMap
             (\index element ->
-                [ wrap index [] (text element.name)
-                , wrap index [] (intColumn .contour element)
-                , wrap index [] (intColumn .erogeny element)
-                , canColumn Squishes .canSquish index element
-                , canColumn Grips .canGrip index element
-                , canColumn Penetrates .canPenetrate index element
-                , canColumn Ensheathes .canEnsheathe index element
-                , isColumn Squishes .isSquishable index element
-                , isColumn Grips .isGrippable index element
-                , isColumn Penetrates .isPenetrable index element
-                , isColumn Ensheathes .isEnsheatheable index element
+                [ text element.name
+                , intColumn .contour element
+                , intColumn .erogeny element
+                , canColumn Squishes .canSquish element
+                , canColumn Grips .canGrip element
+                , canColumn Penetrates .canPenetrate element
+                , canColumn Ensheathes .canEnsheathe element
+                , isColumn Squishes .isSquishable element
+                , isColumn Grips .isGrippable element
+                , isColumn Penetrates .isPenetrable element
+                , isColumn Ensheathes .isEnsheatheable element
                 ]
+                    |> List.map (wrap index [])
             )
         |> (::)
             [ el [] Ui.none

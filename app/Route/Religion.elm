@@ -21,7 +21,7 @@ import TypedSvg.Attributes exposing (class, dominantBaseline, fill, id, stroke, 
 import TypedSvg.Attributes.InPx exposing (fontSize, height, r, strokeWidth, width, x, x1, x2, y, y1, y2)
 import TypedSvg.Core exposing (Svg, foreignObject, text)
 import TypedSvg.Types exposing (AnchorAlignment(..), DominantBaseline(..), Paint(..))
-import Ui exposing (background)
+import Ui exposing (background, centerX)
 import Ui.Font as Font
 import Ui.Prose exposing (paragraph)
 import UrlPath
@@ -246,8 +246,7 @@ view app shared _ =
             (Theme.pageTitle "World Guide: Religion"
                 :: viewIntro app.data
                 ++ [ Ui.el
-                        [ Ui.heightMax (shared.height - 270)
-                        , Ui.height Ui.fill
+                        [ Ui.height Ui.fill
                         ]
                         (Ui.html <| image app.data.religions)
                    ]
@@ -491,8 +490,8 @@ viewReligion i religion =
                 [ Html.p
                     [ Html.Attributes.attribute "xmlns" "http://www.w3.org/1999/xhtml"
                     , Html.Attributes.style "text-align" "center"
-                    , Html.Attributes.style "font-size" "28px"
-                    , Html.Attributes.style "gap" "8px"
+                    , Html.Attributes.style "font-size" "24px"
+                    , Html.Attributes.style "gap" "2px"
                     , Html.Attributes.style "margin" "0"
                     , Html.Attributes.style "display" "flex"
                     , Html.Attributes.style "flex-direction" "column"
