@@ -4,11 +4,6 @@ import BackendTask exposing (BackendTask)
 import Dict exposing (Dict)
 import Dict.Extra
 import Effect exposing (Effect)
-import Element exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, paragraph, px, row, scrollbarX, shrink, spacing, text, width)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import Element.Input as Input
 import FatalError exposing (FatalError)
 import File exposing (File)
 import Head
@@ -32,7 +27,12 @@ import Shared
 import Site
 import Theme
 import Triple
-import Types exposing (Attribute(..), Move, Persona, StimulationType(..))
+import Types exposing (Action(..), Move, Persona, StimulationType(..))
+import Ui exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, spacing, text, width)
+import Ui.Font as Font
+import Ui.Input as Input
+import Ui.Prose exposing (paragraph)
+import Ui.Table
 import UrlPath exposing (UrlPath)
 import Vector2d exposing (Vector2d)
 import View exposing (View)
@@ -700,14 +700,14 @@ view _ shared model =
                     ]
 
             Playing playingModel ->
-                [ Theme.wrappedRow []
+                [ Theme.row [ Ui.wrap ]
                     (viewPersonas playingModel)
                 , viewPlaying shared playingModel
                 ]
                     |> Theme.column [ Theme.padding ]
-                    |> Element.map PlayingMsg
+                    |> Ui.map PlayingMsg
         )
-            |> Element.map PagesMsg.fromMsg
+            |> Ui.map PagesMsg.fromMsg
     }
 
 
@@ -755,17 +755,22 @@ loadPersona :
     }
     -> Element msg
 loadPersona config =
+    let
+        label : { element : Element msg, id : Input.Label }
+        label =
+            Input.label "url" [] (text "URL")
+    in
     Theme.column [ centerX ]
-        [ Theme.el
-            [ Border.width 1
+        [ label.element
+        , Theme.el
+            [ Ui.border 1
             , Theme.padding
-            , width fill
             ]
-            (Theme.input [ width <| Element.minimum 240 fill ]
-                { label = Input.labelAbove [] (text "URL")
+            (Theme.input [ Ui.widthMin 240 ]
+                { label = label.id
                 , text = ""
                 , onChange = config.loadFromUrl
-                , placeholder = Just (Input.placeholder [] (text "Paste the Persona URL here"))
+                , placeholder = Just "Paste the Persona URL here"
                 }
             )
         , el
@@ -774,9 +779,8 @@ loadPersona config =
             ]
             (text "or")
         , Theme.row
-            [ Border.width 1
+            [ Ui.border 1
             , Theme.padding
-            , width fill
             ]
             [ text "Load from a Markdown file"
             , Theme.iconButton
@@ -792,10 +796,10 @@ loadPersona config =
 
 viewPlaying : Shared.Model -> PlayingModel -> Element PlayingMsg
 viewPlaying shared ({ meters, persona } as model) =
-    Theme.column [ width fill ]
+    Theme.column []
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
-        , paragraph [ width fill ]
+        , paragraph []
             [ text "Before an encounter you should probably "
             , Theme.iconAndTextButton [ width shrink ]
                 { onPress = Just Rest
@@ -805,51 +809,48 @@ viewPlaying shared ({ meters, persona } as model) =
             , text " to reset your "
             , el [ Font.bold ] (text "Satiation")
             , text " and Craving and then "
-            , Theme.iconAndTextButton [ width fill ]
+            , Theme.iconAndTextButton []
                 { onPress = Just BeginEncounter
                 , label = "Begin the Encounter"
                 , icon = Icons.beginEncounter
                 }
-            , el [ width fill ] Element.none
+            , el [] Ui.none
             ]
-        , Theme.table [ width fill ]
-            { data =
-                [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> UpdateMeters { meters | stamina = newValue }
-                , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> UpdateMeters { meters | satiation = newValue }
-                , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> UpdateMeters { meters | craving = newValue }
-                , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
-                , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
+        , Theme.table []
+            (Ui.Table.columns
+                [ Ui.Table.column
+                    { header = Ui.Table.cell [] Ui.none
+                    , view = Ui.Table.cell [] << Tuple.first
+                    }
+                , Ui.Table.column
+                    { header = Ui.Table.cell [] Ui.none
+                    , view = Ui.Table.cell [] << Tuple.second
+                    }
+                    |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
                 ]
-            , columns =
-                [ { width = shrink
-                  , header = Element.none
-                  , view = Tuple.first
-                  }
-                , { width = fill
-                  , header = Element.none
-                  , view = Tuple.second
-                  }
-                ]
-            }
+            )
+            [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> UpdateMeters { meters | stamina = newValue }
+            , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> UpdateMeters { meters | satiation = newValue }
+            , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> UpdateMeters { meters | craving = newValue }
+            , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
+            , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
+            ]
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model
-        , Theme.wrappedRow [ width <| Element.maximum (shared.width - 2 * Theme.rhythm) fill ]
-            [ Theme.column
-                [ alignTop
-                , width fill
-                ]
-                [ el [ Font.bold, width <| Element.minimum 300 fill ] (text "Moves")
+        , Theme.row
+            [ Ui.wrap
+            , Ui.widthMax (shared.width - 2 * Theme.rhythm)
+            ]
+            [ Theme.column [ alignTop ]
+                [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
                 , text "Choose a move."
                 , viewMoves model
                 ]
-            , Theme.column
-                [ alignTop
-                , width fill
-                ]
+            , Theme.column [ alignTop ]
                 [ Theme.column [ centerX ]
                     [ el [ Font.bold ] (text "Stimulation")
                     , text "Choose a stamina cost."
-                    , Theme.row [ width fill ]
+                    , Theme.row []
                         [ viewRoll model
                         , Theme.iconButton [ alignRight ]
                             { onPress =
@@ -871,11 +872,8 @@ viewPlaying shared ({ meters, persona } as model) =
                     , staminaTable model
                     ]
                 ]
-            , Theme.column
-                [ alignTop
-                , width fill
-                ]
-                [ el [ Font.bold, width <| Element.minimum 300 fill ] (text "Temperaments")
+            , Theme.column [ alignTop ]
+                [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
                 , text "(Optionally) choose a Temperament"
                 , viewTemperaments model
                 ]
@@ -910,107 +908,106 @@ viewRoll model =
                     else
                         max 0 (raw - model.persona.prowess)
 
-                firstColumn : Element.Column Bool msg
+                firstColumn : Ui.Table.Column globalState rowState Bool msg
                 firstColumn =
-                    { width = shrink
-                    , header = Element.none
-                    , view =
-                        \firstRow ->
-                            let
-                                label : String
-                                label =
-                                    if firstRow then
-                                        "+"
+                    Ui.Table.column
+                        { header = Ui.Table.cell [] Ui.none
+                        , view =
+                            \firstRow ->
+                                let
+                                    label : String
+                                    label =
+                                        if firstRow then
+                                            "+"
 
-                                    else
-                                        "-"
+                                        else
+                                            "-"
 
-                                topBorder : Int
-                                topBorder =
-                                    if firstRow then
-                                        1
+                                    topBorder : Int
+                                    topBorder =
+                                        if firstRow then
+                                            1
 
-                                    else
-                                        0
-                            in
-                            Theme.el
-                                [ Background.color Theme.lightPurple
-                                , Theme.padding
-                                , Font.center
-                                , Border.widthEach
-                                    { top = topBorder
-                                    , bottom = 1
-                                    , left = 1
-                                    , right = 0
-                                    }
-                                ]
-                                (text label)
-                    }
+                                        else
+                                            0
+                                in
+                                Ui.Table.cell
+                                    [ Ui.background Theme.lightPurple
+                                    , Theme.padding
+                                    , Font.center
+                                    , Ui.borderWith
+                                        { top = topBorder
+                                        , bottom = 1
+                                        , left = 1
+                                        , right = 0
+                                        }
+                                    ]
+                                    (text label)
+                        }
 
-                otherColumns : List (Element.Column Bool msg)
+                otherColumns : List (Ui.Table.Column globalState rowState Bool msg)
                 otherColumns =
                     List.map
                         (\( ardent, timid ) ->
-                            { width = shrink
-                            , header = Element.none
-                            , view =
-                                \firstRow ->
-                                    let
-                                        label : String
-                                        label =
-                                            if firstRow then
-                                                String.fromInt ardent
+                            Ui.Table.column
+                                { header = Ui.Table.cell [] Ui.none
+                                , view =
+                                    \firstRow ->
+                                        let
+                                            label : String
+                                            label =
+                                                if firstRow then
+                                                    String.fromInt ardent
 
-                                            else
-                                                String.fromInt timid
+                                                else
+                                                    String.fromInt timid
 
-                                        topBorder : Int
-                                        topBorder =
-                                            if firstRow then
-                                                1
+                                            topBorder : Int
+                                            topBorder =
+                                                if firstRow then
+                                                    1
 
-                                            else
-                                                0
-                                    in
-                                    Theme.el
-                                        [ Background.color Theme.lightPurple
-                                        , Theme.padding
-                                        , Font.alignRight
-                                        , Border.widthEach
-                                            { top = topBorder
-                                            , bottom = 1
-                                            , left = 1
-                                            , right = 0
-                                            }
-                                        ]
-                                        (text label)
-                            }
+                                                else
+                                                    0
+                                        in
+                                        Ui.Table.cell
+                                            [ Ui.background Theme.lightPurple
+                                            , Theme.padding
+                                            , Font.alignRight
+                                            , Ui.borderWith
+                                                { top = topBorder
+                                                , bottom = 1
+                                                , left = 1
+                                                , right = 0
+                                                }
+                                            ]
+                                            (text label)
+                                }
                         )
                         results
             in
-            row [ width fill ]
+            row []
                 [ Theme.table
-                    [ Element.spacing 0
+                    [ Ui.spacing 0
                     , width shrink
                     ]
-                    { data = [ True, False ]
-                    , columns = firstColumn :: otherColumns
-                    }
+                    (Ui.Table.columns (firstColumn :: otherColumns))
+                    [ True, False ]
                 , Theme.el
-                    [ Background.color Theme.lightPurple
+                    [ Ui.background Theme.lightPurple
                     , Theme.padding
-                    , Border.width 1
+                    , Ui.border 1
                     , height fill
                     ]
                     (el [ centerY ] (text (String.fromInt raw)))
                 , if raw == corrected then
-                    Element.none
+                    Ui.none
 
                   else
                     Theme.column
-                        [ Background.color Theme.lightPurple
+                        [ Ui.background Theme.lightPurple
                         , Theme.padding
-                        , Border.widthEach
+                        , Ui.borderWith
                             { top = 1
                             , bottom = 1
                             , left = 0
@@ -1023,13 +1020,13 @@ viewRoll model =
                         , el [ centerX ] (text "⇒")
                         ]
                 , if raw == corrected then
-                    Element.none
+                    Ui.none
 
                   else
                     Theme.el
-                        [ Background.color Theme.lightPurple
+                        [ Ui.background Theme.lightPurple
                         , Theme.padding
-                        , Border.widthEach
+                        , Ui.borderWith
                             { top = 1
                             , bottom = 1
                             , left = 0
@@ -1042,14 +1039,14 @@ viewRoll model =
                             ]
                             (text (String.fromInt corrected))
                         )
-                , el [ width fill ] Element.none
+                , el [] Ui.none
                 ]
 
 
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
 viewOrgans shared model =
-    Theme.column [ width fill ]
-        [ Theme.row [ width fill ]
+    Theme.column []
+        [ Theme.row []
             [ el [ Font.bold ] (text "Organs")
             , Theme.iconButton
                 [ alignRight
@@ -1065,12 +1062,12 @@ viewOrgans shared model =
             , mouseMove = MouseMove
             }
             model
-            |> Element.html
+            |> Ui.html
             |> Theme.el
                 [ width <| px OrgansSurface.width
                 , height <| px (ceiling OrgansSurface.height)
-                , Border.width 1
-                , Background.color Theme.lightPurple
+                , Ui.border 1
+                , Ui.background Theme.lightPurple
                 ]
             |> Theme.el
                 [ centerX
@@ -1079,7 +1076,7 @@ viewOrgans shared model =
                     |> px
                     |> width
                 , height <| px <| floor (OrgansSurface.height + 8)
-                , scrollbarX
+                , Ui.scrollableX
                 ]
         ]
 
@@ -1107,14 +1104,12 @@ viewOrgasm model =
         isOrgasm =
             model.meters.arousal > orgasmThreshold
     in
-    Theme.column
-        [ width fill
-        ]
+    Theme.column []
         [ if isOrgasm then
             paragraph
                 [ Theme.padding
-                , Border.width 1
-                , Background.color Theme.purple
+                , Ui.border 1
+                , Ui.background Theme.purple
                 , Font.color Theme.white
                 ]
                 (if model.selectedTemperament == Just Valiant then
@@ -1131,7 +1126,7 @@ viewOrgasm model =
           else
             paragraph
                 [ Theme.padding
-                , Border.width 1
+                , Ui.border 1
                 ]
                 (if model.selectedTemperament == Just Valiant && model.meters.arousal > model.meters.sensitivity + model.meters.satiation then
                     [ text "You are resisting "
@@ -1162,7 +1157,7 @@ viewOrgasm model =
                 )
             ]
         , if model.selectedTemperament == Just Valiant then
-            Theme.row [ width fill ]
+            Theme.row []
                 [ if model.valiantModifier < model.meters.stamina then
                     paragraph []
                         [ text "You are being "
@@ -1189,7 +1184,7 @@ viewOrgasm model =
                 ]
 
           else
-            Element.none
+            Ui.none
         ]
 
 
@@ -1201,7 +1196,7 @@ viewTemperaments model =
     , ( Valiant, "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "When calculating whether or not you are currently having an **Orgasm**, roll a **Moxie Check**. If the result is _less_ than your current **Stamina** value, add the result to your Orgasm Threshold as a Modifier." )
     ]
         |> List.map (viewTemperament model)
-        |> Theme.wrappedRow [ width fill ]
+        |> Theme.row [ Ui.wrap ]
 
 
 viewTemperament : PlayingModel -> ( Temperament, String, String ) -> Element PlayingMsg
@@ -1212,7 +1207,7 @@ viewTemperament model ( name, description, consequence ) =
             model.selectedTemperament == Just name
     in
     Theme.selectableButton
-        [ width <| Element.minimum 400 fill
+        [ Ui.widthMin 400
         , height fill
         , Font.alignLeft
         ]
@@ -1265,10 +1260,7 @@ viewMove model move =
         selected =
             model.selectedMove == Just move.name
     in
-    Theme.selectableButton
-        [ width fill
-        , Font.alignLeft
-        ]
+    Theme.selectableButton [ Font.alignLeft ]
         { onPress =
             if move.cravingThreshold > model.meters.craving then
                 Nothing
@@ -1280,7 +1272,7 @@ viewMove model move =
                 Just (SelectMove (Just move.name))
         , selected = selected
         , label =
-            Theme.column [ width fill ]
+            Theme.column []
                 [ paragraph []
                     ([ el [ Font.bold ] (text move.name)
                      , text
@@ -1289,17 +1281,17 @@ viewMove model move =
                             ++ ") ["
                         )
                      ]
-                        ++ (move.attributeCompatibility
+                        ++ (move.actionCompatibility
                                 |> List.map
-                                    (\attribute ->
-                                        attribute
-                                            |> Types.attributeToCanIcon
+                                    (\action ->
+                                        action
+                                            |> Types.actionToCanIcon
                                             |> Phosphor.toHtml
                                                 [ Html.Attributes.style "border-bottom" "1px dotted black"
                                                 , Html.Attributes.style "margin-bottom" "-3px"
                                                 ]
-                                            |> Element.html
-                                            |> Theme.withHint (Types.attributeToAction attribute)
+                                            |> Ui.html
+                                            |> Theme.withHint (Types.actionToString action)
                                     )
                                 |> List.intersperse (text "/")
                            )
@@ -1327,19 +1319,19 @@ defaultMoves : List Move
 defaultMoves =
     [ { name = "Caress"
       , stimulationType = Tease
-      , attributeCompatibility = [ Squishes, Grips ]
+      , actionCompatibility = [ Squishes, Grips ]
       , cravingThreshold = 0
       , description = "A light touch with no other effects."
       }
     , { name = "Rub"
       , stimulationType = Grind
-      , attributeCompatibility = [ Squishes, Grips, Penetrates, Ensheathes ]
+      , actionCompatibility = [ Squishes, Grips, Penetrates, Ensheathes ]
       , cravingThreshold = 0
       , description = "A massaging motion with no other effects."
       }
     , { name = "Stroke"
       , stimulationType = Thrust
-      , attributeCompatibility = [ Grips, Penetrates, Ensheathes ]
+      , actionCompatibility = [ Grips, Penetrates, Ensheathes ]
       , cravingThreshold = 0
       , description = "A back-and-forth movement with no other effects."
       }
@@ -1362,20 +1354,25 @@ statusMeter label value cap setter =
 staminaTable : PlayingModel -> Element PlayingMsg
 staminaTable model =
     let
-        column : String -> (Int -> List Int -> String) -> Element.Column ( Int, List Int ) PlayingMsg
+        column :
+            String
+            -> (Int -> List Int -> String)
+            -> Ui.Table.Column globalState rowState ( Int, List Int ) PlayingMsg
         column header toLabel =
-            { width = shrink
-            , header = el [ Font.center ] (text header)
-            , view =
-                \( cost, dice ) ->
-                    Theme.selectableButton [ width fill ]
-                        { onPress = Just (StimulationCost cost)
-                        , label = text (toLabel cost dice)
-                        , selected = cost == model.stimulationCost
-                        }
-            }
+            Ui.Table.column
+                { header = Ui.Table.cell [ Font.center ] (text header)
+                , view =
+                    \( cost, dice ) ->
+                        Ui.Table.cell []
+                            (Theme.selectableButton []
+                                { onPress = Just (StimulationCost cost)
+                                , label = text (toLabel cost dice)
+                                , selected = cost == model.stimulationCost
+                                }
+                            )
+                }
 
-        columns : List (Element.Column ( Int, List Int ) PlayingMsg)
+        columns : List (Ui.Table.Column globalState rowState ( Int, List Int ) PlayingMsg)
         columns =
             [ column "Stamina" <|
                 \cost _ -> String.fromInt cost
@@ -1409,9 +1406,8 @@ staminaTable model =
             ]
     in
     Theme.table []
-        { data = stimulationDice
-        , columns = columns
-        }
+        (Ui.Table.columns columns)
+        stimulationDice
 
 
 stimulationDice : List ( Int, List Int )

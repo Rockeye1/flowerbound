@@ -12,7 +12,7 @@ import Point2d exposing (Point2d)
 import Svg
 import Svg.Attributes
 import Svg.Events
-import Types exposing (Attribute(..), Organ, Persona)
+import Types exposing (Action(..), Organ, Persona)
 
 
 type alias OrganKey =
@@ -196,8 +196,8 @@ viewOrgan persona color pos organ =
                         )
                     ]
 
-        iifLeft : Bool -> Attribute -> Float -> Svg.Svg msg
-        iifLeft condition attribute dy =
+        iifLeft : Bool -> Action -> Float -> Svg.Svg msg
+        iifLeft condition action dy =
             Svg.g []
                 [ textAt
                     [ if condition then
@@ -208,17 +208,17 @@ viewOrgan persona color pos organ =
                     ]
                     { x = 0
                     , y = dy
-                    , label = "⇒ I" ++ Types.attributeToInitial attribute
+                    , label = "⇒ I" ++ Types.actionToInitial action
                     , anchor = AnchorStart
                     }
-                , iconAt (72 - 16) dy (Types.attributeToIsIcon attribute)
-                , Svg.title [] [ Svg.text (Types.attributeToIs attribute) ]
+                , iconAt (72 - 16) dy (Types.actionToIsIcon action)
+                , Svg.title [] [ Svg.text (Types.actionToIs action) ]
                 ]
 
-        iifRight : Bool -> Attribute -> Float -> Svg.Svg msg
+        iifRight : Bool -> Action -> Float -> Svg.Svg msg
         iifRight condition attribute dy =
             Svg.g []
-                [ iconAt (organWidth - 72 - 16) dy (Types.attributeToCanIcon attribute)
+                [ iconAt (organWidth - 72 - 16) dy (Types.actionToCanIcon attribute)
                 , textAt
                     [ if condition then
                         Svg.Attributes.fill "black"
@@ -228,10 +228,10 @@ viewOrgan persona color pos organ =
                     ]
                     { x = 0
                     , y = dy
-                    , label = "C" ++ Types.attributeToInitial attribute ++ " ⇒"
+                    , label = "C" ++ Types.actionToInitial attribute ++ " ⇒"
                     , anchor = AnchorEnd
                     }
-                , Svg.title [] [ Svg.text (Types.attributeToCan attribute) ]
+                , Svg.title [] [ Svg.text (Types.actionToCan attribute) ]
                 ]
     in
     Svg.g

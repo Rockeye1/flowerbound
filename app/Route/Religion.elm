@@ -1,11 +1,7 @@
 module Route.Religion exposing (ActionData, Data, Model, Msg, Religion, RouteParams, data, image, route)
 
 import BackendTask exposing (BackendTask)
-import Color exposing (Color)
 import Effect exposing (Effect)
-import Element exposing (paragraph)
-import Element.Background as Background
-import Element.Font as Font
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
@@ -25,6 +21,9 @@ import TypedSvg.Attributes exposing (class, dominantBaseline, fill, id, stroke, 
 import TypedSvg.Attributes.InPx exposing (fontSize, height, r, strokeWidth, width, x, x1, x2, y, y1, y2)
 import TypedSvg.Core exposing (Svg, foreignObject, text)
 import TypedSvg.Types exposing (AnchorAlignment(..), DominantBaseline(..), Paint(..))
+import Ui exposing (background)
+import Ui.Font as Font
+import Ui.Prose exposing (paragraph)
 import UrlPath
 import View exposing (View)
 
@@ -239,18 +238,18 @@ view app shared _ =
     { title = title
     , body =
         Theme.column
-            [ Element.width Element.fill
-            , Element.height Element.fill
-            , Background.color Theme.lightPurple
+            [ Ui.width Ui.fill
+            , Ui.height Ui.fill
+            , background Theme.lightPurple
             , Theme.padding
             ]
             (Theme.pageTitle "World Guide: Religion"
                 :: viewIntro app.data
-                ++ [ Element.el
-                        [ Element.width Element.fill
-                        , Element.height <| Element.maximum (shared.height - 270) Element.fill
+                ++ [ Ui.el
+                        [ Ui.heightMax (shared.height - 270)
+                        , Ui.height Ui.fill
                         ]
-                        (Element.html <| image app.data.religions)
+                        (Ui.html <| image app.data.religions)
                    ]
             )
     }
@@ -266,7 +265,7 @@ religionRadius =
     baseWidth / 4
 
 
-viewIntro : Data -> List (Element.Element (PagesMsg Msg))
+viewIntro : Data -> List (Ui.Element (PagesMsg Msg))
 viewIntro { intro } =
     List.indexedMap
         (\j line ->
@@ -275,10 +274,10 @@ viewIntro { intro } =
                 |> List.indexedMap
                     (\i segment ->
                         if modBy 2 i == 1 then
-                            Element.el [ Font.italic ] (Element.text segment)
+                            Ui.el [ Font.italic ] (Ui.text segment)
 
                         else
-                            Element.text segment
+                            Ui.text segment
                     )
                 |> paragraph
                     (if j == 2 then
@@ -423,11 +422,10 @@ children religions =
       , circle
             [ r baseWidth
             , fill PaintNone
-            , stroke (Paint purple)
+            , stroke (Paint Theme.purple)
             ]
             []
-
-      --   , g [ stroke (Paint purple) ] lines
+      , g [ stroke (Paint Theme.purple) ] lines
       , g
             [ fontSize (baseWidth / 14) ]
             (List.indexedMap viewReligion religions)
@@ -453,15 +451,15 @@ viewReligion i religion =
         ]
         [ circle
             [ r (religionRadius * 1.2)
-            , fill (Paint lightPurple)
-            , stroke (Paint purple)
+            , fill (Paint Theme.lightPurple)
+            , stroke (Paint Theme.purple)
             , class [ "fast-hidable" ]
             ]
             []
         , circle
             [ r religionRadius
-            , fill (Paint lightPurple)
-            , stroke (Paint purple)
+            , fill (Paint Theme.lightPurple)
+            , stroke (Paint Theme.purple)
             , class [ "movable" ]
             ]
             []
@@ -538,6 +536,7 @@ viewReligion i religion =
 parsed : String -> Html msg
 parsed line =
     let
+        splitB : String -> List (Html msg)
         splitB segment =
             segment
                 |> String.split "*"
@@ -562,13 +561,3 @@ parsed line =
             )
         |> List.concat
         |> Html.span []
-
-
-purple : Color
-purple =
-    Color.rgb255 0x80 0 0x80
-
-
-lightPurple : Color
-lightPurple =
-    Color.rgb255 0xE6 0xCC 0xE6

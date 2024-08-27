@@ -35,17 +35,17 @@ module Icons exposing
 
 -}
 
-import Element exposing (Element, el)
 import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
+import Ui exposing (Element, el)
 
 
 toElement : IconVariant -> Element msg
 toElement variant =
     variant
         |> Phosphor.toHtml []
-        |> Element.html
+        |> Ui.html
         |> el []
 
 

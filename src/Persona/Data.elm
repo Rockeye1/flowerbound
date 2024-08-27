@@ -1,12 +1,12 @@
 module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, yonic)
 
 import Dict
-import Element exposing (Element)
 import Icons
 import Phosphor
 import Svg
 import Svg.Attributes
 import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
+import Ui exposing (Element)
 
 
 gendertropeIconElement : Gendertrope -> Element msg

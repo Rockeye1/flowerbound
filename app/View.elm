@@ -6,7 +6,7 @@ module View exposing (View, map)
 
 -}
 
-import Element exposing (Element)
+import Ui exposing (Element)
 
 
 {-| -}
@@ -20,5 +20,5 @@ type alias View msg =
 map : (msg1 -> msg2) -> View msg1 -> View msg2
 map fn doc =
     { title = doc.title
-    , body = Element.map fn doc.body
+    , body = Ui.map fn doc.body
     }

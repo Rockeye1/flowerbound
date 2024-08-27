@@ -1,8 +1,6 @@
 module Site exposing (config, defaultSummary, manifest)
 
 import BackendTask exposing (BackendTask)
-import Color
-import Element
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
@@ -76,19 +74,9 @@ manifest =
         , startUrl = Route.Index |> Route.toPath
         , icons = [ androidChromeIcon 192 ]
         }
-        |> Manifest.withThemeColor (toColor Theme.purple)
-        |> Manifest.withBackgroundColor (toColor Theme.purple)
+        |> Manifest.withThemeColor Theme.purple
+        |> Manifest.withBackgroundColor Theme.purple
         |> Manifest.withDisplayMode Manifest.Standalone
-
-
-toColor : Element.Color -> Color.Color
-toColor color =
-    let
-        rgb : { red : Float, green : Float, blue : Float, alpha : Float }
-        rgb =
-            Element.toRgb color
-    in
-    Color.rgba rgb.red rgb.blue rgb.blue rgb.alpha
 
 
 androidChromeIcon : Int -> Manifest.Icon

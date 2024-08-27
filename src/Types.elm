@@ -1,4 +1,4 @@
-module Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), attributeToAction, attributeToCan, attributeToCanIcon, attributeToInitial, attributeToIs, attributeToIsIcon, standardGendertropes, stimulationTypeToString)
+module Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), actionToCan, actionToCanIcon, actionToInitial, actionToIs, actionToIsIcon, actionToString, standardGendertropes, stimulationTypeToString)
 
 import Dict exposing (Dict)
 import Icons
@@ -114,7 +114,7 @@ type alias Organ =
 type alias Move =
     { name : String
     , stimulationType : StimulationType
-    , attributeCompatibility : List Attribute
+    , actionCompatibility : List Action
     , cravingThreshold : Int
     , description : String
     }
@@ -126,7 +126,7 @@ type StimulationType
     | Thrust
 
 
-type Attribute
+type Action
     = Squishes
     | Grips
     | Penetrates
@@ -146,8 +146,8 @@ stimulationTypeToString type_ =
             "Thrust"
 
 
-attributeToAction : Attribute -> String
-attributeToAction attribute =
+actionToString : Action -> String
+actionToString attribute =
     case attribute of
         Squishes ->
             "Squishes"
@@ -162,8 +162,8 @@ attributeToAction attribute =
             "Ensheathes"
 
 
-attributeToCan : Attribute -> String
-attributeToCan attribute =
+actionToCan : Action -> String
+actionToCan attribute =
     case attribute of
         Squishes ->
             "Can Squish"
@@ -178,8 +178,8 @@ attributeToCan attribute =
             "Can Ensheathe"
 
 
-attributeToIs : Attribute -> String
-attributeToIs attribute =
+actionToIs : Action -> String
+actionToIs attribute =
     case attribute of
         Squishes ->
             "Is Squishable"
@@ -194,8 +194,8 @@ attributeToIs attribute =
             "Is Ensheatheable"
 
 
-attributeToCanIcon : Attribute -> IconVariant
-attributeToCanIcon attribute =
+actionToCanIcon : Action -> IconVariant
+actionToCanIcon attribute =
     case attribute of
         Squishes ->
             Icons.squish
@@ -210,8 +210,8 @@ attributeToCanIcon attribute =
             Icons.ensheathe
 
 
-attributeToIsIcon : Attribute -> IconVariant
-attributeToIsIcon attribute =
+actionToIsIcon : Action -> IconVariant
+actionToIsIcon attribute =
     case attribute of
         Squishes ->
             Icons.squishable
@@ -226,8 +226,8 @@ attributeToIsIcon attribute =
             Icons.ensheatheable
 
 
-attributeToInitial : Attribute -> String
-attributeToInitial attribute =
+actionToInitial : Action -> String
+actionToInitial attribute =
     case attribute of
         Squishes ->
             "S"

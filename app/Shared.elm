@@ -3,14 +3,14 @@ module Shared exposing (Data, Model, Msg(..), template)
 import BackendTask exposing (BackendTask)
 import Browser.Events
 import Effect exposing (Effect)
-import Element
 import FatalError exposing (FatalError)
 import Html exposing (Html)
 import Pages.Flags
 import Pages.PageUrl exposing (PageUrl)
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
-import Theme
+import Ui
+import Ui.Font
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -101,22 +101,27 @@ view :
     -> { body : List (Html msg), title : String }
 view _ _ _ _ pageView =
     { body =
-        [ Element.layoutWith
-            { options =
-                [ Element.focusStyle
-                    { backgroundColor = Nothing
-                    , borderColor = Nothing
-                    , shadow =
-                        Just
-                            { color = Theme.purple
-                            , offset = ( 0, 0 )
-                            , blur = 0
-                            , size = 3
-                            }
-                    }
+        [ Ui.layout
+            [ -- Ui.focusStyle
+              -- { backgroundColor = Nothing
+              -- , borderColor = Nothing
+              -- , shadow =
+              --     Just
+              --         { color = Theme.purple
+              --         , offset = ( 0, 0 )
+              --         , blur = 0
+              --         , size = 3
+              --         }
+              -- },
+              Ui.height Ui.fill
+            , Ui.Font.family
+                [ Ui.Font.typeface "Open Sans"
+                , Ui.Font.typeface "Helvetica"
+                , Ui.Font.typeface "Verdana"
+                , Ui.Font.sansSerif
                 ]
-            }
-            []
+            , Ui.Font.size 20
+            ]
             pageView.body
         ]
     , title = pageView.title

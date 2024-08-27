@@ -1,18 +1,18 @@
 module Persona.Editor exposing (Config, GendertropeMsg(..), view)
 
 import Dict
-import Element exposing (Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, paragraph, px, shrink, text, width)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import Element.Input as Input
 import Icons
 import List.Extra
 import Persona
 import Persona.Data
 import Persona.View
 import Theme
-import Types exposing (Attribute(..), Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
+import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
+import Ui exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, text, width)
+import Ui.Font as Font
+import Ui.Input as Input
+import Ui.Prose exposing (paragraph)
+import Ui.Table
 
 
 type alias Config msg =
@@ -42,13 +42,13 @@ view config { flipped, persona } =
         fullWidth =
             800
 
-        commonAttrs : Int -> List (Element.Attribute msg)
+        commonAttrs : Int -> List (Attribute msg)
         commonAttrs rotate =
-            [ Border.width 1
+            [ Ui.border 1
             , width <| px fullWidth
             , height fill
             , Theme.padding
-            , Background.color Theme.white
+            , Ui.background Theme.white
             , Theme.style "backface-visibility" "hidden"
             , Theme.style "transition" "all .5s ease-in-out"
             , Theme.style "position" "absolute"
@@ -74,12 +74,12 @@ view config { flipped, persona } =
                 )
             )
             [ nameRow config persona
-            , Element.map config.update <|
-                Theme.row [ width fill ]
+            , Ui.map config.update <|
+                Theme.row []
                     [ abilitiesView persona
                     , statusView persona
                     ]
-            , Element.map config.update <| progressionView persona
+            , Ui.map config.update <| progressionView persona
             ]
         , Theme.column
             (commonAttrs
@@ -90,12 +90,12 @@ view config { flipped, persona } =
                     180
                 )
             )
-            (Theme.row [ width fill ]
+            (Theme.row []
                 (text "Gendertrope"
                     :: topButtons config
                 )
                 :: List.map
-                    (Element.map
+                    (Ui.map
                         (\msg ->
                             case msg of
                                 UpdateGendertrope newGendertrope ->
@@ -113,30 +113,26 @@ view config { flipped, persona } =
 nameRow : Config msg -> Persona -> Element msg
 nameRow config persona =
     Theme.row
-        [ Element.paddingEach
+        [ Ui.paddingWith
             { top = 0
             , bottom = Theme.rhythm
             , left = 0
             , right = 0
             }
-        , Border.widthEach
+        , Ui.borderWith
             { top = 0
             , right = 0
             , left = 0
             , bottom = 1
             }
-        , width fill
         ]
         (el [ Font.color Theme.purple ]
             (Persona.Data.gendertropeIconElement persona.gendertrope)
-            :: Theme.input [ width fill ]
+            :: Theme.input []
                 { label = Input.labelHidden "Name"
                 , text = persona.name
                 , onChange = \newValue -> config.update { persona | name = newValue }
-                , placeholder =
-                    Just <|
-                        Input.placeholder [] <|
-                            text "Name"
+                , placeholder = Just "Name"
                 }
             :: topButtons config
         )
@@ -176,59 +172,61 @@ abilitiesView persona =
                 - persona.prowess
                 - persona.moxie
 
-        viewRow : ( Element Persona, Int, Int -> Persona ) -> Element Persona
+        viewRow : ( String, Int, Int -> Persona ) -> Ui.Table.Cell Persona
         viewRow ( _, value, setter ) =
-            Theme.row
-                [ alignRight ]
-                [ el [ alignRight ] (text (String.fromInt value))
-                , Theme.iconButton
-                    [ alignRight
-                    ]
-                    { icon = Icons.minus
-                    , title = "Decrease"
-                    , onPress =
-                        if value > 2 then
-                            Just (setter (value - 1))
+            Ui.Table.cell []
+                (Theme.row
+                    [ alignRight ]
+                    [ el [ alignRight ] (text (String.fromInt value))
+                    , Theme.iconButton
+                        [ alignRight
+                        ]
+                        { icon = Icons.minus
+                        , title = "Decrease"
+                        , onPress =
+                            if value > 2 then
+                                Just (setter (value - 1))
 
-                        else
-                            Nothing
-                    }
-                , Theme.iconButton
-                    [ alignRight
-                    ]
-                    { icon = Icons.plus
-                    , title = "Increase"
-                    , onPress =
-                        if availablePoints > 0 && value < 20 then
-                            Just (setter (value + 1))
+                            else
+                                Nothing
+                        }
+                    , Theme.iconButton
+                        [ alignRight
+                        ]
+                        { icon = Icons.plus
+                        , title = "Increase"
+                        , onPress =
+                            if availablePoints > 0 && value < 20 then
+                                Just (setter (value + 1))
 
-                        else
-                            Nothing
-                    }
-                ]
+                            else
+                                Nothing
+                        }
+                    ]
+                )
     in
-    Theme.column [ height fill, width fill ]
+    Theme.column [ height fill ]
         [ text "Ability Scores"
-        , Element.table [ Theme.spacing ]
-            { data =
-                [ ( text "Fitness", persona.fitness, \newValue -> { persona | fitness = newValue } )
-                , ( text "Grace", persona.grace, \newValue -> { persona | grace = newValue } )
-                , ( text "Ardor", persona.ardor, \newValue -> { persona | ardor = newValue } )
-                , ( text "Sanity", persona.sanity, \newValue -> { persona | sanity = newValue } )
-                , ( text "Prowess", persona.prowess, \newValue -> { persona | prowess = newValue } )
-                , ( text "Moxie", persona.moxie, \newValue -> { persona | moxie = newValue } )
+        , Theme.table []
+            (Ui.Table.columns
+                [ Ui.Table.column
+                    { header = Ui.Table.cell [] Ui.none
+                    , view = \( label, _, _ ) -> Ui.Table.cell [ centerY ] (text label)
+                    }
+                    |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+                , Ui.Table.column
+                    { header = Ui.Table.cell [] Ui.none
+                    , view = viewRow
+                    }
                 ]
-            , columns =
-                [ { width = fill
-                  , header = Element.none
-                  , view = \( label, _, _ ) -> el [ centerY ] label
-                  }
-                , { width = shrink
-                  , header = Element.none
-                  , view = viewRow
-                  }
-                ]
-            }
+            )
+            [ ( "Fitness", persona.fitness, \newValue -> { persona | fitness = newValue } )
+            , ( "Grace", persona.grace, \newValue -> { persona | grace = newValue } )
+            , ( "Ardor", persona.ardor, \newValue -> { persona | ardor = newValue } )
+            , ( "Sanity", persona.sanity, \newValue -> { persona | sanity = newValue } )
+            , ( "Prowess", persona.prowess, \newValue -> { persona | prowess = newValue } )
+            , ( "Moxie", persona.moxie, \newValue -> { persona | moxie = newValue } )
+            ]
         ]
 
 
@@ -242,58 +240,54 @@ statusView persona =
             )
     in
     Theme.column
-        [ Border.widthEach
+        [ Ui.borderWith
             { left = 1
             , top = 0
             , bottom = 0
             , right = 0
             }
-        , Element.paddingEach
+        , Ui.paddingWith
             { left = Theme.rhythm
             , top = 0
             , bottom = 0
             , right = 0
             }
         , height fill
-        , width fill
         ]
         [ text "Status meters"
-        , Element.table
-            [ Theme.spacing
+        , Theme.table []
+            (Ui.Table.columns
+                [ Ui.Table.column
+                    { header = Ui.Table.cell [] Ui.none
+                    , view = \( label, _ ) -> Ui.Table.cell [] (text label)
+                    }
+                    |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+                , Ui.Table.column
+                    { header = Ui.Table.cell [] Ui.none
+                    , view = \( _, maximum ) -> Ui.Table.cell [] (text (String.fromInt maximum))
+                    }
+                ]
+            )
+            [ statusRow "Max Stamina" Persona.maxStamina
+            , statusRow "Max Satiation" Persona.maxSatiation
+            , statusRow "Max Craving" Persona.maxCraving
+            , statusRow "Max Arousal" Persona.maxArousal
+            , statusRow "Max Sensitivity" Persona.maxSensitivity
             ]
-            { data =
-                [ statusRow "Max Stamina" Persona.maxStamina
-                , statusRow "Max Satiation" Persona.maxSatiation
-                , statusRow "Max Craving" Persona.maxCraving
-                , statusRow "Max Arousal" Persona.maxArousal
-                , statusRow "Max Sensitivity" Persona.maxSensitivity
-                ]
-            , columns =
-                [ { header = Element.none
-                  , width = fill
-                  , view = \( label, _ ) -> text label
-                  }
-                , { header = Element.none
-                  , width = shrink
-                  , view = \( _, maximum ) -> text (String.fromInt maximum)
-                  }
-                ]
-            }
         , Theme.row
             [ alignBottom
-            , Border.widthEach
+            , Ui.borderWith
                 { left = 0
                 , top = 1
                 , bottom = 0
                 , right = 0
                 }
-            , Element.paddingEach
+            , Ui.paddingWith
                 { left = 0
                 , top = Theme.rhythm
                 , bottom = 0
                 , right = 0
                 }
-            , width fill
             ]
             [ text "Level Bonus"
             , el [ alignRight ] (text (String.fromInt (Persona.levelBonus persona)))
@@ -304,22 +298,21 @@ statusView persona =
 progressionView : Persona -> Element Persona
 progressionView persona =
     Theme.column
-        [ Border.widthEach
+        [ Ui.borderWith
             { top = 1
             , left = 0
             , right = 0
             , bottom = 0
             }
-        , Element.paddingEach
+        , Ui.paddingWith
             { top = Theme.rhythm
             , left = 0
             , right = 0
             , bottom = 0
             }
-        , width fill
         ]
         [ el [ centerX ] <| text "Progression Tally"
-        , Theme.wrappedRow [ width fill ]
+        , Theme.wrappedRow []
             [ viewPoints "EP" "Euphoria Points" persona.euphoriaPoints (Persona.usedEuphoriaPoints persona) <| \newValue -> { persona | euphoriaPoints = newValue }
             , viewPoints "IP" "Ichor Points" persona.ichorPoints (Persona.usedIchorPoints persona) <| \newValue -> { persona | ichorPoints = newValue }
             , viewPoints "NP" "Numinous Points" persona.numinousPoints (Persona.usedNuminousPoints persona) <| \newValue -> { persona | numinousPoints = newValue }
@@ -334,7 +327,7 @@ viewPoints label fullName value used setter =
         unused =
             value - used
     in
-    Theme.row [ width fill ]
+    Theme.row []
         [ Theme.withHint fullName (text label)
         , Theme.wrappedRow [ width <| px (Theme.rhythm * 8) ]
             (List.repeat (unused // 5) (Persona.View.tallyGroup 5)
@@ -368,47 +361,44 @@ viewGendertrope ({ gendertrope } as persona) =
         radioRow : Element GendertropeMsg
         radioRow =
             let
-                common : List (Element.Attribute msg)
-                common =
-                    [ Border.width 1
+                common : Gendertrope -> List (Attribute GendertropeMsg)
+                common option =
+                    [ Ui.border 1
                     , Theme.padding
                     , Font.center
-                    , width (Element.minimum 160 fill)
+                    , Ui.widthMin 160
+                    , Input.button (UpdateGendertrope option)
                     ]
             in
             (Types.standardGendertropes ++ [ Custom gendertropeRecord ])
                 |> List.map
                     (\option ->
-                        Input.button
+                        Theme.row
                             (if option == gendertrope then
-                                Background.color Theme.purple
+                                Ui.background Theme.purple
                                     :: Font.color Theme.white
-                                    :: Border.color Theme.black
-                                    :: common
+                                    :: Ui.borderColor Theme.black
+                                    :: common option
 
                              else
-                                Background.color Theme.gray
-                                    :: Border.color Theme.purple
-                                    :: common
+                                Ui.background Theme.gray
+                                    :: Ui.borderColor Theme.purple
+                                    :: common option
                             )
-                            { label =
-                                Theme.row [ width fill ]
-                                    [ el [ width fill ] Element.none
-                                    , Theme.row []
-                                        [ Persona.Data.gendertropeIconElement option
-                                        , case option of
-                                            Custom _ ->
-                                                text "Custom"
+                            [ el [] Ui.none
+                            , Theme.row []
+                                [ Persona.Data.gendertropeIconElement option
+                                , case option of
+                                    Custom _ ->
+                                        text "Custom"
 
-                                            _ ->
-                                                text (Persona.Data.gendertropeToRecord option).name
-                                        ]
-                                    , el [ width fill ] Element.none
-                                    ]
-                            , onPress = Just (UpdateGendertrope option)
-                            }
+                                    _ ->
+                                        text (Persona.Data.gendertropeToRecord option).name
+                                ]
+                            , el [] Ui.none
+                            ]
                     )
-                |> Theme.wrappedRow [ width fill ]
+                |> Theme.wrappedRow []
     in
     case gendertrope of
         Custom _ ->
@@ -422,7 +412,7 @@ viewGendertrope ({ gendertrope } as persona) =
                         }
                             |> Custom
                             |> UpdateGendertrope
-                , placeholder = Just <| Input.placeholder [] (text "Name")
+                , placeholder = Just "Name"
                 , text = gendertropeRecord.name
                 }
             , Theme.multiline []
@@ -434,11 +424,11 @@ viewGendertrope ({ gendertrope } as persona) =
                         }
                             |> Custom
                             |> UpdateGendertrope
-                , placeholder = Just <| Input.placeholder [] (text "Description")
+                , placeholder = Just "Description"
                 , text = gendertropeRecord.description
                 , spellcheck = True
                 }
-            , Element.map
+            , Ui.map
                 (\newOrgans ->
                     { gendertropeRecord
                         | organs = newOrgans
@@ -456,20 +446,19 @@ viewGendertrope ({ gendertrope } as persona) =
                 [ text gendertropeRecord.description
                 ]
             , Persona.View.viewOrgans gendertropeRecord.organs
-            , Element.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
+            , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
 
 
 viewOrgans : GendertropeRecord -> Element (List Organ)
 viewOrgans gendertropeRecord =
     let
-        wrap : Int -> Element Organ -> Element (List Organ)
+        wrap : Int -> Element Organ -> Ui.Table.Cell (List Organ)
         wrap index child =
-            el
-                [ width fill
-                , height fill
+            Ui.Table.cell
+                [ height fill
                 , padding (Theme.rhythm // 2)
-                , Background.color
+                , Ui.background
                     (if modBy 2 index == 0 then
                         Theme.lightGray
 
@@ -477,96 +466,100 @@ viewOrgans gendertropeRecord =
                         Theme.white
                     )
                 ]
-                child
-                |> Element.map (\newOrgan -> List.Extra.setAt index newOrgan gendertropeRecord.organs)
+                (child
+                    |> Ui.map (\newOrgan -> List.Extra.setAt index newOrgan gendertropeRecord.organs)
+                )
 
         intColumn :
             String
             -> String
             -> (Organ -> Int)
             -> (Int -> Organ -> Organ)
-            -> Element.IndexedColumn Organ (List Organ)
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
         intColumn label hint prop setter =
-            { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
-            , view =
-                \index organ ->
-                    wrap index
-                        (Input.text [ width <| px 60, Font.center ]
-                            { text = String.fromInt (prop organ)
-                            , onChange =
-                                \newValue ->
-                                    setter
-                                        (Maybe.withDefault (prop organ) (String.toInt newValue))
-                                        organ
-                            , placeholder = Just <| Input.placeholder [] (text "0")
-                            , label = Input.labelHidden label
-                            }
-                        )
-            }
+            Ui.Table.column
+                { header = Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
+                , view =
+                    \( index, organ ) ->
+                        wrap index
+                            (Input.text [ width <| px 60, Font.center ]
+                                { text = String.fromInt (prop organ)
+                                , onChange =
+                                    \newValue ->
+                                        setter
+                                            (Maybe.withDefault (prop organ) (String.toInt newValue))
+                                            organ
+                                , placeholder = Just "0"
+                                , label = Input.labelHidden label
+                                }
+                            )
+                }
 
         boolColumn :
             String
             -> String
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Element.IndexedColumn Organ (List Organ)
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
         boolColumn label hint getter setter =
-            { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
-            , view =
-                \index organ ->
-                    wrap index
-                        (el [ centerX, centerY ] <|
-                            Input.checkbox []
-                                { checked = getter organ
-                                , label = Input.labelHidden label
-                                , onChange = \newValue -> setter newValue organ
-                                , icon = Theme.purpleCheckbox
-                                }
-                        )
-            }
+            Ui.Table.column
+                { header = Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
+                , view =
+                    \( index, organ ) ->
+                        wrap index
+                            (el [ centerX, centerY ] <|
+                                Theme.checkbox []
+                                    { checked = getter organ
+                                    , label = Input.labelHidden label
+                                    , onChange = \newValue -> setter newValue organ
+                                    }
+                            )
+                }
 
-        spacer : Element.IndexedColumn organ msg
+        spacer : Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
         spacer =
-            { width = fill
-            , header = Element.none
-            , view = \_ _ -> Element.none
-            }
+            Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \_ -> Ui.Table.cell [] Ui.none
+                }
+                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
 
         canColumn :
-            Attribute
+            Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Element.IndexedColumn Organ (List Organ)
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
         canColumn attribute getter setter =
-            boolColumn ("C" ++ Types.attributeToInitial attribute) (Types.attributeToCan attribute) getter setter
+            boolColumn ("C" ++ Types.actionToInitial attribute) (Types.actionToCan attribute) getter setter
 
         isColumn :
-            Attribute
+            Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Element.IndexedColumn Organ (List Organ)
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
         isColumn attribute getter setter =
-            boolColumn ("I" ++ Types.attributeToInitial attribute) (Types.attributeToIs attribute) getter setter
-    in
-    Element.indexedTable [ width fill ]
-        { data = gendertropeRecord.organs
-        , columns =
-            [ spacer
-            , { width = shrink
-              , header = Element.none
-              , view =
-                    \index organ ->
+            boolColumn ("I" ++ Types.actionToInitial attribute) (Types.actionToIs attribute) getter setter
+
+        nameColumn : Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+        nameColumn =
+            Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view =
+                    \( index, organ ) ->
                         wrap index
                             (Theme.input []
                                 { text = organ.name
-                                , placeholder = Just <| Input.placeholder [] (text "Name")
+                                , placeholder = Just "Name"
                                 , label = Input.labelHidden "Name"
                                 , onChange = \newName -> { organ | name = newName }
                                 }
                             )
-              }
+                }
+    in
+    Ui.Table.view []
+        (Ui.Table.columns
+            [ spacer
+            , nameColumn
             , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour <| \value organ -> { organ | contour = value }
             , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny <| \value organ -> { organ | erogeny = value }
             , canColumn Squishes .canSquish <| \value organ -> { organ | canSquish = value }
@@ -579,7 +572,8 @@ viewOrgans gendertropeRecord =
             , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
             , spacer
             ]
-        }
+        )
+        (List.indexedMap Tuple.pair gendertropeRecord.organs)
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
@@ -599,8 +593,7 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
             Theme.button
                 [ Font.alignLeft
                 , padding 0
-                , Border.width 0
-                , width fill
+                , Ui.border 0
                 ]
                 { onPress =
                     if level == 1 || not canSelect then
@@ -613,10 +606,9 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
                         Just (level :: features)
                 , label =
                     Theme.column
-                        [ Border.width 1
+                        [ Ui.border 1
                         , Theme.padding
-                        , width fill
-                        , Background.color
+                        , Ui.background
                             (if selected then
                                 Theme.purple
 
@@ -645,7 +637,7 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
     gendertropeRecord.features
         |> Dict.toList
         |> List.map viewStandardFeature
-        |> Theme.column [ width fill ]
+        |> Theme.column []
 
 
 viewFeatures : Persona -> GendertropeRecord -> Element GendertropeMsg
@@ -662,11 +654,13 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                 canSelect =
                     selected || (persona.euphoriaPoints - Persona.usedEuphoriaPoints persona) >= 10 + level
             in
-            Theme.row [ width fill ]
-                [ Input.checkbox [ alignTop, width <| px 20 ]
-                    { label =
-                        Input.labelBelow
-                            [ Element.rotate (degrees 90)
+            Theme.row []
+                [ let
+                    label : { element : Element msg, id : Input.Label }
+                    label =
+                        Input.label
+                            ("select-" ++ String.fromInt level)
+                            [ Ui.rotate (Ui.turns 0.25)
                             , if level == 1 || not canSelect then
                                 Font.color Theme.gray
 
@@ -674,24 +668,29 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                                 Font.color Theme.black
                             ]
                             (text "Select")
-                    , checked = selected
-                    , icon = Theme.purpleCheckbox
-                    , onChange =
-                        \_ ->
-                            if level == 1 || not canSelect then
-                                SelectFeatures features
+                  in
+                  Theme.column
+                    []
+                    [ Theme.checkbox [ alignTop, width <| px 20 ]
+                        { label = label.id
+                        , checked = selected
+                        , onChange =
+                            \_ ->
+                                if level == 1 || not canSelect then
+                                    SelectFeatures features
 
-                            else if selected then
-                                SelectFeatures (List.Extra.remove level features)
+                                else if selected then
+                                    SelectFeatures (List.Extra.remove level features)
 
-                            else
-                                SelectFeatures (level :: features)
-                    }
+                                else
+                                    SelectFeatures (level :: features)
+                        }
+                    , label.element
+                    ]
                 , Theme.column
-                    [ Border.width 1
+                    [ Ui.border 1
                     , Theme.padding
-                    , width fill
-                    , Background.color
+                    , Ui.background
                         (if selected then
                             Theme.purple
 
@@ -709,22 +708,33 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                             Theme.black
                         )
                     ]
-                    (Theme.input [ width fill ]
-                        { onChange = \newName -> { feature | name = newName }
-                        , text = feature.name
-                        , label = Input.labelLeft [] (text ("Level " ++ String.fromInt level ++ " Feature: "))
-                        , placeholder = Just (Input.placeholder [] (text "Name"))
-                        }
-                        :: Theme.multiline [ width fill ]
+                    (let
+                        label : { element : Element msg, id : Input.Label }
+                        label =
+                            Input.label
+                                ("level-" ++ String.fromInt level ++ "-feature")
+                                []
+                                (text ("Level " ++ String.fromInt level ++ " Feature: "))
+                     in
+                     Theme.row []
+                        [ label.element
+                        , Theme.input []
+                            { onChange = \newName -> { feature | name = newName }
+                            , text = feature.name
+                            , label = label.id
+                            , placeholder = Just "Name"
+                            }
+                        ]
+                        :: Theme.multiline []
                             { onChange = \newDescription -> { feature | description = newDescription }
                             , text = feature.description
                             , label = Input.labelHidden "Description"
-                            , placeholder = Just (Input.placeholder [] (text "Description"))
+                            , placeholder = Just "Description"
                             , spellcheck = True
                             }
                         :: Theme.viewMarkdown feature.description
                     )
-                    |> Element.map
+                    |> Ui.map
                         (\newFeature ->
                             UpdateGendertrope
                                 (Custom
@@ -739,4 +749,4 @@ viewFeatures ({ features } as persona) gendertropeRecord =
     gendertropeRecord.features
         |> Dict.toList
         |> List.map viewFeature
-        |> Theme.column [ width fill ]
+        |> Theme.column []

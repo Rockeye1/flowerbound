@@ -1,11 +1,6 @@
 module Persona.View exposing (Config, persona, tallyGroup, viewOrgans)
 
 import Dict
-import Element exposing (Element, alignRight, centerX, centerY, el, fill, height, padding, paragraph, px, row, shrink, spacing, text, width)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import Element.Input as Input
 import Icons
 import Persona
 import Persona.Codec
@@ -13,7 +8,12 @@ import Persona.Data
 import Phosphor
 import Site
 import Theme
-import Types exposing (Attribute(..), Feature, GendertropeRecord, Organ, Persona)
+import Types exposing (Action(..), Feature, GendertropeRecord, Organ, Persona)
+import Ui exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, px, row, shrink, spacing, text)
+import Ui.Font as Font
+import Ui.Input as Input
+import Ui.Prose exposing (paragraph)
+import Ui.Table
 
 
 type alias Config msg =
@@ -24,7 +24,7 @@ type alias Config msg =
     }
 
 
-persona : List (Element.Attribute msg) -> Config msg -> Element msg
+persona : List (Attribute msg) -> Config msg -> Element msg
 persona attrs config =
     let
         input : Persona
@@ -36,21 +36,27 @@ persona attrs config =
             Persona.Data.gendertropeToRecord input.gendertrope
     in
     Theme.column
-        (Border.width 1
+        (Ui.border 1
             :: Theme.padding
             :: attrs
         )
-        [ Theme.row [ width fill ]
-            (Theme.input [ width fill ]
-                { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input
-                , onChange =
-                    \newUrl ->
-                        Persona.Codec.fromUrl newUrl
-                            |> Result.withDefault input
-                            |> config.update
-                , placeholder = Nothing
-                , label = Input.labelLeft [] (text "URL")
-                }
+        [ let
+            label : { element : Element msg, id : Input.Label }
+            label =
+                Input.label "url" [] (text "URL")
+          in
+          Theme.row []
+            (label.element
+                :: Theme.input []
+                    { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input
+                    , onChange =
+                        \newUrl ->
+                            Persona.Codec.fromUrl newUrl
+                                |> Result.withDefault input
+                                |> config.update
+                    , placeholder = Nothing
+                    , label = label.id
+                    }
                 :: topButtons config
             )
         , Theme.row
@@ -75,7 +81,6 @@ persona attrs config =
             ]
         , paragraph
             [ Font.italic
-            , width fill
             ]
             [ text gendertropeRecord.description
             ]
@@ -86,34 +91,26 @@ persona attrs config =
 
 viewAbilities : Persona -> Element msg
 viewAbilities input =
-    let
-        viewRow : ( Element msg, Int ) -> Element msg
-        viewRow ( _, value ) =
-            Theme.row
-                [ alignRight ]
-                [ el [ alignRight ] (text (String.fromInt value))
-                ]
-    in
     Theme.table []
-        { data =
-            [ ( text "Fitness", input.fitness )
-            , ( text "Grace", input.grace )
-            , ( text "Ardor", input.ardor )
-            , ( text "Sanity", input.sanity )
-            , ( text "Prowess", input.prowess )
-            , ( text "Moxie", input.moxie )
+        (Ui.Table.columns
+            [ Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \( label, _ ) -> Ui.Table.cell [ centerY ] (text label)
+                }
+                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+            , Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \( _, value ) -> Ui.Table.cell [ Font.alignRight ] (text (String.fromInt value))
+                }
             ]
-        , columns =
-            [ { width = fill
-              , header = Element.none
-              , view = \( label, _ ) -> el [ centerY ] label
-              }
-            , { width = shrink
-              , header = Element.none
-              , view = viewRow
-              }
-            ]
-        }
+        )
+        [ ( "Fitness", input.fitness )
+        , ( "Grace", input.grace )
+        , ( "Ardor", input.ardor )
+        , ( "Sanity", input.sanity )
+        , ( "Prowess", input.prowess )
+        , ( "Moxie", input.moxie )
+        ]
 
 
 viewStatus : Persona -> Element msg
@@ -126,74 +123,73 @@ viewStatus input =
             )
     in
     Theme.table
-        [ Border.widthEach
+        [ Ui.borderWith
             { left = 1
             , top = 0
             , bottom = 0
             , right = 0
             }
-        , Element.paddingEach
+        , Ui.paddingWith
             { left = Theme.rhythm
             , top = 0
             , bottom = 0
             , right = 0
             }
         ]
-        { data =
-            [ statusRow "Max Stamina" 0
-            , statusRow "Max Satiation" input.ardor
-            , statusRow "Max Craving" input.sanity
-            , statusRow "Max Arousal" input.prowess
-            , statusRow "Max Sensitivity" input.moxie
-            , ( "Level Bonus", Persona.levelBonus input )
+        (Ui.Table.columns
+            [ Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \( label, _ ) -> Ui.Table.cell [] (text label)
+                }
+                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+            , Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \( _, value ) -> Ui.Table.cell [ Font.alignRight ] (text (String.fromInt value))
+                }
             ]
-        , columns =
-            [ { header = Element.none
-              , width = fill
-              , view = \( label, _ ) -> text label
-              }
-            , { header = Element.none
-              , width = shrink
-              , view = \( _, value ) -> el [ Font.alignRight ] (text (String.fromInt value))
-              }
-            ]
-        }
+        )
+        [ statusRow "Max Stamina" 0
+        , statusRow "Max Satiation" input.ardor
+        , statusRow "Max Craving" input.sanity
+        , statusRow "Max Arousal" input.prowess
+        , statusRow "Max Sensitivity" input.moxie
+        , ( "Level Bonus", Persona.levelBonus input )
+        ]
 
 
 tallyGroup : Int -> Element msg
 tallyGroup count =
     if count <= 0 then
-        Element.none
+        Ui.none
 
     else
         row
             [ spacing (Theme.rhythm // 2)
-            , Element.inFront
+            , Ui.inFront
                 (if count == 5 then
                     el
-                        [ Border.widthEach
+                        [ Ui.borderWith
                             { bottom = 1
                             , top = 0
                             , right = 0
                             , left = 0
                             }
                         , centerY
-                        , width fill
-                        , Element.rotate (degrees -10)
+                        , Ui.rotate (Ui.radians (degrees -10))
                         ]
-                        Element.none
+                        Ui.none
 
                  else
-                    Element.none
+                    Ui.none
                 )
-            , Element.paddingXY (Theme.rhythm // 2) 0
+            , Ui.paddingXY (Theme.rhythm // 2) 0
             ]
             (List.repeat (min 4 count) tallyMark)
 
 
 tallyMark : Element msg
 tallyMark =
-    el [ Border.width 1, height <| px 16 ] Element.none
+    el [ Ui.border 1, height <| px 16 ] Ui.none
 
 
 viewStandardFeatures : List Int -> GendertropeRecord -> Element msg
@@ -202,10 +198,8 @@ viewStandardFeatures features gendertropeRecord =
         viewStandardFeature : ( Int, Feature ) -> Element msg
         viewStandardFeature ( level, feature ) =
             Theme.column
-                [ width fill
-                , Border.width 1
+                [ Ui.border 1
                 , Theme.padding
-                , width fill
                 ]
                 (paragraph
                     [ Font.color Theme.purple
@@ -221,7 +215,7 @@ viewStandardFeatures features gendertropeRecord =
         |> Dict.toList
         |> List.filter (\( level, _ ) -> level == 1 || List.member level features)
         |> List.map viewStandardFeature
-        |> Theme.column [ width fill ]
+        |> Theme.column []
 
 
 topButtons : Config msg -> List (Element msg)
@@ -233,7 +227,7 @@ topButtons config =
         }
     , case config.remove of
         Nothing ->
-            Element.none
+            Ui.none
 
         Just remove ->
             Theme.iconButton [ alignRight ]
@@ -247,13 +241,12 @@ topButtons config =
 viewOrgans : List Organ -> Element msg
 viewOrgans input =
     let
-        wrap : Int -> List (Element.Attribute msg) -> Element msg -> Element msg
+        wrap : Int -> List (Attribute msg) -> Element msg -> Ui.Table.Cell msg
         wrap index attrs child =
-            el
-                (width fill
-                    :: height fill
+            Ui.Table.cell
+                (height fill
                     :: padding (Theme.rhythm // 2)
-                    :: Background.color
+                    :: Ui.background
                         (if modBy 2 index == 0 then
                             Theme.lightGray
 
@@ -268,71 +261,86 @@ viewOrgans input =
             String
             -> String
             -> (Organ -> Int)
-            -> Element.IndexedColumn Organ msg
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
         intColumn label hint prop =
-            { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
-            , view =
-                \index organ ->
-                    wrap index
-                        [ Font.center ]
-                        -- (el
-                        --     [ Font.color Theme.purple
-                        --     , Font.size 24
-                        --     , centerX
-                        --     ]
-                        --     (text (intToDots (prop organ)))
-                        -- )
-                        (text (String.fromInt (prop organ)))
-            }
+            Ui.Table.column
+                { header =
+                    Ui.Table.cell [ padding (Theme.rhythm // 2) ]
+                        (Theme.withHint hint (text label))
+                , view =
+                    \( index, organ ) ->
+                        wrap index
+                            [ Font.center ]
+                            -- (el
+                            --     [ Font.color Theme.purple
+                            --     , Font.size 24
+                            --     , centerX
+                            --     ]
+                            --     (text (intToDots (prop organ)))
+                            -- )
+                            (text (String.fromInt (prop organ)))
+                }
 
         boolColumn :
             String
             -> String
             -> Phosphor.IconVariant
             -> (Organ -> Bool)
-            -> Element.IndexedColumn Organ msg
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
         boolColumn label hint img prop =
-            { width = shrink
-            , header = el [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
-            , view =
-                \index organ ->
-                    if prop organ then
-                        wrap index [ centerX, Font.color Theme.purple ] (Icons.toElement img)
+            Ui.Table.column
+                { header =
+                    Ui.Table.cell [ padding (Theme.rhythm // 2) ]
+                        (Theme.withHint hint (text label))
+                , view =
+                    \( index, organ ) ->
+                        if prop organ then
+                            wrap index [ centerX, Font.color Theme.purple ] (Icons.toElement img)
 
-                    else
-                        wrap index [] Element.none
-            }
+                        else
+                            wrap index [] Ui.none
+                }
 
-        spacer : Element.IndexedColumn organ msg
+        spacer : Ui.Table.Column globalState rowState ( Int, Organ ) msg
         spacer =
-            { width = fill
-            , header = Element.none
-            , view = \_ _ -> Element.none
-            }
+            Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \( _, _ ) -> Ui.Table.cell [] Ui.none
+                }
+                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
 
         canColumn :
-            Attribute
+            Action
             -> (Organ -> Bool)
-            -> Element.IndexedColumn Organ msg
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
         canColumn attribute getter =
-            boolColumn ("C" ++ Types.attributeToInitial attribute) (Types.attributeToCan attribute) (Types.attributeToCanIcon attribute) getter
+            boolColumn ("C" ++ Types.actionToInitial attribute)
+                (Types.actionToCan attribute)
+                (Types.actionToCanIcon attribute)
+                getter
 
         isColumn :
-            Attribute
+            Action
             -> (Organ -> Bool)
-            -> Element.IndexedColumn Organ msg
+            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
         isColumn attribute getter =
-            boolColumn ("I" ++ Types.attributeToInitial attribute) (Types.attributeToIs attribute) (Types.attributeToIsIcon attribute) getter
+            boolColumn ("I" ++ Types.actionToInitial attribute)
+                (Types.actionToIs attribute)
+                (Types.actionToIsIcon attribute)
+                getter
+
+        nameColumn : Ui.Table.Column globalState rowState ( Int, Organ ) msg
+        nameColumn =
+            Ui.Table.column
+                { header = Ui.Table.cell [] Ui.none
+                , view = \( index, { name } ) -> wrap index [] (text name)
+                }
+                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
     in
-    Element.indexedTable [ width fill ]
-        { data = input
-        , columns =
+    Ui.Table.view []
+        (Ui.Table.columns
             [ spacer
-            , { width = fill
-              , header = Element.none
-              , view = \index { name } -> wrap index [] (text name)
-              }
+            , nameColumn
             , intColumn "Con" "Contour - how pleasing the Organ is to the sense of touch" .contour
             , intColumn "Ero" "Erogeny - how much of an erogenous zone that Organ is" .erogeny
             , canColumn Squishes .canSquish
@@ -345,4 +353,5 @@ viewOrgans input =
             , isColumn Ensheathes .isEnsheatheable
             , spacer
             ]
-        }
+        )
+        (List.indexedMap Tuple.pair input)

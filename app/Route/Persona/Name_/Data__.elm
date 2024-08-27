@@ -4,7 +4,6 @@ import Array
 import BackendTask exposing (BackendTask)
 import Drawing
 import Effect exposing (Effect)
-import Element
 import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import File exposing (File)
@@ -24,6 +23,7 @@ import Shared
 import Site
 import Theme
 import Types exposing (GendertropeRecord, PartialPersona, Persona)
+import Ui
 import Url
 import UrlPath exposing (UrlPath)
 import View exposing (View)
@@ -248,7 +248,7 @@ view app shared model =
             , flipped = shared.flipped
             }
             |> Theme.el [ Theme.padding ]
-            |> Element.map PagesMsg.fromMsg
+            |> Ui.map PagesMsg.fromMsg
     }
 
 
