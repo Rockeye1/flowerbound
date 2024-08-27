@@ -1,4 +1,4 @@
-module Site exposing (config, defaultSummary, image, manifest)
+module Site exposing (config, defaultSummary, manifest)
 
 import BackendTask exposing (BackendTask)
 import Color

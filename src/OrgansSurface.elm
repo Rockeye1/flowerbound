@@ -3,7 +3,6 @@ module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, org
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Lazy
-import Icons
 import Json.Decode
 import List.Extra
 import Persona.Data
