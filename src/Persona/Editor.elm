@@ -502,14 +502,6 @@ viewOrgans gendertropeRecord =
                             )
                 }
 
-        spacer : Table.Column globalState rowState Organ (List Organ)
-        spacer =
-            Table.column
-                { header = Table.cell [] Ui.none
-                , view = \_ -> Table.cell [] Ui.none
-                }
-                |> Table.withWidth { fill = True, min = Nothing, max = Nothing }
-
         canColumn :
             Action
             -> (Organ -> Bool)
@@ -578,6 +570,7 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
                 [ Font.alignLeft
                 , padding 0
                 , Ui.border 0
+                , width fill
                 ]
                 { onPress =
                     if level == 1 || not canSelect then
@@ -645,6 +638,7 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                         Input.label
                             ("select-" ++ String.fromInt level)
                             [ Ui.rotate (Ui.turns 0.25)
+                            , Ui.move (Ui.right 1)
                             , if level == 1 || not canSelect then
                                 Font.color Theme.gray
 
@@ -653,9 +647,8 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                             ]
                             (text "Select")
                   in
-                  Theme.column
-                    []
-                    [ Theme.checkbox [ alignTop, width <| px 20 ]
+                  el [ alignTop, width shrink ] <|
+                    Theme.checkbox [ alignTop, Ui.below label.element ]
                         { label = label.id
                         , checked = selected
                         , onChange =
@@ -669,8 +662,6 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                                 else
                                     SelectFeatures (level :: features)
                         }
-                    , label.element
-                    ]
                 , Theme.column
                     [ Ui.border 1
                     , Theme.padding
@@ -697,10 +688,10 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                         label =
                             Input.label
                                 ("level-" ++ String.fromInt level ++ "-feature")
-                                []
+                                [ width shrink ]
                                 (text ("Level " ++ String.fromInt level ++ " Feature: "))
                      in
-                     Theme.row []
+                     [ Theme.row []
                         [ label.element
                         , Theme.input []
                             { onChange = \newName -> { feature | name = newName }
@@ -709,14 +700,15 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                             , placeholder = Just "Name"
                             }
                         ]
-                        :: Theme.multiline []
-                            { onChange = \newDescription -> { feature | description = newDescription }
-                            , text = feature.description
-                            , label = Input.labelHidden "Description"
-                            , placeholder = Just "Description"
-                            , spellcheck = True
-                            }
-                        :: Theme.viewMarkdown feature.description
+                     , Theme.multiline []
+                        { onChange = \newDescription -> { feature | description = newDescription }
+                        , text = feature.description
+                        , label = Input.labelHidden "Description"
+                        , placeholder = Just "Description"
+                        , spellcheck = True
+                        }
+                     , Theme.column [] (Theme.viewMarkdown feature.description)
+                     ]
                     )
                     |> Ui.map
                         (\newFeature ->
