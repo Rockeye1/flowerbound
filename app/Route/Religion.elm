@@ -21,7 +21,7 @@ import TypedSvg.Attributes exposing (class, dominantBaseline, fill, id, stroke, 
 import TypedSvg.Attributes.InPx exposing (fontSize, height, r, strokeWidth, width, x, x1, x2, y, y1, y2)
 import TypedSvg.Core exposing (Svg, foreignObject, text)
 import TypedSvg.Types exposing (AnchorAlignment(..), DominantBaseline(..), Paint(..))
-import Ui exposing (background, centerX)
+import Ui exposing (background)
 import Ui.Font as Font
 import Ui.Prose exposing (paragraph)
 import UrlPath
@@ -234,19 +234,19 @@ apotheosis =
 
 
 view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Model -> View (PagesMsg Msg)
-view app shared _ =
+view app _ _ =
     { title = title
     , body =
         Theme.column
             [ Ui.width Ui.fill
-            , Ui.height Ui.fill
             , background Theme.lightPurple
             , Theme.padding
             ]
             (Theme.pageTitle "World Guide: Religion"
                 :: viewIntro app.data
                 ++ [ Ui.el
-                        [ Ui.height Ui.fill
+                        [ Ui.centerX
+                        , Ui.widthMax 1000
                         ]
                         (Ui.html <| image app.data.religions)
                    ]
