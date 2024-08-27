@@ -1174,9 +1174,10 @@ viewOrgasm model =
                         , text " modifier to your Orgasm Threshold, if you had enough "
                         , el [ Font.bold ] (text "Stamina")
                         ]
-                , Theme.textButton [ width shrink, alignRight ]
+                , Theme.iconButton [ width shrink, alignRight ]
                     { onPress = Just RollValiantModifier
-                    , label = "Re-Roll"
+                    , icon = Icons.roll
+                    , title = "Re-Roll"
                     }
                 ]
 

@@ -1,4 +1,4 @@
-module Theme exposing (black, button, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, noAttribute, padding, pageTitle, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, textButton, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (black, button, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, noAttribute, padding, pageTitle, purple, purpleCheckbox, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Element exposing (Attribute, Element, paddingXY)
 import Element.Background as Background
@@ -560,20 +560,6 @@ iconButton attrs config =
     button (title config.title :: attrs)
         { onPress = config.onPress
         , label = Icons.toElement config.icon
-        }
-
-
-textButton :
-    List (Attribute msg)
-    ->
-        { onPress : Maybe msg
-        , label : String
-        }
-    -> Element msg
-textButton attrs config =
-    button attrs
-        { onPress = config.onPress
-        , label = Element.text config.label
         }
 
 

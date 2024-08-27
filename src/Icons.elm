@@ -1,9 +1,9 @@
 module Icons exposing
     ( flip, download, upload, minus, plus, remove, reset
+    , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
     , toElement
-    , beginEncounter, icon, rest, roll
     )
 
 {-|
@@ -12,6 +12,11 @@ module Icons exposing
 ## Actions
 
 @docs flip, download, upload, minus, plus, remove, reset
+
+
+## Encounter Actions
+
+@docs beginEncounter, rest, roll
 
 
 ## Moves
@@ -34,12 +39,6 @@ import Element exposing (Element, el)
 import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
-
-
-icon : Phosphor.Icon -> Phosphor.IconWeight -> Element msg
-icon input variant =
-    input variant
-        |> toElement
 
 
 toElement : IconVariant -> Element msg
