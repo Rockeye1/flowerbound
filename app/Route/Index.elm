@@ -794,12 +794,14 @@ viewPlaying shared ({ meters, persona } as model) =
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
         , Theme.row []
-            [ Theme.textButton [ width fill ]
+            [ Theme.iconAndTextButton [ width fill ]
                 { onPress = Just BeginEncounter
                 , label = "Begin Encounter"
+                , icon = Icons.beginEncounter
                 }
-            , Theme.textButton [ width fill ]
+            , Theme.iconAndTextButton [ width fill ]
                 { onPress = Just Rest
+                , icon = Icons.rest
                 , label = "Rest"
                 }
             ]
@@ -842,9 +844,15 @@ viewPlaying shared ({ meters, persona } as model) =
                     , text "Choose a stamina cost."
                     , Theme.row [ width fill ]
                         [ viewRoll model
-                        , Theme.textButton [ alignRight ]
-                            { onPress = Just RollStimulation
-                            , label =
+                        , Theme.iconButton [ alignRight ]
+                            { onPress =
+                                if model.stimulationCost == 1 then
+                                    Nothing
+
+                                else
+                                    Just RollStimulation
+                            , icon = Icons.roll
+                            , title =
                                 case model.stimulationRoll of
                                     Nothing ->
                                         "Roll"
