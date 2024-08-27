@@ -5,7 +5,6 @@ import Icons
 import Persona
 import Persona.Codec
 import Persona.Data
-import Phosphor
 import Site
 import Theme
 import Types exposing (Action(..), Feature, GendertropeRecord, Organ, Persona)
@@ -14,7 +13,6 @@ import Ui.Font as Font
 import Ui.Input as Input
 import Ui.Layout
 import Ui.Prose exposing (paragraph)
-import Ui.Table
 
 
 type alias Config msg =
@@ -38,6 +36,7 @@ persona attrs config =
     in
     Theme.column
         (Ui.border 1
+            :: Ui.width (px 470)
             :: Theme.padding
             :: attrs
         )
@@ -228,9 +227,9 @@ topButtons config =
 viewOrgans : List Organ -> Element msg
 viewOrgans input =
     let
-        wrap : Int -> List (Attribute msg) -> Element msg -> Ui.Table.Cell msg
+        wrap : Int -> List (Attribute msg) -> Element msg -> Element msg
         wrap index attrs child =
-            Ui.Table.cell
+            el
                 (height fill
                     :: padding (Theme.rhythm // 2)
                     :: Ui.background
@@ -244,103 +243,91 @@ viewOrgans input =
                 )
                 (paragraph [ centerY ] [ child ])
 
-        intColumn :
-            String
-            -> String
-            -> (Organ -> Int)
-            -> Ui.Table.Column globalState rowState Organ msg
-        intColumn label hint prop =
-            Ui.Table.columnWithState
-                { header =
-                    \_ ->
-                        Ui.Table.cell [ padding (Theme.rhythm // 2) ]
-                            (Theme.withHint hint (text label))
-                , view =
-                    \index _ organ ->
-                        wrap index
-                            [ Font.center ]
-                            -- (el
-                            --     [ Font.color Theme.purple
-                            --     , Font.size 24
-                            --     , centerX
-                            --     ]
-                            --     (text (intToDots (prop organ)))
-                            -- )
-                            (text (String.fromInt (prop organ)))
-                }
+        intColumn : (Organ -> Int) -> Organ -> Element msg
+        intColumn prop organ =
+            -- (el
+            --     [ Font.color Theme.purple
+            --     , Font.size 24
+            --     , centerX
+            --     ]
+            --     (text (intToDots (prop organ)))
+            -- )
+            el [ Font.center ] (text (String.fromInt (prop organ)))
 
-        boolColumn :
-            String
-            -> String
-            -> Phosphor.IconVariant
-            -> (Organ -> Bool)
-            -> Ui.Table.Column globalState rowState Organ msg
-        boolColumn label hint img prop =
-            Ui.Table.columnWithState
-                { header =
-                    \_ ->
-                        Ui.Table.cell [ padding (Theme.rhythm // 2) ]
-                            (Theme.withHint hint (text label))
-                , view =
-                    \index _ organ ->
-                        if prop organ then
-                            wrap index [ centerX, Font.color Theme.purple ] (Icons.toElement img)
+        boolColumn img prop index organ =
+            if prop organ then
+                wrap index [] (el [ centerX, Font.color Theme.purple ] (Icons.toElement img))
 
-                        else
-                            wrap index [] Ui.none
-                }
+            else
+                wrap index [] Ui.none
 
-        spacer : Ui.Table.Column globalState rowState Organ msg
-        spacer =
-            Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \_ -> Ui.Table.cell [] Ui.none
-                }
-                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+        boolHeader label hint =
+            el [ padding (Theme.rhythm // 2) ]
+                (Theme.withHint hint (text label))
 
-        canColumn :
-            Action
-            -> (Organ -> Bool)
-            -> Ui.Table.Column globalState rowState Organ msg
         canColumn attribute getter =
-            boolColumn ("C" ++ Types.actionToInitial attribute)
-                (Types.actionToCan attribute)
+            boolColumn
                 (Types.actionToCanIcon attribute)
                 getter
 
-        isColumn :
-            Action
-            -> (Organ -> Bool)
-            -> Ui.Table.Column globalState rowState Organ msg
+        canHeader attribute =
+            boolHeader
+                ("C" ++ Types.actionToInitial attribute)
+                (Types.actionToCan attribute)
+
         isColumn attribute getter =
-            boolColumn ("I" ++ Types.actionToInitial attribute)
-                (Types.actionToIs attribute)
+            boolColumn
                 (Types.actionToIsIcon attribute)
                 getter
 
-        nameColumn : Ui.Table.Column globalState rowState Organ msg
-        nameColumn =
-            Ui.Table.columnWithState
-                { header = \_ -> Ui.Table.cell [] Ui.none
-                , view = \index _ { name } -> wrap index [] (text name)
-                }
-                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
+        isHeader attribute =
+            boolHeader
+                ("I" ++ Types.actionToInitial attribute)
+                (Types.actionToIs attribute)
     in
-    Ui.Table.view []
-        (Ui.Table.columns
-            [ spacer
-            , nameColumn
-            , intColumn "Con" "Contour - how pleasing the Organ is to the sense of touch" .contour
-            , intColumn "Ero" "Erogeny - how much of an erogenous zone that Organ is" .erogeny
-            , canColumn Squishes .canSquish
-            , canColumn Grips .canGrip
-            , canColumn Penetrates .canPenetrate
-            , canColumn Ensheathes .canEnsheathe
-            , isColumn Squishes .isSquishable
-            , isColumn Grips .isGrippable
-            , isColumn Penetrates .isPenetrable
-            , isColumn Ensheathes .isEnsheatheable
-            , spacer
+    input
+        |> List.indexedMap
+            (\index element ->
+                [ wrap index [] (text element.name)
+                , wrap index [] (intColumn .contour element)
+                , wrap index [] (intColumn .erogeny element)
+                , canColumn Squishes .canSquish index element
+                , canColumn Grips .canGrip index element
+                , canColumn Penetrates .canPenetrate index element
+                , canColumn Ensheathes .canEnsheathe index element
+                , isColumn Squishes .isSquishable index element
+                , isColumn Grips .isGrippable index element
+                , isColumn Penetrates .isPenetrable index element
+                , isColumn Ensheathes .isEnsheatheable index element
+                ]
+            )
+        |> (::)
+            [ el [] Ui.none
+            , el [ padding (Theme.rhythm // 2) ]
+                (Theme.withHint "Contour - how pleasing the Organ is to the sense of touch" (text "Con"))
+            , el [ padding (Theme.rhythm // 2) ]
+                (Theme.withHint "Erogeny - how much of an erogenous zone that Organ is" (text "Ero"))
+            , canHeader Squishes
+            , canHeader Grips
+            , canHeader Penetrates
+            , canHeader Ensheathes
+            , isHeader Squishes
+            , isHeader Grips
+            , isHeader Penetrates
+            , isHeader Ensheathes
             ]
-        )
-        input
+        |> List.concat
+        |> Ui.Layout.rowWithConstraints
+            [ Ui.Layout.fill
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            , Ui.Layout.byContent
+            ]
+            []

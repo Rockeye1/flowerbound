@@ -33,7 +33,6 @@ import Ui.Font as Font
 import Ui.Input as Input
 import Ui.Layout
 import Ui.Prose exposing (paragraph)
-import Ui.Table
 import UrlPath exposing (UrlPath)
 import Vector2d exposing (Vector2d)
 import View exposing (View)
@@ -732,7 +731,7 @@ viewPersonas playingModel =
                     }
             )
             playingModel.others
-        ++ [ Theme.column []
+        ++ [ Theme.column [ centerX, centerY ]
                 [ Theme.row
                     [ Font.color Theme.purple
                     , centerX
@@ -831,38 +830,36 @@ viewPlaying shared ({ meters, persona } as model) =
             [ Ui.wrap
             , Ui.widthMax (shared.width - 2 * Theme.rhythm)
             ]
-            [ Theme.column [ alignTop ]
+            [ Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
                 , text "Choose a move."
                 , viewMoves model
                 ]
-            , Theme.column [ alignTop ]
-                [ Theme.column [ centerX ]
-                    [ el [ Font.bold ] (text "Stimulation")
-                    , text "Choose a stamina cost."
-                    , Theme.row []
-                        [ viewRoll model
-                        , Theme.iconButton [ alignRight ]
-                            { onPress =
-                                if model.stimulationCost == 1 then
-                                    Nothing
+            , Theme.column [ alignTop, centerX ]
+                [ el [ Font.bold ] (text "Stimulation")
+                , text "Choose a stamina cost."
+                , Theme.row []
+                    [ viewRoll model
+                    , Theme.iconButton [ alignRight ]
+                        { onPress =
+                            if model.stimulationCost == 1 then
+                                Nothing
 
-                                else
-                                    Just RollStimulation
-                            , icon = Icons.roll
-                            , title =
-                                case model.stimulationRoll of
-                                    Nothing ->
-                                        "Roll"
+                            else
+                                Just RollStimulation
+                        , icon = Icons.roll
+                        , title =
+                            case model.stimulationRoll of
+                                Nothing ->
+                                    "Roll"
 
-                                    Just _ ->
-                                        "Reroll"
-                            }
-                        ]
-                    , staminaTable model
+                                Just _ ->
+                                    "Reroll"
+                        }
                     ]
+                , staminaTable model
                 ]
-            , Theme.column [ alignTop ]
+            , Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
                 , text "(Optionally) choose a Temperament"
                 , viewTemperaments model
@@ -898,139 +895,76 @@ viewRoll model =
                     else
                         max 0 (raw - model.persona.prowess)
 
-                firstColumn : Ui.Table.Column globalState rowState Bool msg
-                firstColumn =
-                    Ui.Table.column
-                        { header = Ui.Table.cell [] Ui.none
-                        , view =
-                            \firstRow ->
-                                let
-                                    label : String
-                                    label =
-                                        if firstRow then
-                                            "+"
+                otherColumns : List (List (Element msg))
+                otherColumns =
+                    List.map
+                        (\( ardent, timid ) ->
+                            [ text (String.fromInt ardent)
+                            , text (String.fromInt timid)
+                            ]
+                        )
+                        results
+            in
+            ([ text "+", text "-" ]
+                :: otherColumns
+                ++ [ [ text (String.fromInt raw) ]
+                   , if raw == corrected then
+                        []
 
-                                        else
-                                            "-"
+                     else
+                        [ text ("PRW " ++ String.fromInt model.persona.prowess)
+                        , el [ centerX ] (text "⇒")
+                        ]
+                   , if raw == corrected then
+                        []
 
-                                    topBorder : Int
-                                    topBorder =
-                                        if firstRow then
+                     else
+                        [ text (String.fromInt corrected) ]
+                   ]
+            )
+                |> List.indexedMap
+                    (\c children ->
+                        children
+                            |> List.indexedMap
+                                (\r child ->
+                                    el
+                                        [ Ui.borderWith
+                                            { top =
+                                                if r == 0 then
+                                                    0
+
+                                                else
+                                                    1
+                                            , left = 0
+                                            , right = 0
+                                            , bottom = 0
+                                            }
+                                        , Ui.borderColor Theme.purple
+                                        , Theme.padding
+                                        , Font.center
+                                        , centerY
+                                        ]
+                                        child
+                                )
+                            |> Theme.column
+                                [ Ui.background Theme.lightPurple
+                                , Ui.borderWith
+                                    { left =
+                                        if c == 0 then
                                             1
 
                                         else
                                             0
-                                in
-                                Ui.Table.cell
-                                    [ Ui.background Theme.lightPurple
-                                    , Theme.padding
-                                    , Font.center
-                                    , Ui.borderWith
-                                        { top = topBorder
-                                        , bottom = 1
-                                        , left = 1
-                                        , right = 0
-                                        }
-                                    ]
-                                    (text label)
-                        }
-
-                otherColumns : List (Ui.Table.Column globalState rowState Bool msg)
-                otherColumns =
-                    List.map
-                        (\( ardent, timid ) ->
-                            Ui.Table.column
-                                { header = Ui.Table.cell [] Ui.none
-                                , view =
-                                    \firstRow ->
-                                        let
-                                            label : String
-                                            label =
-                                                if firstRow then
-                                                    String.fromInt ardent
-
-                                                else
-                                                    String.fromInt timid
-
-                                            topBorder : Int
-                                            topBorder =
-                                                if firstRow then
-                                                    1
-
-                                                else
-                                                    0
-                                        in
-                                        Ui.Table.cell
-                                            [ Ui.background Theme.lightPurple
-                                            , Theme.padding
-                                            , Font.alignRight
-                                            , Ui.borderWith
-                                                { top = topBorder
-                                                , bottom = 1
-                                                , left = 1
-                                                , right = 0
-                                                }
-                                            ]
-                                            (text label)
-                                }
-                        )
-                        results
-            in
-            row []
-                [ Theme.table
-                    [ Ui.spacing 0
-                    , width shrink
-                    ]
-                    (Ui.Table.columns (firstColumn :: otherColumns))
-                    [ True, False ]
-                , Theme.el
-                    [ Ui.background Theme.lightPurple
-                    , Theme.padding
-                    , Ui.border 1
-                    , height fill
-                    ]
-                    (el [ centerY ] (text (String.fromInt raw)))
-                , if raw == corrected then
-                    Ui.none
-
-                  else
-                    Theme.column
-                        [ Ui.background Theme.lightPurple
-                        , Theme.padding
-                        , Ui.borderWith
-                            { top = 1
-                            , bottom = 1
-                            , left = 0
-                            , right = 1
-                            }
-                        , height fill
-                        , spacing 0
-                        ]
-                        [ text ("PRW " ++ String.fromInt model.persona.prowess)
-                        , el [ centerX ] (text "⇒")
-                        ]
-                , if raw == corrected then
-                    Ui.none
-
-                  else
-                    Theme.el
-                        [ Ui.background Theme.lightPurple
-                        , Theme.padding
-                        , Ui.borderWith
-                            { top = 1
-                            , bottom = 1
-                            , left = 0
-                            , right = 1
-                            }
-                        , height fill
-                        ]
-                        (el
-                            [ centerY
-                            ]
-                            (text (String.fromInt corrected))
-                        )
-                , el [] Ui.none
-                ]
+                                    , top = 1
+                                    , bottom = 1
+                                    , right = 1
+                                    }
+                                , Ui.borderColor Theme.purple
+                                , height fill
+                                , width shrink
+                                ]
+                    )
+                |> row []
 
 
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
@@ -1240,7 +1174,7 @@ viewMoves : PlayingModel -> Element PlayingMsg
 viewMoves model =
     (defaultMoves ++ featureMoves model.persona)
         |> List.map (viewMove model)
-        |> Theme.column []
+        |> Theme.column [ width shrink ]
 
 
 viewMove : PlayingModel -> Move -> Element PlayingMsg
@@ -1250,7 +1184,7 @@ viewMove model move =
         selected =
             model.selectedMove == Just move.name
     in
-    Theme.selectableButton [ Font.alignLeft ]
+    Theme.selectableButton [ Font.alignLeft, width fill ]
         { onPress =
             if move.cravingThreshold > model.meters.craving then
                 Nothing
@@ -1344,60 +1278,60 @@ statusMeter label value cap setter =
 staminaTable : PlayingModel -> Element PlayingMsg
 staminaTable model =
     let
-        column :
-            String
-            -> (Int -> List Int -> String)
-            -> Ui.Table.Column globalState rowState ( Int, List Int ) PlayingMsg
-        column header toLabel =
-            Ui.Table.column
-                { header = Ui.Table.cell [ Font.center ] (text header)
-                , view =
-                    \( cost, dice ) ->
-                        Ui.Table.cell []
-                            (Theme.selectableButton []
-                                { onPress = Just (StimulationCost cost)
-                                , label = text (toLabel cost dice)
-                                , selected = cost == model.stimulationCost
-                                }
-                            )
-                }
-
-        columns : List (Ui.Table.Column globalState rowState ( Int, List Int ) PlayingMsg)
-        columns =
-            [ column "Stamina" <|
-                \cost _ -> String.fromInt cost
-            , column "Stimulation" <|
-                \cost _ ->
-                    if cost == 1 then
-                        "0"
-
-                    else
-                        String.fromInt (cost * 2)
-            , column "Dice Type" <|
-                \_ dice ->
-                    if List.isEmpty dice then
-                        "No Roll"
-
-                    else
-                        dice
-                            |> List.Extra.gatherEquals
-                            |> List.map
-                                (\( die, other ) ->
-                                    (if List.isEmpty other then
-                                        "1"
-
-                                     else
-                                        String.fromInt (1 + List.length other)
-                                    )
-                                        ++ "d"
-                                        ++ String.fromInt die
-                                )
-                            |> String.join " and "
-            ]
+        header : String -> Element msg
+        header label =
+            el [ Theme.style "white-space" "pre" ] (text label)
     in
-    Theme.table []
-        (Ui.Table.columns columns)
-        stimulationDice
+    stimulationDice
+        |> List.map
+            (\( cost, dice ) ->
+                [ Theme.selectableButton []
+                    { onPress = Just (StimulationCost cost)
+                    , label = text (String.fromInt cost)
+                    , selected = cost == model.stimulationCost
+                    }
+                , Theme.selectableButton []
+                    { onPress = Just (StimulationCost cost)
+                    , label =
+                        text
+                            (if cost == 1 then
+                                "0"
+
+                             else
+                                String.fromInt (cost * 2)
+                            )
+                    , selected = cost == model.stimulationCost
+                    }
+                , Theme.selectableButton []
+                    { onPress = Just (StimulationCost cost)
+                    , label =
+                        text
+                            (if List.isEmpty dice then
+                                "No Roll"
+
+                             else
+                                dice
+                                    |> List.Extra.gatherEquals
+                                    |> List.map
+                                        (\( die, other ) ->
+                                            (if List.isEmpty other then
+                                                "1"
+
+                                             else
+                                                String.fromInt (1 + List.length other)
+                                            )
+                                                ++ "d"
+                                                ++ String.fromInt die
+                                        )
+                                    |> String.join " and "
+                            )
+                    , selected = cost == model.stimulationCost
+                    }
+                ]
+            )
+        |> (::) [ header "Stamina", header "Stimulation", header "Dice Type" ]
+        |> List.concat
+        |> Ui.Layout.rowWithConstraints (List.repeat 3 Ui.Layout.byContent) [ Theme.spacing ]
 
 
 stimulationDice : List ( Int, List Int )
