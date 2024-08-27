@@ -761,18 +761,18 @@ loadPersona config =
             Input.label "url" [] (text "URL")
     in
     Theme.column [ centerX ]
-        [ label.element
-        , Theme.el
+        [ Theme.column
             [ Ui.border 1
             , Theme.padding
             ]
-            (Theme.input [ Ui.widthMin 240 ]
+            [ label.element
+            , Theme.input [ Ui.widthMin 240 ]
                 { label = label.id
                 , text = ""
                 , onChange = config.loadFromUrl
                 , placeholder = Just "Paste the Persona URL here"
                 }
-            )
+            ]
         , el
             [ centerX
             , Font.color Theme.purple

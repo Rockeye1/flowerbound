@@ -475,12 +475,12 @@ viewOrgans gendertropeRecord =
             -> String
             -> (Organ -> Int)
             -> (Int -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+            -> Ui.Table.Column globalState rowState Organ (List Organ)
         intColumn label hint prop setter =
-            Ui.Table.column
-                { header = Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
+            Ui.Table.columnWithState
+                { header = \_ -> Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
                 , view =
-                    \( index, organ ) ->
+                    \index _ organ ->
                         wrap index
                             (Input.text [ width <| px 60, Font.center ]
                                 { text = String.fromInt (prop organ)
@@ -500,12 +500,12 @@ viewOrgans gendertropeRecord =
             -> String
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+            -> Ui.Table.Column globalState rowState Organ (List Organ)
         boolColumn label hint getter setter =
-            Ui.Table.column
-                { header = Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
+            Ui.Table.columnWithState
+                { header = \_ -> Ui.Table.cell [ padding (Theme.rhythm // 2) ] (Theme.withHint hint (text label))
                 , view =
-                    \( index, organ ) ->
+                    \index _ organ ->
                         wrap index
                             (el [ centerX, centerY ] <|
                                 Theme.checkbox []
@@ -516,7 +516,7 @@ viewOrgans gendertropeRecord =
                             )
                 }
 
-        spacer : Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+        spacer : Ui.Table.Column globalState rowState Organ (List Organ)
         spacer =
             Ui.Table.column
                 { header = Ui.Table.cell [] Ui.none
@@ -528,7 +528,7 @@ viewOrgans gendertropeRecord =
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+            -> Ui.Table.Column globalState rowState Organ (List Organ)
         canColumn attribute getter setter =
             boolColumn ("C" ++ Types.actionToInitial attribute) (Types.actionToCan attribute) getter setter
 
@@ -536,16 +536,16 @@ viewOrgans gendertropeRecord =
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+            -> Ui.Table.Column globalState rowState Organ (List Organ)
         isColumn attribute getter setter =
             boolColumn ("I" ++ Types.actionToInitial attribute) (Types.actionToIs attribute) getter setter
 
-        nameColumn : Ui.Table.Column globalState rowState ( Int, Organ ) (List Organ)
+        nameColumn : Ui.Table.Column globalState rowState Organ (List Organ)
         nameColumn =
-            Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
+            Ui.Table.columnWithState
+                { header = \_ -> Ui.Table.cell [] Ui.none
                 , view =
-                    \( index, organ ) ->
+                    \index _ organ ->
                         wrap index
                             (Theme.input []
                                 { text = organ.name
@@ -573,7 +573,7 @@ viewOrgans gendertropeRecord =
             , spacer
             ]
         )
-        (List.indexedMap Tuple.pair gendertropeRecord.organs)
+        gendertropeRecord.organs
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)

@@ -9,9 +9,10 @@ import Phosphor
 import Site
 import Theme
 import Types exposing (Action(..), Feature, GendertropeRecord, Organ, Persona)
-import Ui exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, px, row, shrink, spacing, text)
+import Ui exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, px, row, shrink, spacing, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
+import Ui.Layout
 import Ui.Prose exposing (paragraph)
 import Ui.Table
 
@@ -43,7 +44,7 @@ persona attrs config =
         [ let
             label : { element : Element msg, id : Input.Label }
             label =
-                Input.label "url" [] (text "URL")
+                Input.label "url" [ width shrink ] (text "URL")
           in
           Theme.row []
             (label.element
@@ -94,13 +95,13 @@ viewAbilities input =
     Theme.table []
         (Ui.Table.columns
             [ Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \( label, _ ) -> Ui.Table.cell [ centerY ] (text label)
+                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
+                , view = \( label, _ ) -> Ui.Table.cell [ Ui.padding 0, centerY ] (text label)
                 }
                 |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
             , Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \( _, value ) -> Ui.Table.cell [ Font.alignRight ] (text (String.fromInt value))
+                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
+                , view = \( _, value ) -> Ui.Table.cell [ Ui.padding 0, Font.alignRight ] (text (String.fromInt value))
                 }
             ]
         )
@@ -138,13 +139,13 @@ viewStatus input =
         ]
         (Ui.Table.columns
             [ Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \( label, _ ) -> Ui.Table.cell [] (text label)
+                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
+                , view = \( label, _ ) -> Ui.Table.cell [ Ui.padding 0 ] (text label)
                 }
                 |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
             , Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \( _, value ) -> Ui.Table.cell [ Font.alignRight ] (text (String.fromInt value))
+                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
+                , view = \( _, value ) -> Ui.Table.cell [ Ui.padding 0, Font.alignRight ] (text (String.fromInt value))
                 }
             ]
         )
@@ -261,14 +262,15 @@ viewOrgans input =
             String
             -> String
             -> (Organ -> Int)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
+            -> Ui.Table.Column globalState rowState Organ msg
         intColumn label hint prop =
-            Ui.Table.column
+            Ui.Table.columnWithState
                 { header =
-                    Ui.Table.cell [ padding (Theme.rhythm // 2) ]
-                        (Theme.withHint hint (text label))
+                    \_ ->
+                        Ui.Table.cell [ padding (Theme.rhythm // 2) ]
+                            (Theme.withHint hint (text label))
                 , view =
-                    \( index, organ ) ->
+                    \index _ organ ->
                         wrap index
                             [ Font.center ]
                             -- (el
@@ -286,14 +288,15 @@ viewOrgans input =
             -> String
             -> Phosphor.IconVariant
             -> (Organ -> Bool)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
+            -> Ui.Table.Column globalState rowState Organ msg
         boolColumn label hint img prop =
-            Ui.Table.column
+            Ui.Table.columnWithState
                 { header =
-                    Ui.Table.cell [ padding (Theme.rhythm // 2) ]
-                        (Theme.withHint hint (text label))
+                    \_ ->
+                        Ui.Table.cell [ padding (Theme.rhythm // 2) ]
+                            (Theme.withHint hint (text label))
                 , view =
-                    \( index, organ ) ->
+                    \index _ organ ->
                         if prop organ then
                             wrap index [ centerX, Font.color Theme.purple ] (Icons.toElement img)
 
@@ -301,18 +304,18 @@ viewOrgans input =
                             wrap index [] Ui.none
                 }
 
-        spacer : Ui.Table.Column globalState rowState ( Int, Organ ) msg
+        spacer : Ui.Table.Column globalState rowState Organ msg
         spacer =
             Ui.Table.column
                 { header = Ui.Table.cell [] Ui.none
-                , view = \( _, _ ) -> Ui.Table.cell [] Ui.none
+                , view = \_ -> Ui.Table.cell [] Ui.none
                 }
                 |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
 
         canColumn :
             Action
             -> (Organ -> Bool)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
+            -> Ui.Table.Column globalState rowState Organ msg
         canColumn attribute getter =
             boolColumn ("C" ++ Types.actionToInitial attribute)
                 (Types.actionToCan attribute)
@@ -322,18 +325,18 @@ viewOrgans input =
         isColumn :
             Action
             -> (Organ -> Bool)
-            -> Ui.Table.Column globalState rowState ( Int, Organ ) msg
+            -> Ui.Table.Column globalState rowState Organ msg
         isColumn attribute getter =
             boolColumn ("I" ++ Types.actionToInitial attribute)
                 (Types.actionToIs attribute)
                 (Types.actionToIsIcon attribute)
                 getter
 
-        nameColumn : Ui.Table.Column globalState rowState ( Int, Organ ) msg
+        nameColumn : Ui.Table.Column globalState rowState Organ msg
         nameColumn =
-            Ui.Table.column
-                { header = Ui.Table.cell [] Ui.none
-                , view = \( index, { name } ) -> wrap index [] (text name)
+            Ui.Table.columnWithState
+                { header = \_ -> Ui.Table.cell [] Ui.none
+                , view = \index _ { name } -> wrap index [] (text name)
                 }
                 |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
     in
@@ -354,4 +357,4 @@ viewOrgans input =
             , spacer
             ]
         )
-        (List.indexedMap Tuple.pair input)
+        input
