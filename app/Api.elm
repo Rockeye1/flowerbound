@@ -18,7 +18,7 @@ routes :
     BackendTask FatalError (List Route)
     -> (Maybe { indent : Int, newLines : Bool } -> Html Never -> String)
     -> List (ApiRoute ApiRoute.Response)
-routes getStaticRoutes {- htmlToString -} _ =
+routes getStaticRoutes htmlToString =
     [ ApiRoute.succeed
         (\name data _ ->
             case Persona.Codec.partialPersonaFromSlug data of
@@ -36,6 +36,16 @@ routes getStaticRoutes {- htmlToString -} _ =
         |> ApiRoute.slash
         |> ApiRoute.capture
         |> ApiRoute.serverRender
+    , ApiRoute.succeed
+        (Route.Religion.data
+            |> BackendTask.map
+                (\{ religions } ->
+                    Route.Religion.image religions
+                        |> htmlToString Nothing
+                )
+        )
+        |> ApiRoute.literal "religion.svg"
+        |> ApiRoute.single
     , Manifest.generator
         Site.config.canonicalUrl
         (BackendTask.succeed Site.manifest)
