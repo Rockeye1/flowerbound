@@ -198,14 +198,19 @@ viewOrgan persona color pos organ =
 
         iifLeft : Bool -> Action -> Float -> Svg.Svg msg
         iifLeft condition action dy =
-            Svg.g []
-                [ textAt
-                    [ if condition then
-                        Svg.Attributes.fill "black"
+            Svg.g
+                [ if condition then
+                    Svg.Attributes.fill "black"
 
-                      else
-                        Svg.Attributes.fill "gray"
-                    ]
+                  else
+                    Svg.Attributes.fill "gray"
+                , if condition then
+                    Svg.Attributes.color "black"
+
+                  else
+                    Svg.Attributes.color "gray"
+                ]
+                [ textAt []
                     { x = 0
                     , y = dy
                     , label = "⇒ I" ++ Types.actionToInitial action
@@ -217,15 +222,20 @@ viewOrgan persona color pos organ =
 
         iifRight : Bool -> Action -> Float -> Svg.Svg msg
         iifRight condition attribute dy =
-            Svg.g []
-                [ iconAt (organWidth - 72 - 16) dy (Types.actionToCanIcon attribute)
-                , textAt
-                    [ if condition then
-                        Svg.Attributes.fill "black"
+            Svg.g
+                [ if condition then
+                    Svg.Attributes.fill "black"
 
-                      else
-                        Svg.Attributes.fill "gray"
-                    ]
+                  else
+                    Svg.Attributes.fill "gray"
+                , if condition then
+                    Svg.Attributes.color "black"
+
+                  else
+                    Svg.Attributes.color "gray"
+                ]
+                [ iconAt (organWidth - 72 - 16) dy (Types.actionToCanIcon attribute)
+                , textAt []
                     { x = 0
                     , y = dy
                     , label = "C" ++ Types.actionToInitial attribute ++ " ⇒"
