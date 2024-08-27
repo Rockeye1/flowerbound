@@ -499,7 +499,7 @@ slider :
         }
     -> Element msg
 slider attrs config =
-    el [ padding ] <|
+    el [ Ui.paddingXY (rhythm * 2) rhythm ] <|
         Input.sliderHorizontal
             (Ui.height (Ui.px 30)
                 :: Ui.behindContent
@@ -523,7 +523,7 @@ slider attrs config =
                                     , Ui.behindContent
                                         (el
                                             [ Ui.centerX
-                                            , Ui.move (Ui.down 11)
+                                            , Ui.move (Ui.down 4)
                                             ]
                                             (Ui.text (String.fromInt v))
                                         )
@@ -534,7 +534,6 @@ slider attrs config =
                         |> row
                             [ Ui.width Ui.fill
                             , Ui.height Ui.fill
-                            , Ui.paddingXY 8 0
                             ]
                     )
                 :: Ui.move (Ui.up 8)

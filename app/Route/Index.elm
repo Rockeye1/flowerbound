@@ -31,6 +31,7 @@ import Types exposing (Action(..), Move, Persona, StimulationType(..))
 import Ui exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, spacing, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
+import Ui.Layout
 import Ui.Prose exposing (paragraph)
 import Ui.Table
 import UrlPath exposing (UrlPath)
@@ -816,25 +817,14 @@ viewPlaying shared ({ meters, persona } as model) =
                 }
             , el [] Ui.none
             ]
-        , Theme.table []
-            (Ui.Table.columns
-                [ Ui.Table.column
-                    { header = Ui.Table.cell [] Ui.none
-                    , view = Ui.Table.cell [] << Tuple.first
-                    }
-                , Ui.Table.column
-                    { header = Ui.Table.cell [] Ui.none
-                    , view = Ui.Table.cell [] << Tuple.second
-                    }
-                    |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
-                ]
-            )
-            [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> UpdateMeters { meters | stamina = newValue }
-            , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> UpdateMeters { meters | satiation = newValue }
-            , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> UpdateMeters { meters | craving = newValue }
-            , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
-            , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
-            ]
+        , [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> UpdateMeters { meters | stamina = newValue }
+          , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> UpdateMeters { meters | satiation = newValue }
+          , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> UpdateMeters { meters | craving = newValue }
+          , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
+          , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
+          ]
+            |> List.concat
+            |> Ui.Layout.rowWithConstraints [ Ui.Layout.byContent, Ui.Layout.fill ] []
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model
         , Theme.row
@@ -1338,9 +1328,9 @@ defaultMoves =
     ]
 
 
-statusMeter : String -> Int -> Int -> (Int -> msg) -> ( Element msg, Element msg )
+statusMeter : String -> Int -> Int -> (Int -> msg) -> List (Element msg)
 statusMeter label value cap setter =
-    ( el [ centerY ] (text label)
+    [ el [ centerY ] (text label)
     , Theme.slider []
         { min = 0
         , max = cap
@@ -1348,7 +1338,7 @@ statusMeter label value cap setter =
         , onChange = setter
         , label = label
         }
-    )
+    ]
 
 
 staminaTable : PlayingModel -> Element PlayingMsg

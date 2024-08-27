@@ -80,11 +80,7 @@ persona attrs config =
             , el [ Font.bold ] (text gendertropeRecord.name)
             , Persona.Data.gendertropeIconElement input.gendertrope
             ]
-        , paragraph
-            [ Font.italic
-            ]
-            [ text gendertropeRecord.description
-            ]
+        , paragraph [ Font.italic ] [ text gendertropeRecord.description ]
         , viewOrgans gendertropeRecord.organs
         , viewStandardFeatures input.features gendertropeRecord
         ]
@@ -92,26 +88,20 @@ persona attrs config =
 
 viewAbilities : Persona -> Element msg
 viewAbilities input =
-    Theme.table []
-        (Ui.Table.columns
-            [ Ui.Table.column
-                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
-                , view = \( label, _ ) -> Ui.Table.cell [ Ui.padding 0, centerY ] (text label)
-                }
-                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
-            , Ui.Table.column
-                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
-                , view = \( _, value ) -> Ui.Table.cell [ Ui.padding 0, Font.alignRight ] (text (String.fromInt value))
-                }
-            ]
-        )
-        [ ( "Fitness", input.fitness )
-        , ( "Grace", input.grace )
-        , ( "Ardor", input.ardor )
-        , ( "Sanity", input.sanity )
-        , ( "Prowess", input.prowess )
-        , ( "Moxie", input.moxie )
-        ]
+    [ ( "Fitness", input.fitness )
+    , ( "Grace", input.grace )
+    , ( "Ardor", input.ardor )
+    , ( "Sanity", input.sanity )
+    , ( "Prowess", input.prowess )
+    , ( "Moxie", input.moxie )
+    ]
+        |> List.concatMap
+            (\( label, value ) ->
+                [ text label
+                , el [ Font.alignRight ] (text (String.fromInt value))
+                ]
+            )
+        |> Ui.Layout.rowWithConstraints [ Ui.Layout.fill, Ui.Layout.byContent ] [ Theme.spacing ]
 
 
 viewStatus : Persona -> Element msg
@@ -123,39 +113,35 @@ viewStatus input =
             , 20 + 2 * bonusToCap
             )
     in
-    Theme.table
-        [ Ui.borderWith
-            { left = 1
-            , top = 0
-            , bottom = 0
-            , right = 0
-            }
-        , Ui.paddingWith
-            { left = Theme.rhythm
-            , top = 0
-            , bottom = 0
-            , right = 0
-            }
-        ]
-        (Ui.Table.columns
-            [ Ui.Table.column
-                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
-                , view = \( label, _ ) -> Ui.Table.cell [ Ui.padding 0 ] (text label)
+    [ statusRow "Max Stamina" 0
+    , statusRow "Max Satiation" input.ardor
+    , statusRow "Max Craving" input.sanity
+    , statusRow "Max Arousal" input.prowess
+    , statusRow "Max Sensitivity" input.moxie
+    , ( "Level Bonus", Persona.levelBonus input )
+    ]
+        |> List.concatMap
+            (\( label, value ) ->
+                [ text label
+                , el [ Font.alignRight ] (text (String.fromInt value))
+                ]
+            )
+        |> Ui.Layout.rowWithConstraints [ Ui.Layout.fill, Ui.Layout.byContent ]
+            [ Ui.paddingWith
+                { left = Theme.rhythm
+                , top = 0
+                , bottom = 0
+                , right = 0
                 }
-                |> Ui.Table.withWidth { fill = True, min = Nothing, max = Nothing }
-            , Ui.Table.column
-                { header = Ui.Table.cell [ Ui.padding 0 ] Ui.none
-                , view = \( _, value ) -> Ui.Table.cell [ Ui.padding 0, Font.alignRight ] (text (String.fromInt value))
+            , Ui.borderWith
+                { left = 1
+                , top = 0
+                , bottom = 0
+                , right = 0
                 }
+            , Ui.borderColor Theme.purple
+            , Theme.spacing
             ]
-        )
-        [ statusRow "Max Stamina" 0
-        , statusRow "Max Satiation" input.ardor
-        , statusRow "Max Craving" input.sanity
-        , statusRow "Max Arousal" input.prowess
-        , statusRow "Max Sensitivity" input.moxie
-        , ( "Level Bonus", Persona.levelBonus input )
-        ]
 
 
 tallyGroup : Int -> Element msg
