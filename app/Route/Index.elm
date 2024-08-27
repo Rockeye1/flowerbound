@@ -700,7 +700,7 @@ view _ shared model =
                     ]
 
             Playing playingModel ->
-                [ Theme.row [ Ui.wrap ]
+                [ Theme.row [ Ui.wrap, centerX ]
                     (viewPersonas playingModel)
                 , viewPlaying shared playingModel
                 ]
@@ -714,7 +714,7 @@ view _ shared model =
 viewPersonas : PlayingModel -> List (Element PlayingMsg)
 viewPersonas playingModel =
     Persona.View.persona
-        [ alignTop ]
+        [ alignTop, centerX ]
         { update = UpdatePersona
         , upload = UpdateFromFile
         , remove = Nothing
@@ -723,7 +723,7 @@ viewPersonas playingModel =
         :: List.indexedMap
             (\i other ->
                 Persona.View.persona
-                    [ alignTop ]
+                    [ alignTop, centerX ]
                     { update = UpdateOther i
                     , upload = UpdateOtherFromFile i
                     , remove = Just (RemoveOther i)

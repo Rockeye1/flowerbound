@@ -37,7 +37,7 @@ persona attrs config =
     in
     Theme.column
         (Ui.border 1
-            :: Ui.width (px 470)
+            :: Ui.width (px 640)
             :: Theme.padding
             :: attrs
         )
@@ -239,7 +239,7 @@ viewOrgans input =
         wrap index attrs child =
             el
                 (height fill
-                    :: padding (Theme.rhythm // 2)
+                    :: Theme.padding
                     :: Ui.background
                         (if modBy 2 index == 0 then
                             Theme.lightGray
@@ -345,4 +345,4 @@ viewOrgans input =
             , Layout.byContent
             , Layout.byContent
             ]
-            []
+            [ centerX ]

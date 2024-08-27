@@ -62,6 +62,7 @@ view config { flipped, persona } =
     in
     Theme.row
         [ width <| px fullWidth
+        , centerX
         , height <| px 600
         , Theme.style "perspective" "2000px"
         ]
