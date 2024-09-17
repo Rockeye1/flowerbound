@@ -17,7 +17,7 @@
         "elm-test-rs": "^3.0.0-5",
         "elm-tooling": "^1.15.1",
         "lamdera": "^0.19.1-1.2.1-1",
-        "vite": "^5.3.3"
+        "vite": "^5.4.6"
     },
     "dependencies": {
         "express": "^4.20.0",
