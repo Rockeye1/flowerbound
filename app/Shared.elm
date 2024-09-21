@@ -115,9 +115,7 @@ view _ _ _ _ pageView =
               -- },
               Ui.height Ui.fill
             , Font.family
-                [ Font.typeface "Open Sans"
-                , Font.typeface "Helvetica"
-                , Font.typeface "Verdana"
+                [ Font.typeface "Atkinson Hyperlegible"
                 , Font.sansSerif
                 ]
             , Font.size 20
