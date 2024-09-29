@@ -924,45 +924,49 @@ viewRoll model =
             )
                 |> List.indexedMap
                     (\c children ->
-                        children
-                            |> List.indexedMap
-                                (\r child ->
-                                    el
-                                        [ Ui.borderWith
-                                            { top =
-                                                if r == 0 then
-                                                    0
+                        if List.isEmpty children then
+                            Ui.none
 
-                                                else
-                                                    1
-                                            , left = 0
-                                            , right = 0
-                                            , bottom = 0
-                                            }
-                                        , Ui.borderColor Theme.purple
-                                        , Theme.padding
-                                        , Font.center
-                                        , centerY
-                                        ]
-                                        child
-                                )
-                            |> Theme.column
-                                [ Ui.background Theme.lightPurple
-                                , Ui.borderWith
-                                    { left =
-                                        if c == 0 then
-                                            1
+                        else
+                            children
+                                |> List.indexedMap
+                                    (\r child ->
+                                        el
+                                            [ Ui.borderWith
+                                                { top =
+                                                    if r == 0 then
+                                                        0
 
-                                        else
-                                            0
-                                    , top = 1
-                                    , bottom = 1
-                                    , right = 1
-                                    }
-                                , Ui.borderColor Theme.purple
-                                , height fill
-                                , width shrink
-                                ]
+                                                    else
+                                                        1
+                                                , left = 0
+                                                , right = 0
+                                                , bottom = 0
+                                                }
+                                            , Ui.borderColor Theme.purple
+                                            , Theme.padding
+                                            , Font.center
+                                            , centerY
+                                            ]
+                                            child
+                                    )
+                                |> Theme.column
+                                    [ Ui.background Theme.lightPurple
+                                    , Ui.borderWith
+                                        { left =
+                                            if c == 0 then
+                                                1
+
+                                            else
+                                                0
+                                        , top = 1
+                                        , bottom = 1
+                                        , right = 1
+                                        }
+                                    , Ui.borderColor Theme.purple
+                                    , height fill
+                                    , width shrink
+                                    ]
                     )
                 |> row []
 
