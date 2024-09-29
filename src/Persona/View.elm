@@ -88,12 +88,12 @@ persona attrs config =
 
 viewAbilities : Persona -> Element msg
 viewAbilities input =
-    [ ( "Fitness", input.fitness )
-    , ( "Grace", input.grace )
-    , ( "Ardor", input.ardor )
-    , ( "Sanity", input.sanity )
-    , ( "Prowess", input.prowess )
-    , ( "Moxie", input.moxie )
+    [ ( "Fitness (FIT)", input.fitness )
+    , ( "Grace (GRC)", input.grace )
+    , ( "Ardor (ARD)", input.ardor )
+    , ( "Sanity (SAN)", input.sanity )
+    , ( "Prowess (PRW)", input.prowess )
+    , ( "Moxie (MOX)", input.moxie )
     ]
         |> List.concatMap
             (\( label, value ) ->
