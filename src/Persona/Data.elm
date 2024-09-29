@@ -251,15 +251,13 @@ You also permanently gain access to these three **Moves**:
 
 > **Assertive Grope** (Tease) [Grips] | CT **6** |
 >
-> If, and only if, the Stimulation dealt by this Move causes **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
+> If, and only if, the Stimulation dealt by this Move is **ideal**, causing **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
 
 > **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |
 >
 If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
 
 > **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
->
-> _You want that nectar, and it doesn't matter how deep you have to plunge in to taste it. Nowhere is safe from your tongue._
 >
 > If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **1 Craving**.
 
@@ -276,7 +274,7 @@ During your partner's turn, you may spend **1 Dominance Point** to force them to
 ambrosia : Feature
 ambrosia =
     { name = "Ambrosia"
-    , description = """If your partner's mouth is Paired with your _Veiny Futa Phallus_ while you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, they compulsively swallow your ejaculate and acquire the **Fixation** effect.
+    , description = """If a Pairing between your _Veiny Futa Phallus_ and __a mouth Organ not owned by you__ exists at any point during your turn, and that turn is one in which you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, then at the moment your ejaculate enters their mouth, they compulsively swallow it and acquire the **Fixation** effect.
 
 
 > **Fixation** _Passive_
@@ -285,7 +283,9 @@ ambrosia =
 >
 > At the beginning of your turn, you may roll a Sanity Check. If the result of the Check is greater than your Craving value, you may remove this effect.
 
-In addition, so long as the effect remains, you gain an extrasensory perception of their body and sexual state and may demand full access to all the information on their Persona Card and Organ Cards at any time."""
+While the one who swallows your Ambrosia remains Fixated, you gain an extrasensory perception of their body and sexual state.
+
+If, at the beginning of _their_ turn, they fail their Sanity Check to remove the Fixation effect, or do not attempt to remove the Fixation effect, they must give you access to all of the information on their Persona Card and Organ Cards for a full round, until the start of their _next_ turn."""
     }
 
 
@@ -296,9 +296,17 @@ gardenKeeper =
 
 You also permanently gain access to these two Moves:
 
-> ((Coming Soon / TBD))
+> **Hunger of Inspiration** (Grind) [Squishes/Grips/Penetrates] | CT **0** |
+> _Reaction_
+>
+> If the target of this move has the **Subspace** effect, gain **Craving** equal to the **Stamina** spent on the Move that this Move is contesting.
 
-> ((Coming Soon / TBD))"""
+> **Pleasing Arrangement** (Tease) [Penetrates] | CT **20** |
+> _Indulgent_
+>
+> If you have at least **1** Dominance Point, expend **1 Dominance Point** to force the target of this Move to use an available __reaction__ Move of your choice, provided the target has the necessary Stamina.
+>
+> If the target has no __reaction__ Moves available, ignore this."""
     }
 
 
@@ -390,9 +398,16 @@ honeypot =
     , description = """When a partner successfully Pairs one of their Organs to one of your Organs with a **Firm Maneuver** or a **Violent Maneuver**, you gain **1 Craving**.
 
 You permanently gain access to these Moves:
-> ((Coming Soon / TBD))
 
-> ((Coming Soon / TBD))"""
+> **Melting Tremble** (Thrust) [Squishes/Ensheathes] | CT **15** |
+> _Reaction_
+>
+> If you are **Having An Orgasm** (and pass your Orgasm Sanity Check), inflict the **Heartburst** effect on the owner of the Organ this Move is targeting.
+
+> **Savoring Slide** (Grind) [Ensheathes] | CT **5** |
+> _Indulgent_
+>
+> If you do not have the **Subspace** effect, drain **5** Craving from yourself."""
     }
 
 
@@ -498,9 +513,15 @@ wildAbandon =
 
 You also permanently gain access to these Moves:
 
-> ((Coming Soon / TBD))
+> **Discordant Wriggle** (Tease) [Grips/Ensheathes] | CT **5** |
+> _Reaction_
+>
+> The **Satiation** of the owner of the Organ this Move is targeting is drained by an amount equal to the **Erogeny** of the Organ this Move is targeting. 
 
-> ((Coming Soon / TBD))"""
+> **Rapacious Ride** (Grind) [Ensheathes] | CT **5** |
+> _Indulgent_
+>
+> Roll a **Moxie Check**. If the result is greater than the Stimulation dealt by this Move, the owner of the Organ that this Move is targeting is affected by the **Fixation** effect."""
     }
 
 
@@ -596,16 +617,34 @@ eagerPrey =
 
 You also permanently gain access to these Moves:
 
-> ((Coming Soon / TBD))
+> **Rigid Repose** (Thrust) [Penetrates] | CT **20** |
+> _Reaction_
+>
+> If and only if your **Arousal** is at maximum capacity, then at no additional cost, __double__ the total **Stimulation** dealt to the Organ this Move is targeting, both by this Move and by the Move this Move is a reaction to.
 
-> ((Coming Soon / TBD))"""
+> **Needy Plunder** (Thrust) [Penetrates] | CT **15** |
+> _Indulgent_
+>
+> Roll a **Moxie Check**. If the result is greater than the Stimulation dealt by this Move, the owner of the Organ that this Move is targeting is affected by the **Fixation** effect."""
     }
 
 
 youth : Feature
 youth =
-    { name = "Youth!"
-    , description = """You have advantage on all Fitness Checks, always."""
+    { name = "Captivated Heart"
+    , description = """You may form a number of **Love Bond**s with other beings equal to your **Level Bonus**.
+
+When someone confesses their strong positive feelings about you, to you, a spiritual attachment may form in your heart if the confession is sincere.
+
+You and any individual you share a Love Bond with may draw strength from each other by sharing **Ability Scores**: when one of you rolls an Ability Check, either of you may use your Bonded's Ability Score instead of your own when determining the result of the Check.
+
+Outside of an Encounter, those that share a Love Bond will be able to sense each other's location at all times.
+
+If you already have as many Love Bonds as your Level Bonus when you receive a confession, you may break one of the existing Bonds to make room for the new one.
+
+If you wish to break a Love Bond yourself, you may break one Love Bond per day, during a restful sleep. If you choose to do this, you may not also spend any Progression Points during that restful sleep.
+
+Breaking a Love Bond has no on-going negative consequences. A repeated confession may (re)create a Love Bond as effectively as a first confession, given that the confession remains sincere."""
     }
 
 
