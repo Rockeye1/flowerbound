@@ -43,7 +43,7 @@ height =
 
 organWidth : number
 organWidth =
-    260
+    280
 
 
 organHeight : number
