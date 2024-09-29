@@ -532,11 +532,25 @@ trySnap model =
             pair sorted []
                 |> List.filterMap
                     (\( organ, options ) ->
-                        List.Extra.findMap
-                            (\option ->
-                                trySnapTo option organ
-                            )
-                            options
+                        let
+                            ( finalOrgan, finalSnapped ) =
+                                List.foldl
+                                    (\option ( currentOrgan, hasSnapped ) ->
+                                        case trySnapTo option organ of
+                                            Nothing ->
+                                                ( currentOrgan, hasSnapped )
+
+                                            Just nextOrgan ->
+                                                ( nextOrgan, True )
+                                    )
+                                    ( organ, False )
+                                    options
+                        in
+                        if finalSnapped then
+                            Just finalOrgan
+
+                        else
+                            Nothing
                     )
     in
     { model
@@ -548,50 +562,104 @@ trySnap model =
     }
 
 
+snapLimit : Quantity Float Pixels
+snapLimit =
+    Pixels.pixels 24
+
+
 trySnapTo :
     ( OrganKey, OrganPosition )
     -> ( OrganKey, OrganPosition )
     -> Maybe ( OrganKey, OrganPosition )
 trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
     let
-        snapLimit : Quantity Float Pixels
-        snapLimit =
-            Pixels.pixels 16
-
         leftSnap : Point2d Pixels ()
         leftSnap =
             targetPos
                 |> Point2d.translateBy (Vector2d.pixels (-4 - OrgansSurface.organWidth) 0)
 
-        leftVector : Vector2d Pixels ()
-        leftVector =
-            Vector2d.from organPos leftSnap
+        tryPos : Maybe (Point2d Pixels ())
+        tryPos =
+            case trySnapHorizontallyToPoint leftSnap organPos of
+                Just newPos ->
+                    Just newPos
+
+                Nothing ->
+                    let
+                        rightSnap : Point2d Pixels ()
+                        rightSnap =
+                            targetPos
+                                |> Point2d.translateBy (Vector2d.pixels (4 + OrgansSurface.organWidth) 0)
+                    in
+                    trySnapHorizontallyToPoint rightSnap organPos
     in
-    if
-        Vector2d.length leftVector
-            |> Quantity.lessThan snapLimit
-    then
-        Just ( key, ( leftSnap, zOrder ) )
+    tryPos
+        |> Maybe.map
+            (\newPos ->
+                ( key, ( newPos, zOrder ) )
+            )
+
+
+trySnapHorizontallyToPoint : Point2d Pixels () -> Point2d Pixels () -> Maybe (Point2d Pixels ())
+trySnapHorizontallyToPoint snapPoint organPos =
+    if Point2d.equalWithin snapLimit snapPoint organPos then
+        Just snapPoint
 
     else
         let
-            rightSnap : Point2d Pixels ()
-            rightSnap =
-                targetPos
-                    |> Point2d.translateBy (Vector2d.pixels (4 + OrgansSurface.organWidth) 0)
-
-            rightVector : Vector2d Pixels ()
-            rightVector =
-                Vector2d.from organPos rightSnap
+            lower : Point2d Pixels ()
+            lower =
+                snapPoint
+                    |> Point2d.translateBy
+                        (Vector2d.xy
+                            Quantity.zero
+                            (Pixels.pixels (OrgansSurface.organHeight / 2 + 2))
+                        )
         in
-        if
-            Vector2d.length rightVector
-                |> Quantity.lessThan snapLimit
-        then
-            Just ( key, ( rightSnap, zOrder ) )
+        if Point2d.equalWithin snapLimit lower organPos then
+            Just lower
 
         else
-            Nothing
+            let
+                upper : Point2d Pixels ()
+                upper =
+                    snapPoint
+                        |> Point2d.translateBy
+                            (Vector2d.xy
+                                Quantity.zero
+                                (Pixels.pixels (-OrgansSurface.organHeight / 2 - 2))
+                            )
+            in
+            if Point2d.equalWithin snapLimit upper organPos then
+                Just upper
+
+            else
+                let
+                    distanceVector : Vector2d Pixels ()
+                    distanceVector =
+                        Vector2d.from organPos snapPoint
+                in
+                if
+                    (Vector2d.xComponent distanceVector
+                        |> Quantity.abs
+                        |> Quantity.lessThan snapLimit
+                    )
+                        && (Vector2d.yComponent distanceVector
+                                |> Quantity.abs
+                                |> Quantity.lessThan (Pixels.pixels OrgansSurface.organHeight)
+                           )
+                then
+                    Just
+                        (organPos
+                            |> Point2d.translateBy
+                                (Vector2d.xy
+                                    (Vector2d.xComponent distanceVector)
+                                    Quantity.zero
+                                )
+                        )
+
+                else
+                    Nothing
 
 
 clipOrganPosition : Point2d Pixels () -> Point2d Pixels ()
