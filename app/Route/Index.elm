@@ -99,7 +99,6 @@ type alias PlayerModel =
     , selectedTemperament : Maybe Temperament
     , valiantModifier : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
-    , orgasmIntensity : Int
     }
 
 
@@ -124,6 +123,7 @@ type alias Meters =
     , craving : Int
     , satiation : Int
     , stamina : Int
+    , intensity : Int
     }
 
 
@@ -742,12 +742,12 @@ initPlayingModel persona =
                 , craving = 0
                 , satiation = 0
                 , stamina = 0
+                , intensity = 0
                 }
             , selectedMove = Nothing
             , selectedTemperament = Nothing
             , valiantModifier = 0
             , stimulationRoll = Nothing
-            , orgasmIntensity = 0
             }
     in
     { persona = persona
@@ -896,11 +896,7 @@ loadPersona config =
 
 
 viewPlaying : Shared.Model -> PlayingModel -> Element PlayingMsg
-viewPlaying shared ({ persona } as model) =
-    let
-        { meters } =
-            model.player
-    in
+viewPlaying shared model =
     Theme.column []
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
@@ -921,14 +917,7 @@ viewPlaying shared ({ persona } as model) =
                 }
             , el [] Ui.none
             ]
-        , [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> UpdateMeters { meters | stamina = newValue }
-          , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> UpdateMeters { meters | satiation = newValue }
-          , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> UpdateMeters { meters | craving = newValue }
-          , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> UpdateMeters { meters | sensitivity = newValue }
-          , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> UpdateMeters { meters | arousal = newValue }
-          ]
-            |> List.concat
-            |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
+        , viewMeters model
         , el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model.player
         , Theme.row
@@ -971,6 +960,24 @@ viewPlaying shared ({ persona } as model) =
                 ]
             ]
         ]
+
+
+viewMeters : PlayingModel -> Element PlayingMsg
+viewMeters ({ persona } as model) =
+    let
+        { meters } =
+            model.player
+    in
+    [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
+    , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> { meters | satiation = newValue }
+    , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> { meters | craving = newValue }
+    , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> { meters | sensitivity = newValue }
+    , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> { meters | arousal = newValue }
+    , statusMeter "Intensity" meters.intensity 30 <| \newValue -> { meters | intensity = newValue }
+    ]
+        |> List.concat
+        |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
+        |> Ui.map UpdateMeters
 
 
 viewRoll : PlayingModel -> Element PlayingMsg
