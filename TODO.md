@@ -7,7 +7,6 @@
 - Use IP to up organ stats
 
 # Feedback
-- Descriptions are outdated
 - The stim roller is good
 - the meter is a bit odd
   - I would have designed a persona card that's a slim little card with plus minus for meters
