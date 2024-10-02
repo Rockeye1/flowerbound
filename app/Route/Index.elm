@@ -87,13 +87,19 @@ type alias PlayingModel =
     { persona : Persona
     , others : List Persona
     , organsPositions : Dict OrganKey OrganPosition
-    , stimulationCost : Int
+    , dragging : Maybe ( OrganKey, Vector2d Pixels () )
+    , player : PlayerModel
+    }
+
+
+type alias PlayerModel =
+    { stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
     , selectedTemperament : Maybe Temperament
     , valiantModifier : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
-    , dragging : Maybe ( OrganKey, Vector2d Pixels () )
+    , orgasmIntensity : Int
     }
 
 
@@ -238,44 +244,54 @@ checkOrgans model =
 innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
 innerUpdate msg model =
     let
-        alterMeters : (Meters -> Meters) -> ( PlayingModel, Effect msg )
+        alterPlayer : (PlayerModel -> PlayerModel) -> PlayingModel
+        alterPlayer f =
+            { model | player = f model.player }
+
+        alterMeters : (Meters -> Meters) -> PlayingModel
         alterMeters f =
-            ( { model | meters = f model.meters }, Effect.none )
+            alterPlayer (\player -> { player | meters = f player.meters })
     in
     case msg of
         StimulationCost stimulationCost ->
-            ( { model
-                | stimulationCost = stimulationCost
-                , stimulationRoll = Nothing
-              }
+            ( alterPlayer
+                (\player ->
+                    { player
+                        | stimulationCost = stimulationCost
+                        , stimulationRoll = Nothing
+                    }
+                )
             , Effect.none
             )
 
         UpdateMeters newMeters ->
-            ( { model | meters = newMeters }, Effect.none )
+            ( alterMeters (\_ -> newMeters)
+            , Effect.none
+            )
 
         SelectMove selectedMove ->
-            ( { model | selectedMove = selectedMove }, Effect.none )
+            ( alterPlayer (\player -> { player | selectedMove = selectedMove })
+            , Effect.none
+            )
 
         SelectTemperament selectedTemperament ->
-            ( { model | selectedTemperament = selectedTemperament }, Effect.none )
+            ( alterPlayer (\player -> { player | selectedTemperament = selectedTemperament })
+            , Effect.none
+            )
 
         BeginEncounter ->
-            alterMeters <| \meters -> { meters | stamina = 5 + model.persona.fitness }
+            ( alterMeters <| \meters -> { meters | stamina = 5 + model.persona.fitness }
+            , Effect.none
+            )
 
         Rest ->
-            ( { model
-                | meters =
-                    let
-                        meters : Meters
-                        meters =
-                            model.meters
-                    in
+            ( alterMeters
+                (\meters ->
                     { meters
                         | arousal = 1
                         , sensitivity = 0
                     }
-              }
+                )
             , Effect.batch
                 [ Effect.rollCheck model.persona.ardor RestedSatiation
                 , Effect.rollCheck model.persona.sanity RestedCraving
@@ -283,38 +299,48 @@ innerUpdate msg model =
             )
 
         RestedSatiation satiation ->
-            alterMeters <| \meters -> { meters | satiation = min (Persona.maxSatiation model.persona) satiation }
+            ( alterMeters (\meters -> { meters | satiation = min (Persona.maxSatiation model.persona) satiation })
+            , Effect.none
+            )
 
         RestedCraving craving ->
-            alterMeters <| \meters -> { meters | craving = min (Persona.maxCraving model.persona) craving }
+            ( alterMeters (\meters -> { meters | craving = min (Persona.maxCraving model.persona) craving })
+            , Effect.none
+            )
 
         RollValiantModifier ->
             ( model, Effect.rollCheck model.persona.moxie RolledValiantModifier )
 
         RolledValiantModifier modifier ->
-            ( { model | valiantModifier = modifier }, Effect.none )
+            ( alterPlayer (\player -> { player | valiantModifier = modifier })
+            , Effect.none
+            )
 
         RollStimulation ->
-            case
-                List.Extra.findMap
-                    (\( cost, dice ) ->
-                        if cost == model.stimulationCost then
-                            Just dice
+            ( alterPlayer (\player -> { player | stimulationRoll = Nothing })
+            , case
+                stimulationDice
+                    |> List.Extra.findMap
+                        (\( cost, dice ) ->
+                            if cost == model.player.stimulationCost then
+                                Just dice
 
-                        else
-                            Nothing
-                    )
-                    stimulationDice
+                            else
+                                Nothing
+                        )
                     |> Maybe.withDefault []
-            of
+              of
                 [] ->
-                    ( { model | stimulationRoll = Nothing }, Effect.none )
+                    Effect.none
 
                 dice ->
-                    ( { model | stimulationRoll = Nothing }, Effect.RollStimulation dice RolledStimulation )
+                    Effect.RollStimulation dice RolledStimulation
+            )
 
         RolledStimulation stimulationRoll ->
-            ( { model | stimulationRoll = Just stimulationRoll }, Effect.none )
+            ( alterPlayer (\player -> { player | stimulationRoll = Just stimulationRoll })
+            , Effect.none
+            )
 
         UpdatePersona persona ->
             ( { model | persona = persona }, Effect.none )
@@ -706,22 +732,29 @@ raycast model position =
 
 initPlayingModel : Persona -> PlayingModel
 initPlayingModel persona =
+    let
+        player : PlayerModel
+        player =
+            { stimulationCost = 1
+            , meters =
+                { sensitivity = 0
+                , arousal = 0
+                , craving = 0
+                , satiation = 0
+                , stamina = 0
+                }
+            , selectedMove = Nothing
+            , selectedTemperament = Nothing
+            , valiantModifier = 0
+            , stimulationRoll = Nothing
+            , orgasmIntensity = 0
+            }
+    in
     { persona = persona
     , others = []
-    , stimulationCost = 1
     , organsPositions = Dict.empty
-    , meters =
-        { sensitivity = 0
-        , arousal = 0
-        , craving = 0
-        , satiation = 0
-        , stamina = 0
-        }
-    , selectedMove = Nothing
-    , selectedTemperament = Nothing
-    , valiantModifier = 0
-    , stimulationRoll = Nothing
     , dragging = Nothing
+    , player = player
     }
         |> checkOrgans
 
@@ -863,7 +896,11 @@ loadPersona config =
 
 
 viewPlaying : Shared.Model -> PlayingModel -> Element PlayingMsg
-viewPlaying shared ({ meters, persona } as model) =
+viewPlaying shared ({ persona } as model) =
+    let
+        { meters } =
+            model.player
+    in
     Theme.column []
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
@@ -893,7 +930,7 @@ viewPlaying shared ({ meters, persona } as model) =
             |> List.concat
             |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         , el [ Font.bold ] (text "Orgasm")
-        , viewOrgasm model
+        , viewOrgasm model.player
         , Theme.row
             [ Ui.wrap
             , Ui.widthMax (shared.width - 2 * Theme.rhythm)
@@ -910,14 +947,14 @@ viewPlaying shared ({ meters, persona } as model) =
                     [ viewRoll model
                     , Theme.iconButton [ alignRight ]
                         { onPress =
-                            if model.stimulationCost == 1 then
+                            if model.player.stimulationCost == 1 then
                                 Nothing
 
                             else
                                 Just RollStimulation
                         , icon = Icons.roll
                         , title =
-                            case model.stimulationRoll of
+                            case model.player.stimulationRoll of
                                 Nothing ->
                                     "Roll"
 
@@ -925,12 +962,12 @@ viewPlaying shared ({ meters, persona } as model) =
                                     "Reroll"
                         }
                     ]
-                , staminaTable model
+                , staminaTable model.player
                 ]
             , Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
                 , text "(Optionally) choose a Temperament"
-                , viewTemperaments model
+                , viewTemperaments model.player
                 ]
             ]
         ]
@@ -938,7 +975,7 @@ viewPlaying shared ({ meters, persona } as model) =
 
 viewRoll : PlayingModel -> Element PlayingMsg
 viewRoll model =
-    case model.stimulationRoll of
+    case model.player.stimulationRoll of
         Nothing ->
             el [ Font.color Theme.gray ]
                 (text "No roll yet.")
@@ -1077,14 +1114,17 @@ viewOrgans shared model =
         ]
 
 
-viewOrgasm : PlayingModel -> Element PlayingMsg
-viewOrgasm model =
+viewOrgasm : PlayerModel -> Element PlayingMsg
+viewOrgasm player =
     let
+        meters =
+            player.meters
+
         modifiers : Int
         modifiers =
-            if model.selectedTemperament == Just Valiant then
-                if model.valiantModifier < model.meters.stamina then
-                    model.valiantModifier
+            if player.selectedTemperament == Just Valiant then
+                if player.valiantModifier < meters.stamina then
+                    player.valiantModifier
 
                 else
                     0
@@ -1094,11 +1134,11 @@ viewOrgasm model =
 
         orgasmThreshold : Int
         orgasmThreshold =
-            model.meters.sensitivity + model.meters.satiation + modifiers
+            meters.sensitivity + meters.satiation + modifiers
 
         isOrgasm : Bool
         isOrgasm =
-            model.meters.arousal > orgasmThreshold
+            meters.arousal > orgasmThreshold
     in
     Theme.column []
         [ if isOrgasm then
@@ -1108,7 +1148,7 @@ viewOrgasm model =
                 , Ui.background Theme.purple
                 , Font.color Theme.white
                 ]
-                (if model.selectedTemperament == Just Valiant then
+                (if player.selectedTemperament == Just Valiant then
                     [ text "You are having an orgasm!"
                     ]
 
@@ -1124,7 +1164,7 @@ viewOrgasm model =
                 [ Theme.padding
                 , Ui.border 1
                 ]
-                (if model.selectedTemperament == Just Valiant && model.meters.arousal > model.meters.sensitivity + model.meters.satiation then
+                (if player.selectedTemperament == Just Valiant && meters.arousal > meters.sensitivity + meters.satiation then
                     [ text "You are resisting "
                     , el [ Font.bold ] (text "Valiant")
                     , text "ly."
@@ -1134,32 +1174,32 @@ viewOrgasm model =
                     [ text "You are not having an orgasm (yet!)." ]
                 )
         , paragraph []
-            [ text ("Arousal: " ++ String.fromInt model.meters.arousal)
+            [ text ("Arousal: " ++ String.fromInt meters.arousal)
             , el [ Font.bold ] <|
-                if model.meters.arousal <= orgasmThreshold then
+                if meters.arousal <= orgasmThreshold then
                     text " ≤ "
 
                 else
                     text " > "
             , text
                 ("Orgasm Threshold: "
-                    ++ String.fromInt model.meters.sensitivity
+                    ++ String.fromInt meters.sensitivity
                     ++ " (Sensitivity) + "
-                    ++ String.fromInt model.meters.satiation
+                    ++ String.fromInt meters.satiation
                     ++ " (Satiation) + "
                     ++ String.fromInt modifiers
                     ++ " (Modifiers) = "
                     ++ String.fromInt orgasmThreshold
                 )
             ]
-        , if model.selectedTemperament == Just Valiant then
+        , if player.selectedTemperament == Just Valiant then
             Theme.row []
-                [ if model.valiantModifier < model.meters.stamina then
+                [ if player.valiantModifier < meters.stamina then
                     paragraph []
                         [ text "You are being "
                         , el [ Font.bold ] (text "Valiant")
                         , text " which currently gives you a +"
-                        , el [ Font.bold ] (text (String.fromInt model.valiantModifier))
+                        , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
                         , text " modifier to your Orgasm Threshold"
                         ]
 
@@ -1168,7 +1208,7 @@ viewOrgasm model =
                         [ text "You are being "
                         , el [ Font.bold ] (text "Valiant")
                         , text " which would give you a +"
-                        , el [ Font.bold ] (text (String.fromInt model.valiantModifier))
+                        , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
                         , text " modifier to your Orgasm Threshold, if you had enough "
                         , el [ Font.bold ] (text "Stamina")
                         ]
@@ -1184,7 +1224,7 @@ viewOrgasm model =
         ]
 
 
-viewTemperaments : PlayingModel -> Element PlayingMsg
+viewTemperaments : PlayerModel -> Element PlayingMsg
 viewTemperaments model =
     [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**." )
     , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**." )
@@ -1195,7 +1235,7 @@ viewTemperaments model =
         |> Theme.row [ Ui.wrap ]
 
 
-viewTemperament : PlayingModel -> ( Temperament, String, String ) -> Element PlayingMsg
+viewTemperament : PlayerModel -> ( Temperament, String, String ) -> Element PlayingMsg
 viewTemperament model ( name, description, consequence ) =
     let
         selected : Bool
@@ -1245,11 +1285,11 @@ temperamentToString temperament =
 viewMoves : PlayingModel -> Element PlayingMsg
 viewMoves model =
     (defaultMoves ++ featureMoves model.persona)
-        |> List.map (viewMove model)
+        |> List.map (viewMove model.player)
         |> Theme.column [ width shrink ]
 
 
-viewMove : PlayingModel -> Move -> Element PlayingMsg
+viewMove : PlayerModel -> Move -> Element PlayingMsg
 viewMove model move =
     let
         selected : Bool
@@ -1347,7 +1387,7 @@ statusMeter label value cap setter =
     ]
 
 
-staminaTable : PlayingModel -> Element PlayingMsg
+staminaTable : PlayerModel -> Element PlayingMsg
 staminaTable model =
     let
         header : String -> Element msg
