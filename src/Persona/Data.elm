@@ -1,11 +1,11 @@
-module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, phallic, prehensile, yonic)
+module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, other, phallic, prehensile, yonic)
 
 import Dict
 import Icons
 import Phosphor
 import Svg
 import Svg.Attributes
-import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ)
+import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..))
 import Ui exposing (Element)
 
 
@@ -95,6 +95,7 @@ gendertropeToRecord gendertrope =
 emptyOrgan : Organ
 emptyOrgan =
     { name = ""
+    , type_ = Other
     , contour = 0
     , erogeny = 0
     , canSquish = False
@@ -112,6 +113,7 @@ mouth : String -> Organ
 mouth name =
     { emptyOrgan
         | name = name
+        , type_ = Mouth
         , contour = 1
         , erogeny = 2
         , canSquish = True
@@ -125,6 +127,7 @@ hands : String -> Organ
 hands name =
     { emptyOrgan
         | name = name
+        , type_ = Hands
         , contour = 0
         , erogeny = 1
         , canSquish = True
@@ -139,6 +142,7 @@ breasts : String -> Organ
 breasts name =
     { emptyOrgan
         | name = name
+        , type_ = Breasts
         , contour = 5
         , erogeny = 4
         , canSquish = True
@@ -151,6 +155,7 @@ hips : String -> Organ
 hips name =
     { emptyOrgan
         | name = name
+        , type_ = Hips
         , contour = 1
         , erogeny = 4
         , canSquish = True
@@ -165,6 +170,7 @@ legs : String -> Organ
 legs name =
     { emptyOrgan
         | name = name
+        , type_ = Legs
         , contour = 0
         , erogeny = 1
         , canSquish = True
@@ -176,6 +182,7 @@ phallic : String -> Organ
 phallic name =
     { emptyOrgan
         | name = name
+        , type_ = Phallic
         , contour = 2
         , erogeny = 7
         , canPenetrate = True
@@ -188,6 +195,7 @@ yonic : String -> Organ
 yonic name =
     { emptyOrgan
         | name = name
+        , type_ = Yonic
         , contour = 3
         , erogeny = 6
         , canSquish = True
@@ -201,6 +209,7 @@ prehensile : String -> Organ
 prehensile name =
     { emptyOrgan
         | name = name
+        , type_ = Prehensile
         , contour = 4
         , erogeny = 2
         , canGrip = True
@@ -208,6 +217,11 @@ prehensile name =
         , isGrippable = True
         , isEnsheatheable = True
     }
+
+
+other : String -> Organ
+other name =
+    { emptyOrgan | name = name }
 
 
 butterfly : GendertropeRecord

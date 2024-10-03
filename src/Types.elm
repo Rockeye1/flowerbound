@@ -1,4 +1,4 @@
-module Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), actionToCan, actionToCanIcon, actionToInitial, actionToIs, actionToIsIcon, actionToString, standardGendertropes, stimulationTypeToString)
+module Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, OrganType(..), PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), actionToCan, actionToCanIcon, actionToInitial, actionToIs, actionToIsIcon, actionToString, standardGendertropes, stimulationTypeToString)
 
 import Dict exposing (Dict)
 import Icons
@@ -98,6 +98,7 @@ type alias Feature =
 
 type alias Organ =
     { name : String
+    , type_ : OrganType
     , contour : Int
     , erogeny : Int
     , canSquish : Bool
@@ -109,6 +110,18 @@ type alias Organ =
     , isPenetrable : Bool
     , isEnsheatheable : Bool
     }
+
+
+type OrganType
+    = Mouth
+    | Hands
+    | Breasts
+    | Hips
+    | Yonic
+    | Phallic
+    | Legs
+    | Prehensile
+    | Other
 
 
 type alias Move =

@@ -16,7 +16,7 @@ import Persona.Data as Data
 import Result.Extra
 import Rope
 import Route exposing (Route)
-import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, PartialGendertrope(..), PartialPersona, Persona)
+import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), PartialGendertrope(..), PartialPersona, Persona)
 import Url
 
 
@@ -360,73 +360,152 @@ avoidEmpty value =
 
 organToString : Organ -> ( String, String )
 organToString value =
-    -- TODO: fix this
-    if value == Data.mouth value.name then
-        ( "Mouth", value.name )
+    let
+        typeString : String
+        typeString =
+            organTypeToString value.type_
 
-    else if value == Data.hands value.name then
-        ( "Hands", value.name )
+        reference : Organ
+        reference =
+            organTypeToReference value.type_ value.name
 
-    else if value == Data.breasts value.name then
-        ( "Breasts", value.name )
+        contourString : String
+        contourString =
+            if value.contour /= reference.contour then
+                "\n  - Contour: "
+                    ++ String.fromInt value.contour
 
-    else if value == Data.hips value.name then
-        ( "Hips", value.name )
+            else
+                ""
 
-    else if value == Data.yonic value.name then
-        ( "Yonic", value.name )
+        erogenyString : String
+        erogenyString =
+            if value.erogeny /= reference.erogeny then
+                "\n  - Erogeny: "
+                    ++ String.fromInt value.erogeny
 
-    else if value == Data.phallic value.name then
-        ( "Phallic", value.name )
+            else
+                ""
 
-    else if value == Data.legs value.name then
-        ( "Legs", value.name )
+        canString : String
+        canString =
+            if
+                (value.canSquish /= reference.canSquish)
+                    || (value.canGrip /= reference.canGrip)
+                    || (value.canPenetrate /= reference.canPenetrate)
+                    || (value.canEnsheathe /= reference.canEnsheathe)
+            then
+                group "Can"
+                    [ ( "Squish", value.canSquish )
+                    , ( "Grip", value.canGrip )
+                    , ( "Penetrate", value.canPenetrate )
+                    , ( "Ensheathe", value.canEnsheathe )
+                    ]
 
-    else if value == Data.prehensile value.name then
-        ( "Prehensile", value.name )
+            else
+                ""
 
-    else
-        let
-            group : String -> List ( String, Bool ) -> String
-            group label items =
-                case
-                    List.filterMap
-                        (\( item, enable ) ->
-                            if enable then
-                                Just item
+        isString : String
+        isString =
+            if
+                (value.isSquishable /= reference.isSquishable)
+                    || (value.isGrippable /= reference.isGrippable)
+                    || (value.isPenetrable /= reference.isPenetrable)
+                    || (value.isEnsheatheable /= reference.isEnsheatheable)
+            then
+                group "Is"
+                    [ ( "Squishable", value.isSquishable )
+                    , ( "Grippable", value.isGrippable )
+                    , ( "Penetrable", value.isPenetrable )
+                    , ( "Ensheatheable", value.isEnsheatheable )
+                    ]
 
-                            else
-                                Nothing
-                        )
-                        items
-                of
-                    [] ->
-                        ""
+            else
+                ""
 
-                    enabled ->
-                        ("\n  - " ++ label ++ ":")
-                            :: enabled
-                            |> String.join "\n    - "
-        in
-        ( "Custom"
-        , value.name
-            ++ "\n  - Contour: "
-            ++ String.fromInt value.contour
-            ++ "\n  - Erogeny: "
-            ++ String.fromInt value.erogeny
-            ++ group "Can"
-                [ ( "Squish", value.canSquish )
-                , ( "Grip", value.canGrip )
-                , ( "Penetrate", value.canPenetrate )
-                , ( "Ensheathe", value.canEnsheathe )
-                ]
-            ++ group "Is"
-                [ ( "Squishable", value.isSquishable )
-                , ( "Grippable", value.isGrippable )
-                , ( "Penetrable", value.isPenetrable )
-                , ( "Ensheatheable", value.isEnsheatheable )
-                ]
-        )
+        group : String -> List ( String, Bool ) -> String
+        group label items =
+            ("\n  - " ++ label ++ ":")
+                :: List.filterMap
+                    (\( item, enable ) ->
+                        if enable then
+                            Just item
+
+                        else
+                            Nothing
+                    )
+                    items
+                |> String.join "\n    - "
+    in
+    ( typeString
+    , value.name
+        ++ contourString
+        ++ erogenyString
+        ++ canString
+        ++ isString
+    )
+
+
+organTypeToReference : OrganType -> String -> Organ
+organTypeToReference type_ name =
+    case type_ of
+        Mouth ->
+            Data.mouth name
+
+        Hands ->
+            Data.hands name
+
+        Breasts ->
+            Data.breasts name
+
+        Hips ->
+            Data.hips name
+
+        Yonic ->
+            Data.yonic name
+
+        Phallic ->
+            Data.phallic name
+
+        Legs ->
+            Data.legs name
+
+        Prehensile ->
+            Data.prehensile name
+
+        Other ->
+            Data.other name
+
+
+organTypeToString : OrganType -> String
+organTypeToString type_ =
+    case type_ of
+        Mouth ->
+            "Mouth"
+
+        Hands ->
+            "Hands"
+
+        Breasts ->
+            "Breasts"
+
+        Hips ->
+            "Hips"
+
+        Yonic ->
+            "Yonic"
+
+        Phallic ->
+            "Phallic"
+
+        Legs ->
+            "Legs"
+
+        Prehensile ->
+            "Prehensile"
+
+        Other ->
+            "Other"
 
 
 block : Int -> String -> List String -> String
@@ -558,19 +637,9 @@ gendertropeRecordParser name =
 organParser : Parser Organ
 organParser =
     let
-        simple : (String -> Organ) -> String -> Parser Organ
-        simple ctor name =
-            Parser.succeed ctor
-                |. Parser.symbol name
-                |. Parser.spaces
-                |. Parser.symbol ":"
-                |. Parser.spaces
-                |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
-
         item : Parser keep -> Parser keep
         item inner =
             Parser.succeed identity
-                |. Parser.spaces
                 |. Parser.symbol "-"
                 |. Parser.spaces
                 |= inner
@@ -607,59 +676,73 @@ organParser =
                 , Parser.succeed []
                 ]
     in
-    Parser.succeed identity
+    Parser.succeed
+        (\type_ name contour erogeny can is ->
+            let
+                reference : Organ
+                reference =
+                    organTypeToReference type_ name
+            in
+            { reference
+                | contour = contour |> Maybe.withDefault reference.contour
+                , erogeny = erogeny |> Maybe.withDefault reference.erogeny
+                , canSquish = List.member "Squish" can
+                , canGrip = List.member "Grip" can
+                , canPenetrate = List.member "Penetrate" can
+                , canEnsheathe = List.member "Ensheathe" can
+                , isSquishable = List.member "Squishable" is
+                , isGrippable = List.member "Grippable" is
+                , isPenetrable = List.member "Penetrable" is
+                , isEnsheatheable = List.member "Ensheatheable" is
+            }
+        )
         |. Parser.symbol "-"
         |. Parser.spaces
         |= Parser.oneOf
-            [ simple Data.mouth "Mouth"
-            , simple Data.hands "Hands"
-            , simple Data.breasts "Breasts"
-            , simple Data.hips "Hips"
-            , simple Data.legs "Legs"
-            , simple Data.phallic "Phallic"
-            , simple Data.yonic "Yonic"
-            , simple Data.prehensile "Prehensile"
-            , Parser.succeed
-                (\name contour erogeny can is ->
-                    { name = name
-                    , contour = contour
-                    , erogeny = erogeny
-                    , canSquish = List.member "Squish" can
-                    , canGrip = List.member "Grip" can
-                    , canPenetrate = List.member "Penetrate" can
-                    , canEnsheathe = List.member "Ensheathe" can
-                    , isSquishable = List.member "Squishable" is
-                    , isGrippable = List.member "Grippable" is
-                    , isPenetrable = List.member "Penetrable" is
-                    , isEnsheatheable = List.member "Ensheatheable" is
-                    }
-                )
-                |. Parser.keyword "Custom"
-                |. Parser.spaces
-                |. Parser.symbol ":"
-                |. Parser.spaces
-                |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
+            [ Parser.succeed Other |. Parser.keyword "Custom"
+            , Parser.succeed Mouth |. Parser.keyword "Mouth"
+            , Parser.succeed Hands |. Parser.keyword "Hands"
+            , Parser.succeed Breasts |. Parser.keyword "Breasts"
+            , Parser.succeed Hips |. Parser.keyword "Hips"
+            , Parser.succeed Legs |. Parser.keyword "Legs"
+            , Parser.succeed Phallic |. Parser.keyword "Phallic"
+            , Parser.succeed Yonic |. Parser.keyword "Yonic"
+            , Parser.succeed Prehensile |. Parser.keyword "Prehensile"
+            ]
+        |. Parser.spaces
+        |. Parser.symbol ":"
+        |. Parser.spaces
+        |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
+        |. Parser.spaces
+        |= Parser.oneOf
+            [ Parser.succeed Just
                 |. item (Parser.keyword "Contour")
                 |. Parser.symbol ":"
                 |. Parser.spaces
                 |= Parser.int
+                |. Parser.spaces
+            , Parser.succeed Nothing
+            ]
+        |= Parser.oneOf
+            [ Parser.succeed Just
                 |. item (Parser.keyword "Erogeny")
                 |. Parser.symbol ":"
                 |. Parser.spaces
                 |= Parser.int
                 |. Parser.spaces
-                |= group "Can"
-                    [ "Squish"
-                    , "Grip"
-                    , "Penetrate"
-                    , "Ensheathe"
-                    ]
-                |= group "Is"
-                    [ "Squishable"
-                    , "Grippable"
-                    , "Penetrable"
-                    , "Ensheatheable"
-                    ]
+            , Parser.succeed Nothing
+            ]
+        |= group "Can"
+            [ "Squish"
+            , "Grip"
+            , "Penetrate"
+            , "Ensheathe"
+            ]
+        |= group "Is"
+            [ "Squishable"
+            , "Grippable"
+            , "Penetrable"
+            , "Ensheatheable"
             ]
         |. Parser.spaces
 
@@ -791,6 +874,7 @@ organ : Codec e Organ
 organ =
     Codec.object Organ
         |> Codec.field .name Codec.string
+        |> Codec.field .type_ organTypeCodec
         |> Codec.field .contour Codec.nonNegativeInt
         |> Codec.field .erogeny Codec.nonNegativeInt
         |> Codec.field .canSquish Codec.bool
@@ -802,3 +886,47 @@ organ =
         |> Codec.field .isPenetrable Codec.bool
         |> Codec.field .isEnsheatheable Codec.bool
         |> Codec.buildObject
+
+
+organTypeCodec : Codec e OrganType
+organTypeCodec =
+    Codec.custom
+        (\mouth hands breasts hips yonic phallic legs prehensile other value ->
+            case value of
+                Mouth ->
+                    mouth
+
+                Hands ->
+                    hands
+
+                Breasts ->
+                    breasts
+
+                Hips ->
+                    hips
+
+                Yonic ->
+                    yonic
+
+                Phallic ->
+                    phallic
+
+                Legs ->
+                    legs
+
+                Prehensile ->
+                    prehensile
+
+                Other ->
+                    other
+        )
+        |> Codec.variant0 Mouth
+        |> Codec.variant0 Hands
+        |> Codec.variant0 Breasts
+        |> Codec.variant0 Hips
+        |> Codec.variant0 Yonic
+        |> Codec.variant0 Phallic
+        |> Codec.variant0 Legs
+        |> Codec.variant0 Prehensile
+        |> Codec.variant0 Other
+        |> Codec.buildCustom
