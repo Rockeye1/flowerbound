@@ -11,7 +11,7 @@ import Persona.Data as Data
 import Persona.View
 import Phosphor
 import Theme
-import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType, Persona)
+import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), Persona)
 import Ui exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
@@ -410,12 +410,14 @@ viewGendertrope ({ gendertrope } as persona) =
             , Ui.map
                 (\newOrgans ->
                     { gendertropeRecord
-                        | organs = newOrgans
+                        | organs =
+                            newOrgans
+                                |> List.Extra.removeWhen (\organ -> { organ | type_ = Other } == Data.other "")
                     }
                         |> Custom
                         |> UpdateGendertrope
                 )
-                (viewOrgans gendertropeRecord)
+                (viewOrgans gendertropeRecord.organs)
             , viewFeatures persona gendertropeRecord
             ]
 
@@ -427,12 +429,14 @@ viewGendertrope ({ gendertrope } as persona) =
             , Ui.map
                 (\newOrgans ->
                     { gendertropeRecord
-                        | organs = newOrgans
+                        | organs =
+                            newOrgans
+                                |> List.Extra.removeWhen (\organ -> { organ | type_ = Other } == Data.other "")
                     }
                         |> Custom
                         |> UpdateGendertrope
                 )
-                (viewOrgans gendertropeRecord)
+                (viewOrgans gendertropeRecord.organs)
             , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
 
@@ -446,8 +450,8 @@ viewGendertrope ({ gendertrope } as persona) =
             ]
 
 
-viewOrgans : GendertropeRecord -> Element (List Organ)
-viewOrgans gendertropeRecord =
+viewOrgans : List Organ -> Element (List Organ)
+viewOrgans organs =
     let
         wrap : Int -> Element Organ -> Table.Cell (List Organ)
         wrap index child =
@@ -463,7 +467,14 @@ viewOrgans gendertropeRecord =
                     )
                 ]
                 (child
-                    |> Ui.map (\newOrgan -> List.Extra.setAt index newOrgan gendertropeRecord.organs)
+                    |> Ui.map
+                        (\newOrgan ->
+                            if index == List.length organs then
+                                organs ++ [ newOrgan ]
+
+                            else
+                                List.Extra.setAt index newOrgan organs
+                        )
                 )
 
         intColumn :
@@ -608,6 +619,24 @@ viewOrgans gendertropeRecord =
                                 ]
                             )
                 }
+
+        deleteColumn : Table.Column globalState rowState Organ (List Organ)
+        deleteColumn =
+            Table.columnWithState
+                { header = \_ -> Table.cell [] Ui.none
+                , view =
+                    \index _ organ ->
+                        wrap index
+                            (if organ == Data.other "" then
+                                Ui.none
+
+                             else
+                                Theme.button [ centerY ]
+                                    { label = Icons.toElement Icons.delete
+                                    , onPress = Just (Data.other "")
+                                    }
+                            )
+                }
     in
     Table.view [ centerX ]
         (Table.columns
@@ -623,9 +652,10 @@ viewOrgans gendertropeRecord =
             , isColumn Grips .isGrippable <| \value organ -> { organ | isGrippable = value }
             , isColumn Penetrates .isPenetrable <| \value organ -> { organ | isPenetrable = value }
             , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
+            , deleteColumn
             ]
         )
-        gendertropeRecord.organs
+        (organs ++ [ Data.other "" ])
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
