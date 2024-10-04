@@ -536,7 +536,7 @@ slider attrs config =
                                     , Ui.behindContent
                                         (el
                                             [ Ui.centerX
-                                            , Ui.move (Ui.down 6)
+                                            , Ui.move (Ui.down 10)
                                             , Input.button (config.onChange v)
                                             ]
                                             (Ui.text (String.fromInt v))
