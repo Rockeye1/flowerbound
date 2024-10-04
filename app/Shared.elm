@@ -121,10 +121,13 @@ view _ _ shared toMsg pageView =
 div.popover {
   border: none;
   background: none;
-  display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
+}
+
+div.popover:popover-open {
+  display: flex;
 }
 
 div.popover button {
