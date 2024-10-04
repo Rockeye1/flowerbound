@@ -419,6 +419,23 @@ viewGendertrope ({ gendertrope } as persona) =
             , viewFeatures persona gendertropeRecord
             ]
 
+        Doll ->
+            [ radioRow
+            , paragraph [ Font.italic ]
+                [ text gendertropeRecord.description
+                ]
+            , Ui.map
+                (\newOrgans ->
+                    { gendertropeRecord
+                        | organs = newOrgans
+                    }
+                        |> Custom
+                        |> UpdateGendertrope
+                )
+                (viewOrgans gendertropeRecord)
+            , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
+            ]
+
         _ ->
             [ radioRow
             , paragraph [ Font.italic ]
