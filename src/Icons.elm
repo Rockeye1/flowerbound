@@ -324,7 +324,7 @@ yonic =
 
 phallic : IconVariant
 phallic =
-    Phosphor.genderMale Phosphor.Duotone
+    Phosphor.alignBottomSimple Phosphor.Duotone
 
 
 legs : IconVariant
