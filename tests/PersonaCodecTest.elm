@@ -100,6 +100,7 @@ organFuzzer : Fuzzer Persona.Organ
 organFuzzer =
     Fuzz.constant Persona.Organ
         |> Fuzz.andMap tameString
+        |> Fuzz.andMap organTypeFuzzer
         |> Fuzz.andMap (Fuzz.intAtLeast 0)
         |> Fuzz.andMap (Fuzz.intAtLeast 0)
         |> Fuzz.andMap Fuzz.bool
@@ -110,3 +111,18 @@ organFuzzer =
         |> Fuzz.andMap Fuzz.bool
         |> Fuzz.andMap Fuzz.bool
         |> Fuzz.andMap Fuzz.bool
+
+
+organTypeFuzzer : Fuzzer Persona.OrganType
+organTypeFuzzer =
+    Fuzz.oneOfValues
+        [ Persona.Mouth
+        , Persona.Hands
+        , Persona.Breasts
+        , Persona.Hips
+        , Persona.Yonic
+        , Persona.Phallic
+        , Persona.Legs
+        , Persona.Prehensile
+        , Persona.Other
+        ]

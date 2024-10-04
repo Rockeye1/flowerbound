@@ -505,7 +505,7 @@ organTypeToString type_ =
             "Prehensile"
 
         Other ->
-            "Other"
+            "Custom"
 
 
 block : Int -> String -> List String -> String
@@ -640,15 +640,16 @@ organParser =
         item : Parser keep -> Parser keep
         item inner =
             Parser.succeed identity
-                |. Parser.symbol "-"
-                |. Parser.spaces
+                |. Parser.backtrackable (Parser.symbol "-")
+                |. Parser.backtrackable Parser.spaces
                 |= inner
+                |. Parser.commit ()
                 |. Parser.spaces
 
-        group : String -> List String -> Parser (List String)
+        group : String -> List String -> Parser (Maybe (List String))
         group label options =
             Parser.oneOf
-                [ Parser.succeed identity
+                [ Parser.succeed Just
                     |. Parser.backtrackable (Parser.symbol "-")
                     |. Parser.backtrackable Parser.spaces
                     |. Parser.keyword label
@@ -673,28 +674,48 @@ organParser =
                                 |. Parser.commit ()
                         , trailing = Parser.Optional
                         }
-                , Parser.succeed []
+                , Parser.succeed Nothing
                 ]
     in
     Parser.succeed
-        (\type_ name contour erogeny can is ->
+        (\type_ name contour erogeny maybeCan maybeIs ->
             let
                 reference : Organ
                 reference =
                     organTypeToReference type_ name
+
+                withNumbers : Organ
+                withNumbers =
+                    { reference
+                        | contour = contour |> Maybe.withDefault reference.contour
+                        , erogeny = erogeny |> Maybe.withDefault reference.erogeny
+                    }
+
+                withCan : Organ
+                withCan =
+                    case maybeCan of
+                        Just can ->
+                            { withNumbers
+                                | canSquish = List.member "Squish" can
+                                , canGrip = List.member "Grip" can
+                                , canPenetrate = List.member "Penetrate" can
+                                , canEnsheathe = List.member "Ensheathe" can
+                            }
+
+                        Nothing ->
+                            withNumbers
             in
-            { reference
-                | contour = contour |> Maybe.withDefault reference.contour
-                , erogeny = erogeny |> Maybe.withDefault reference.erogeny
-                , canSquish = List.member "Squish" can
-                , canGrip = List.member "Grip" can
-                , canPenetrate = List.member "Penetrate" can
-                , canEnsheathe = List.member "Ensheathe" can
-                , isSquishable = List.member "Squishable" is
-                , isGrippable = List.member "Grippable" is
-                , isPenetrable = List.member "Penetrable" is
-                , isEnsheatheable = List.member "Ensheatheable" is
-            }
+            case maybeIs of
+                Just is ->
+                    { withCan
+                        | isSquishable = List.member "Squishable" is
+                        , isGrippable = List.member "Grippable" is
+                        , isPenetrable = List.member "Penetrable" is
+                        , isEnsheatheable = List.member "Ensheatheable" is
+                    }
+
+                Nothing ->
+                    withCan
         )
         |. Parser.symbol "-"
         |. Parser.spaces
