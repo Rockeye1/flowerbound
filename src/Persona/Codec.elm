@@ -363,7 +363,7 @@ organToString value =
     let
         typeString : String
         typeString =
-            organTypeToString value.type_
+            Data.organTypeToString value.type_
 
         reference : Organ
         reference =
@@ -475,37 +475,6 @@ organTypeToReference type_ name =
 
         Other ->
             Data.other name
-
-
-organTypeToString : OrganType -> String
-organTypeToString type_ =
-    case type_ of
-        Mouth ->
-            "Mouth"
-
-        Hands ->
-            "Hands"
-
-        Breasts ->
-            "Breasts"
-
-        Hips ->
-            "Hips"
-
-        Yonic ->
-            "Yonic"
-
-        Phallic ->
-            "Phallic"
-
-        Legs ->
-            "Legs"
-
-        Prehensile ->
-            "Prehensile"
-
-        Other ->
-            "Custom"
 
 
 block : Int -> String -> List String -> String

@@ -3,6 +3,7 @@ module Icons exposing
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
+    , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
     , toElement
     )
 
@@ -27,6 +28,11 @@ module Icons exposing
 ## Gendertropes
 
 @docs buck, butterfly, custom, doll, fiend, flower, vixen
+
+
+## Organ types
+
+@docs breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
 
 
 ## Utils
@@ -188,3 +194,48 @@ roll =
 beginEncounter : IconVariant
 beginEncounter =
     Phosphor.intersect Phosphor.Duotone
+
+
+mouth : IconVariant
+mouth =
+    Phosphor.smileyBlank Phosphor.Duotone
+
+
+hands : IconVariant
+hands =
+    Phosphor.hand Phosphor.Duotone
+
+
+breasts : IconVariant
+breasts =
+    Phosphor.beachBall Phosphor.Duotone
+
+
+hips : IconVariant
+hips =
+    Phosphor.cloud Phosphor.Duotone
+
+
+yonic : IconVariant
+yonic =
+    Phosphor.genderFemale Phosphor.Duotone
+
+
+phallic : IconVariant
+phallic =
+    Phosphor.genderMale Phosphor.Duotone
+
+
+legs : IconVariant
+legs =
+    Phosphor.personSimpleWalk Phosphor.Duotone
+
+
+prehensile : IconVariant
+prehensile =
+    Phosphor.handGrabbing Phosphor.Duotone
+
+
+other : IconVariant
+other =
+    Phosphor.question Phosphor.Duotone

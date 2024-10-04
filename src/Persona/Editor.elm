@@ -1,13 +1,17 @@
 module Persona.Editor exposing (Config, GendertropeMsg(..), view)
 
 import Dict
+import Html
+import Html.Attributes
+import Html.Events
 import Icons
 import List.Extra
 import Persona
-import Persona.Data
+import Persona.Data as Data
 import Persona.View
+import Phosphor
 import Theme
-import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, Persona)
+import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType, Persona)
 import Ui exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
 import Ui.Font as Font
 import Ui.Input as Input
@@ -132,7 +136,7 @@ nameRow config persona =
             [ Font.color Theme.purple
             , width shrink
             ]
-            (Persona.Data.gendertropeIconElement persona.gendertrope)
+            (Data.gendertropeIconElement persona.gendertrope)
         , Theme.input []
             { label = Input.labelHidden "Name"
             , text = persona.name
@@ -333,7 +337,7 @@ viewGendertrope ({ gendertrope } as persona) =
     let
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
-            Persona.Data.gendertropeToRecord gendertrope
+            Data.gendertropeToRecord gendertrope
 
         radioRow : Element GendertropeMsg
         radioRow =
@@ -363,13 +367,13 @@ viewGendertrope ({ gendertrope } as persona) =
                                     :: common option
                             )
                             [ Theme.row [ centerX ]
-                                [ Persona.Data.gendertropeIconElement option
+                                [ Data.gendertropeIconElement option
                                 , case option of
                                     Custom _ ->
                                         text "Custom"
 
                                     _ ->
-                                        text (Persona.Data.gendertropeToRecord option).name
+                                        text (Data.gendertropeToRecord option).name
                                 ]
                             ]
                     )
@@ -534,6 +538,59 @@ viewOrgans gendertropeRecord =
                                 }
                             )
                 }
+
+        typeColumn : Table.Column globalState rowState Organ (List Organ)
+        typeColumn =
+            Table.columnWithState
+                { header =
+                    \_ ->
+                        Table.cell
+                            [ padding (Theme.rhythm // 2)
+                            , Font.center
+                            ]
+                            (text "Type")
+                , view =
+                    \index _ organ ->
+                        let
+                            popoverId : String
+                            popoverId =
+                                "organ-popover-" ++ String.fromInt index
+
+                            organTypeButton : OrganType -> Html.Html Organ
+                            organTypeButton type_ =
+                                Html.button
+                                    [ Html.Events.onClick { organ | type_ = type_ }
+                                    , Html.Attributes.attribute "popovertarget" popoverId
+                                    , Html.Attributes.attribute "popovertargetaction" "hide"
+                                    ]
+                                    [ Phosphor.toHtml [] (Data.organTypeToIcon type_)
+                                    , Html.text (" " ++ Data.organTypeToString type_)
+                                    ]
+                        in
+                        wrap index
+                            (Theme.row
+                                [ centerX
+                                , centerY
+                                ]
+                                [ Theme.button
+                                    [ centerY
+                                    , Html.Attributes.attribute "popovertarget" popoverId
+                                        |> Ui.htmlAttribute
+                                    , Theme.title (Data.organTypeToString organ.type_)
+                                    ]
+                                    { onPress = Just organ
+                                    , label = Icons.toElement (Data.organTypeToIcon organ.type_)
+                                    }
+                                , Html.div
+                                    [ Html.Attributes.id popoverId
+                                    , Html.Attributes.class "popover"
+                                    , Html.Attributes.attribute "popover" ""
+                                    ]
+                                    (List.map organTypeButton Data.organTypes)
+                                    |> Ui.html
+                                ]
+                            )
+                }
     in
     Table.view [ centerX ]
         (Table.columns
@@ -548,6 +605,7 @@ viewOrgans gendertropeRecord =
             , isColumn Grips .isGrippable <| \value organ -> { organ | isGrippable = value }
             , isColumn Penetrates .isPenetrable <| \value organ -> { organ | isPenetrable = value }
             , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
+            , typeColumn
             ]
         )
         gendertropeRecord.organs

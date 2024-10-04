@@ -101,7 +101,23 @@ view :
     -> { body : List (Html msg), title : String }
 view _ _ _ _ pageView =
     { body =
-        [ Ui.layout
+        [ Html.node "style" [] [ Html.text """::backdrop {
+  backdrop-filter: blur(3px);
+}
+
+div.popover {
+  border: none;
+  background: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+div.popover button {
+  font-size: 20px;
+}""" ]
+        , Ui.layout
             [ -- Ui.focusStyle
               -- { backgroundColor = Nothing
               -- , borderColor = Nothing

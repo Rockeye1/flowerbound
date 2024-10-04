@@ -12,7 +12,6 @@ import Phosphor
 import Route
 import Ui exposing (Attribute, Element)
 import Ui.Accessibility as Accessibility
-import Ui.Events
 import Ui.Font as Font
 import Ui.Input as Input
 import Ui.Prose as Prose

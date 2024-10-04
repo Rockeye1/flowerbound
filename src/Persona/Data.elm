@@ -1,8 +1,8 @@
-module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, other, phallic, prehensile, yonic)
+module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, organTypeToIcon, organTypeToString, organTypes, other, phallic, prehensile, yonic)
 
 import Dict
 import Icons
-import Phosphor
+import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
 import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..))
@@ -890,3 +890,79 @@ gendertropeFromName name =
 
         _ ->
             Nothing
+
+
+organTypeToIcon : OrganType -> IconVariant
+organTypeToIcon type_ =
+    case type_ of
+        Mouth ->
+            Icons.mouth
+
+        Hands ->
+            Icons.hands
+
+        Breasts ->
+            Icons.breasts
+
+        Hips ->
+            Icons.hips
+
+        Yonic ->
+            Icons.yonic
+
+        Phallic ->
+            Icons.phallic
+
+        Legs ->
+            Icons.legs
+
+        Prehensile ->
+            Icons.prehensile
+
+        Other ->
+            Icons.other
+
+
+organTypeToString : OrganType -> String
+organTypeToString type_ =
+    case type_ of
+        Mouth ->
+            "Mouth"
+
+        Hands ->
+            "Hands"
+
+        Breasts ->
+            "Breasts"
+
+        Hips ->
+            "Hips"
+
+        Yonic ->
+            "Yonic"
+
+        Phallic ->
+            "Phallic"
+
+        Legs ->
+            "Legs"
+
+        Prehensile ->
+            "Prehensile"
+
+        Other ->
+            "Custom"
+
+
+organTypes : List OrganType
+organTypes =
+    [ Mouth
+    , Hands
+    , Breasts
+    , Hips
+    , Yonic
+    , Phallic
+    , Legs
+    , Prehensile
+    , Other
+    ]
