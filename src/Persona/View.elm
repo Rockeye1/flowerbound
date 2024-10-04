@@ -4,7 +4,7 @@ import Dict
 import Icons
 import Persona
 import Persona.Codec
-import Persona.Data
+import Persona.Data as Data
 import Phosphor exposing (IconVariant)
 import Site
 import Theme
@@ -33,7 +33,7 @@ persona attrs config =
 
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
-            Persona.Data.gendertropeToRecord input.gendertrope
+            Data.gendertropeToRecord input.gendertrope
     in
     Theme.column
         (Ui.border 1
@@ -64,9 +64,9 @@ persona attrs config =
             [ centerX
             , Font.color Theme.purple
             ]
-            [ Persona.Data.gendertropeIconElement input.gendertrope
+            [ Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text input.name)
-            , Persona.Data.gendertropeIconElement input.gendertrope
+            , Data.gendertropeIconElement input.gendertrope
             ]
         , Theme.row [ centerX ]
             [ viewAbilities input
@@ -76,9 +76,9 @@ persona attrs config =
             [ centerX
             , Font.color Theme.purple
             ]
-            [ Persona.Data.gendertropeIconElement input.gendertrope
+            [ Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text gendertropeRecord.name)
-            , Persona.Data.gendertropeIconElement input.gendertrope
+            , Data.gendertropeIconElement input.gendertrope
             ]
         , paragraph [ Font.italic ] [ text gendertropeRecord.description ]
         , viewOrgans gendertropeRecord.organs
@@ -303,6 +303,7 @@ viewOrgans input =
         |> List.indexedMap
             (\index element ->
                 [ text element.name
+                , el [ centerX, Font.color Theme.purple ] (Icons.toElement (Data.organTypeToIcon element.type_))
                 , intColumn .contour element
                 , intColumn .erogeny element
                 , canColumn Squishes .canSquish element
@@ -318,6 +319,7 @@ viewOrgans input =
             )
         |> (::)
             [ el [] Ui.none
+            , el [ padding (Theme.rhythm // 2) ] (Ui.text "Type")
             , el [ padding (Theme.rhythm // 2) ]
                 (Theme.withHint "Contour - how pleasing the Organ is to the sense of touch" (text "Con"))
             , el [ padding (Theme.rhythm // 2) ]
@@ -334,6 +336,7 @@ viewOrgans input =
         |> List.concat
         |> Layout.rowWithConstraints
             [ Layout.fill
+            , Layout.byContent
             , Layout.byContent
             , Layout.byContent
             , Layout.byContent
