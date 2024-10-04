@@ -4,7 +4,7 @@
         "src",
         "app",
         ".elm-pages",
-        "vendor/miniBill/elm-bits-codec/src",
+        "vendored/miniBill/elm-bits-codec/src",
         "vendored/mdgriffith/elm-ui/1.1.7/src",
         "vendored/mdgriffith/elm-animator/1.1.1/src"
     ],
