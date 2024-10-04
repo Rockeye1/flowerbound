@@ -1,4 +1,4 @@
-module Theme exposing (barelyLightPurpleHex, black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (barelyLightPurpleHex, black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Color exposing (Color)
 import Html
@@ -17,7 +17,6 @@ import Ui.Font as Font
 import Ui.Input as Input
 import Ui.Prose as Prose
 import Ui.Shadow as Shadow
-import Ui.Table as Table
 
 
 rhythm : number
@@ -43,15 +42,6 @@ wrappedRow attrs children =
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
     Ui.el (spacing :: Ui.borderColor purple :: attrs) child
-
-
-table :
-    List (Attribute msg)
-    -> Table.Config () () data msg
-    -> List data
-    -> Element msg
-table attrs config data =
-    Table.view (spacing :: Ui.borderColor purple :: attrs) config data
 
 
 spacing : Attribute msg
