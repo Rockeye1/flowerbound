@@ -319,7 +319,7 @@ hips =
 
 yonic : IconVariant
 yonic =
-    Phosphor.genderFemale Phosphor.Duotone
+    Phosphor.flowerLotus Phosphor.Duotone
 
 
 phallic : IconVariant
