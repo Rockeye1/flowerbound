@@ -12,6 +12,7 @@ import Phosphor
 import Route
 import Ui exposing (Attribute, Element)
 import Ui.Accessibility as Accessibility
+import Ui.Anim
 import Ui.Font as Font
 import Ui.Input as Input
 import Ui.Prose as Prose
@@ -116,6 +117,7 @@ buttonAttrs fg bg border attrs =
         :: Ui.background bg
         :: Font.color fg
         :: Ui.borderColor border
+        :: Ui.Anim.hovered (Ui.Anim.ms 100) [ Ui.Anim.backgroundColor barelyLightPurple ]
         :: attrs
 
 
@@ -142,6 +144,11 @@ white =
 purple : Color
 purple =
     Color.rgb255 0x80 0 0x80
+
+
+barelyLightPurple : Color
+barelyLightPurple =
+    Color.rgb255 0xAE 0x3F 0xAC
 
 
 lightPurple : Color
