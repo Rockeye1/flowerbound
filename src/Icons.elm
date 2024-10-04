@@ -261,8 +261,10 @@ breasts =
         , Svg.Attributes.fill "none"
         ]
         []
-    , Svg.path
-        [ Svg.Attributes.d "M 128 32 A 96 96 0 0 0 32 128 A 96 96 0 0 0 128 224 A 96 96 0 0 0 224 128 A 96 96 0 0 0 128 32 z M 128 112 A 48 48 0 0 1 176 160 A 48 48 0 0 1 128 208 A 48 48 0 0 1 80 160 A 48 48 0 0 1 128 112 z"
+    , Svg.circle
+        [ Svg.Attributes.cx "128"
+        , Svg.Attributes.cy "160"
+        , Svg.Attributes.r "48"
         , Svg.Attributes.opacity "0.2"
         ]
         []
