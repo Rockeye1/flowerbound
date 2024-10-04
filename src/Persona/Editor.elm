@@ -595,6 +595,7 @@ viewOrgans gendertropeRecord =
     Table.view [ centerX ]
         (Table.columns
             [ nameColumn
+            , typeColumn
             , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour <| \value organ -> { organ | contour = value }
             , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny <| \value organ -> { organ | erogeny = value }
             , canColumn Squishes .canSquish <| \value organ -> { organ | canSquish = value }
@@ -605,7 +606,6 @@ viewOrgans gendertropeRecord =
             , isColumn Grips .isGrippable <| \value organ -> { organ | isGrippable = value }
             , isColumn Penetrates .isPenetrable <| \value organ -> { organ | isPenetrable = value }
             , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
-            , typeColumn
             ]
         )
         gendertropeRecord.organs
