@@ -326,7 +326,29 @@ yonic =
 
 phallic : IconVariant
 phallic =
-    Phosphor.alignBottomSimple Phosphor.Duotone
+    [ Svg.g
+        [ Svg.Attributes.transform "rotate(180,128,128)"
+        ]
+        [ Svg.path
+            [ Svg.Attributes.d "M94.77,213.23a36.77,36.77,0,0,1-52,0h0a36.77,36.77,0,0,1,0-52L172,32l60,60-24,8Z"
+            , Svg.Attributes.opacity "0.2"
+            ]
+            []
+        , Svg.path
+            [ Svg.Attributes.d "M232,92 L208,100 L94.77,213.23 a36.77,36.77,0,0,1-52,0 h0 a36.77,36.77,0,0,1,0-52 L172,32 "
+            , Svg.Attributes.fill "none"
+            , Svg.Attributes.stroke "currentColor"
+            , Svg.Attributes.strokeWidth "16"
+            ]
+            []
+        ]
+    ]
+        |> Svg.g
+            [ Svg.Attributes.strokeWidth "16"
+            , Svg.Attributes.transform "matrix(1 0 0 1 0 0)"
+            ]
+        |> List.singleton
+        |> Phosphor.customIcon
 
 
 legs : IconVariant
