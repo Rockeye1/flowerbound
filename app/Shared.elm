@@ -128,6 +128,7 @@ div.popover {
 }
 
 div.popover button {
+  font-family: "Atkinson Hyperlegible";
   display: flex;
   gap: 8px;
   align-items: center;
