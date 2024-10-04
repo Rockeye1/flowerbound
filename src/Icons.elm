@@ -275,9 +275,7 @@ breasts =
         ]
         []
     ]
-        |> Svg.g
-            [ Svg.Attributes.strokeWidth "16"
-            ]
+        |> Svg.g [ Svg.Attributes.strokeWidth "16" ]
         |> List.singleton
         |> Phosphor.customIcon
 
@@ -315,10 +313,7 @@ hips =
             , Svg.Attributes.transform "matrix(-1 0 0 1 1500 0)"
             ]
             []
-        , Svg.path
-            [ Svg.Attributes.d "M750 793.8V909.8"
-            ]
-            []
+        , Svg.path [ Svg.Attributes.d "M750 793.8V909.8" ] []
         ]
     ]
         |> Phosphor.customIcon
