@@ -1,4 +1,4 @@
-module Theme exposing (black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (barelyLightPurpleHex, black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, table, title, viewMarkdown, white, withHint, wrappedRow)
 
 import Color exposing (Color)
 import Html
@@ -159,6 +159,11 @@ lightPurple =
 purpleHex : number
 purpleHex =
     0x00800080
+
+
+barelyLightPurpleHex : number
+barelyLightPurpleHex =
+    0x00AE3FAC
 
 
 style : String -> String -> Attribute msg
