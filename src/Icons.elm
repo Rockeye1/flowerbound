@@ -242,8 +242,6 @@ mouth =
         |> Svg.g
             [ Svg.Attributes.transform "matrix(5,0,0,5,-52,-61.626993)"
             , Svg.Attributes.strokeWidth "3.2"
-            , Svg.Attributes.strokeLinecap "round"
-            , Svg.Attributes.strokeLinejoin "round"
             ]
         |> List.singleton
         |> Phosphor.customIcon
@@ -256,7 +254,32 @@ hands =
 
 breasts : IconVariant
 breasts =
-    Phosphor.beachBall Phosphor.Duotone
+    [ Svg.circle
+        [ Svg.Attributes.cx "128"
+        , Svg.Attributes.cy "128"
+        , Svg.Attributes.r "96"
+        , Svg.Attributes.fill "none"
+        ]
+        []
+    , Svg.circle
+        [ Svg.Attributes.cx "128"
+        , Svg.Attributes.cy "160"
+        , Svg.Attributes.r "32"
+        , Svg.Attributes.opacity "0.2"
+        ]
+        []
+    , Svg.circle
+        [ Svg.Attributes.cx "128"
+        , Svg.Attributes.cy "160"
+        , Svg.Attributes.r "12"
+        ]
+        []
+    ]
+        |> Svg.g
+            [ Svg.Attributes.strokeWidth "16"
+            ]
+        |> List.singleton
+        |> Phosphor.customIcon
 
 
 hips : IconVariant
@@ -276,7 +299,23 @@ phallic =
 
 legs : IconVariant
 legs =
-    Phosphor.personSimpleWalk Phosphor.Duotone
+    [ Svg.path
+        [ Svg.Attributes.d "M23.4375 11.8125C23.4375 11.8125 14.7656 4.26563 13.3594 3.01563C11.9531 1.76562 8.14374 1.21249 6.59374 4.18749C5.04374 7.16249 6.83869 9.47196 8.03124 10.1875C11.1953 12.0859 17.9187 15.3875 18.4687 15.8125C19.3628 16.5034 17.4477 17.1106 17.1016 19.9453C16.7657 22.6963 17.6797 24.0625 17.6797 26.4766C17.6797 27.1276 17.2266 28.1094 17.2266 28.5625C17.2266 29.5067 17.8221 29.9844 18.9844 29.9844H24.9609C25.5156 29.9844 25.9375 29.6484 25.9375 29C25.9375 28.3516 25.3646 28.0443 25.0312 28.0234C24.4104 28.0234 23.4649 27.6819 22.625 27.2266C21.6914 26.7205 20.9033 26.0547 21.1562 25.1562C21.7604 23.0104 23.1625 18.1937 23.9375 16.0937C24.7812 13.7187 24.0833 12.4271 23.4375 11.8125Z"
+        , Svg.Attributes.opacity "0.2"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.d "M23.4375 11.8125C23.4375 11.8125 14.7656 4.26563 13.3594 3.01563C11.9531 1.76562 8.14374 1.21249 6.59374 4.18749C5.04374 7.16249 6.83869 9.47196 8.03124 10.1875C11.1953 12.0859 17.9187 15.3875 18.4687 15.8125C19.3628 16.5034 17.4477 17.1106 17.1016 19.9453C16.7657 22.6963 17.6797 24.0625 17.6797 26.4766C17.6797 27.1276 17.2266 28.1094 17.2266 28.5625C17.2266 29.5067 17.8221 29.9844 18.9844 29.9844H24.9609C25.5156 29.9844 25.9375 29.6484 25.9375 29C25.9375 28.3516 25.3646 28.0443 25.0312 28.0234C24.4104 28.0234 23.4649 27.6819 22.625 27.2266C21.6914 26.7205 20.9033 26.0547 21.1562 25.1562C21.7604 23.0104 23.1625 18.1937 23.9375 16.0937C24.7812 13.7187 24.0833 12.4271 23.4375 11.8125Z"
+        , Svg.Attributes.fill "none"
+        ]
+        []
+    ]
+        |> Svg.g
+            [ Svg.Attributes.strokeWidth "2"
+            , Svg.Attributes.transform "scale(8)"
+            ]
+        |> List.singleton
+        |> Phosphor.customIcon
 
 
 prehensile : IconVariant
