@@ -198,7 +198,55 @@ beginEncounter =
 
 mouth : IconVariant
 mouth =
-    Phosphor.smileyBlank Phosphor.Duotone
+    [ Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M13.1,36.8c4.1,1.4,5.1,1.6,11.6,0.1"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.opacity "0.2"
+        , Svg.Attributes.d "M58.9,36.8c-3.7-2.4-8.1-7.6-12.8-11.7c-1.1-1-2.4-2.1-4.8-1l-3.1,1.7c-0.7,0.4-1,0.6-2.2,0.6s-1.4-0.1-2.2-0.6l-3.1-1.7c-2.4-1.1-3.7,0-4.8,1c-4.7,4.1-9.1,9.2-12.8,11.7l12.2,11.7c2.1,2,4.8,3.7,10.6,3.7s8.6-1.7,10.6-3.7L58.9,36.8z M36,40.4c-6.3,0-8-4-11.3-3.5c5.5-4.2,8.5-0.5,11.3-0.5s5.8-3.7,11.3,0.5C44,36.4,42.3,40.4,36,40.4z"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M58.9,36.8c-4.1,1.4-5.1,1.6-11.6,0.1"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M13.1,36.8c4.1,1.4,5.1,1.6,11.6,0.1"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M13.1,36.8l12.2,11.7c2.1,2,4.8,3.7,10.6,3.7s8.6-1.7,10.6-3.7l12.2-11.7"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M13.1,36.8c3.7-2.4,8.1-7.6,12.8-11.7c1.1-1,2.4-2.1,4.8-1l3.1,1.7c0.7,0.4,1,0.6,2.2,0.6s1.4-0.1,2.2-0.6l3.1-1.7c2.4-1.1,3.7,0,4.8,1c4.7,4.1,9.1,9.2,12.8,11.7"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M58.9,36.8c-4.1,1.4-5.1,1.6-11.6,0.1"
+        ]
+        []
+    , Svg.path
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.d "M36,40.4c-6.3,0-8-4-11.3-3.5c5.5-4.2,8.5-0.5,11.3-0.5s5.8-3.7,11.3,0.5C44,36.4,42.3,40.4,36,40.4z"
+        ]
+        []
+    ]
+        |> Svg.g
+            [ Svg.Attributes.transform "matrix(5,0,0,5,-52,-61.626993)"
+            , Svg.Attributes.strokeWidth "3.2"
+            , Svg.Attributes.strokeLinecap "round"
+            , Svg.Attributes.strokeLinejoin "round"
+            ]
+        |> List.singleton
+        |> Phosphor.customIcon
 
 
 hands : IconVariant
