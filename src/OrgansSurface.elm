@@ -203,18 +203,21 @@ viewOrgan persona color pos organ =
                     Svg.Attributes.fill "black"
 
                   else
-                    Svg.Attributes.fill "gray"
-                , if condition then
-                    Svg.Attributes.color "black"
-
-                  else
-                    Svg.Attributes.color "gray"
+                    Svg.Attributes.opacity "0.2"
                 ]
                 [ textAt []
-                    { x = 0
+                    { x = organWidth - 72 + 12
                     , y = dy
-                    , label = "⇒ I" ++ Types.actionToInitial action
-                    , anchor = AnchorStart
+                    , label =
+                        (if condition then
+                            "⇒ "
+
+                         else
+                            ""
+                        )
+                            ++ "I"
+                            ++ Types.actionToInitial action
+                    , anchor = AnchorEnd
                     }
                 , iconAt (72 - 16) dy (Types.actionToIsIcon action)
                 , Svg.title [] [ Svg.text (Types.actionToIs action) ]
@@ -227,19 +230,22 @@ viewOrgan persona color pos organ =
                     Svg.Attributes.fill "black"
 
                   else
-                    Svg.Attributes.fill "gray"
-                , if condition then
-                    Svg.Attributes.color "black"
-
-                  else
-                    Svg.Attributes.color "gray"
+                    Svg.Attributes.opacity "0.2"
                 ]
                 [ iconAt (organWidth - 72 - 16) dy (Types.actionToCanIcon attribute)
                 , textAt []
-                    { x = 0
+                    { x = organWidth - 72 + 8
                     , y = dy
-                    , label = "C" ++ Types.actionToInitial attribute ++ " ⇒"
-                    , anchor = AnchorEnd
+                    , label =
+                        "C"
+                            ++ Types.actionToInitial attribute
+                            ++ (if condition then
+                                    " ⇒"
+
+                                else
+                                    "  "
+                               )
+                    , anchor = AnchorStart
                     }
                 , Svg.title [] [ Svg.text (Types.actionToCan attribute) ]
                 ]
