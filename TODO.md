@@ -4,6 +4,7 @@
     - Interspersed with chat log
 - Share as picture with embedded metadata
 - Use IP to up organ stats
+- Add credits somewhere
 
 # Feedback
 - The stim roller is good
