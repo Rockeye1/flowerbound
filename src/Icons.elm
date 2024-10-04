@@ -1,11 +1,10 @@
 module Icons exposing
-    ( flip, download, upload, minus, plus, remove, reset
+    ( flip, download, upload, minus, plus, remove, reset, delete
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
     , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
     , toElement
-    , add, delete
     )
 
 {-|
@@ -13,7 +12,7 @@ module Icons exposing
 
 ## Actions
 
-@docs flip, download, upload, minus, plus, remove, reset
+@docs flip, download, upload, minus, plus, remove, reset, delete
 
 
 ## Encounter Actions
@@ -240,11 +239,6 @@ prehensile =
 other : IconVariant
 other =
     Phosphor.question Phosphor.Duotone
-
-
-add : Phosphor.IconVariant
-add =
-    Phosphor.plusCircle Phosphor.Duotone
 
 
 delete : Phosphor.IconVariant
