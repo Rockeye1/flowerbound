@@ -255,19 +255,26 @@ viewOrgan persona color pos organ =
             , Svg.Attributes.fill color
             ]
             []
+        , Persona.Data.organTypeToIcon organ.type_
+            |> Phosphor.withSize 24
+            |> Phosphor.withSizeUnit "px"
+            |> Phosphor.toHtml
+                [ Svg.Attributes.transform
+                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 4 ++ ")")
+                ]
+        , textAt []
+            { x = 28
+            , y = 0
+            , label = organ.name
+            , anchor = AnchorStart
+            }
         , Persona.Data.gendertropeIcon persona.gendertrope
             |> Phosphor.withSize 24
             |> Phosphor.withSizeUnit "px"
             |> Phosphor.toHtml
                 [ Svg.Attributes.transform
-                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 8 ++ ")")
+                    ("translate(" ++ String.fromFloat (organWidth - 8 - 24) ++ " " ++ String.fromFloat 4 ++ ")")
                 ]
-        , textAt []
-            { x = 32
-            , y = 0
-            , label = organ.name
-            , anchor = AnchorStart
-            }
         , textAt []
             { x = 0
             , y = 1
