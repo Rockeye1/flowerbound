@@ -909,7 +909,9 @@ viewPlaying shared model =
                 }
             , text " to reset your "
             , el [ Font.bold ] (text "Satiation")
-            , text " and Craving and then "
+            , text " and "
+            , el [ Font.bold ] (text "Craving")
+            , text " and then "
             , Theme.iconAndTextButton []
                 { onPress = Just BeginEncounter
                 , label = "Begin the Encounter"
