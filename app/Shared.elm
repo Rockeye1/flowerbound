@@ -10,6 +10,7 @@ import Pages.PageUrl exposing (PageUrl)
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
 import Ui
+import Ui.Anim
 import Ui.Font as Font
 import UrlPath exposing (UrlPath)
 import View exposing (View)
@@ -29,6 +30,7 @@ template =
 type Msg
     = Flip
     | Resized Int Int
+    | Anim Ui.Anim.Msg
 
 
 type alias Data =
@@ -39,6 +41,7 @@ type alias Model =
     { flipped : Bool
     , width : Int
     , height : Int
+    , anim : Ui.Anim.State
     }
 
 
@@ -59,6 +62,7 @@ init _ _ =
     ( { flipped = False
       , width = 800
       , height = 600
+      , anim = Ui.Anim.init
       }
     , Effect.MeasureScreen Resized
     )
@@ -77,6 +81,13 @@ update msg model =
               }
             , Effect.none
             )
+
+        Anim animMsg ->
+            let
+                ( newAnim, cmd ) =
+                    Ui.Anim.update Anim animMsg model.anim
+            in
+            ( { model | anim = newAnim }, Effect.fromCmd cmd )
 
 
 subscriptions : UrlPath -> Model -> Sub Msg
@@ -99,7 +110,7 @@ view :
     -> (Msg -> msg)
     -> View msg
     -> { body : List (Html msg), title : String }
-view _ _ _ _ pageView =
+view _ _ shared toMsg pageView =
     { body =
         [ Html.node "style" [] [ Html.text """::backdrop {
   backdrop-filter: blur(3px);
@@ -117,7 +128,12 @@ div.popover {
 div.popover button {
   font-size: 20px;
 }""" ]
-        , Ui.layout
+        , Ui.Anim.layout
+            { options = []
+            , toMsg = \msg -> toMsg (Anim msg)
+            , breakpoints = Nothing
+            }
+            shared.anim
             [ -- Ui.focusStyle
               -- { backgroundColor = Nothing
               -- , borderColor = Nothing
