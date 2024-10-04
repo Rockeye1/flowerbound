@@ -284,7 +284,44 @@ breasts =
 
 hips : IconVariant
 hips =
-    Phosphor.cloud Phosphor.Duotone
+    [ Svg.path
+        [ Svg.Attributes.d "M75.22 223.96c-2.27-15.35-3.32-20.6-15.97-37.5-15.1-20.16-31.27-49.5-23.16-80.36a147 147 0 0 1 5.04-15.66c13.72-35.47 34.16-42.7 33.37-58.4h107c-.8 15.7 19.65 22.93 33.37 58.4a147 147 0 0 1 5.04 15.66c8.1 30.87-8.07 60.2-23.16 80.36-12.65 16.9-13.7 22.15-15.97 37.5z"
+        , Svg.Attributes.opacity ".2"
+        ]
+        []
+    , Svg.g
+        [ Svg.Attributes.fill "none"
+        , Svg.Attributes.strokeWidth "26.667"
+        , Svg.Attributes.strokeLinecap "round"
+        , Svg.Attributes.transform "matrix(.6 0 0 .6 -322 -321.91)"
+        ]
+        [ Svg.path
+            [ Svg.Attributes.id "hips-a"
+            , Svg.Attributes.d "M660.83 589.92c1.32 26.17-32.75 38.22-55.62 97.34a244 244 0 0 0-8.39 26.1c-13.52 51.44 13.44 100.33 38.6 133.93 21.07 28.15 22.83 36.91 26.61 62.5"
+            ]
+            []
+        , Svg.path
+            [ Svg.Attributes.id "hips-b"
+            , Svg.Attributes.d "M656.2 824.96c36.6 7.75 67.65-4.75 82.94-31.15 13.98-24.14 14.8-59.9-5.34-102.44"
+            ]
+            []
+        , Svg.use
+            [ Svg.Attributes.xlinkHref "#hips-a"
+            , Svg.Attributes.transform "matrix(-1 0 0 1 1500 0)"
+            ]
+            []
+        , Svg.use
+            [ Svg.Attributes.xlinkHref "#hips-b"
+            , Svg.Attributes.transform "matrix(-1 0 0 1 1500 0)"
+            ]
+            []
+        , Svg.path
+            [ Svg.Attributes.d "M750 793.8V909.8"
+            ]
+            []
+        ]
+    ]
+        |> Phosphor.customIcon
 
 
 yonic : IconVariant
