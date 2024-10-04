@@ -167,7 +167,7 @@ viewOrgan persona color pos organ =
                                 organWidth - 8 - config.x
                         )
                     )
-                    :: Svg.Attributes.y (String.fromFloat (8 + 24 * config.y))
+                    :: Svg.Attributes.y (String.fromFloat (8 + 24 * config.y + 4))
                     :: Svg.Attributes.textAnchor
                         (case config.anchor of
                             AnchorStart ->
