@@ -1,10 +1,11 @@
-- Settings
-    - Disable animations
+- Turn tracker
+- Use IP to up organ stats
 - Log of actions
     - Interspersed with chat log
-- Share as picture with embedded metadata
-- Use IP to up organ stats
 - Add credits somewhere
+- Settings
+    - Disable animations
+- Share as picture with embedded metadata
 
 # Feedback
 - The stim roller is good
