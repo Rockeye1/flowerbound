@@ -1126,6 +1126,7 @@ viewOrgans shared model =
 viewOrgasm : PlayerModel -> Element PlayingMsg
 viewOrgasm player =
     let
+        meters : Meters
         meters =
             player.meters
 
