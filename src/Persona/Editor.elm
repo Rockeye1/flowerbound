@@ -369,8 +369,8 @@ viewGendertrope ({ gendertrope } as persona) =
                             [ Theme.row [ centerX ]
                                 [ Data.gendertropeIconElement option
                                 , case option of
-                                    Custom _ ->
-                                        text "Custom"
+                                    Custom { name } ->
+                                        text (name ++ " [Custom]")
 
                                     _ ->
                                         text (Data.gendertropeToRecord option).name
