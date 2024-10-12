@@ -62,15 +62,11 @@ button :
         }
     -> Element msg
 button attrs config =
-    el
-        (case config.onPress of
-            Just msg ->
-                Input.button msg :: buttonAttrs white purple black attrs
-
-            Nothing ->
-                buttonAttrs black gray purple attrs
-        )
-        config.label
+    selectableButton attrs
+        { onPress = config.onPress
+        , label = config.label
+        , selected = False
+        }
 
 
 selectableButton :
@@ -82,33 +78,45 @@ selectableButton :
         }
     -> Element msg
 selectableButton attrs config =
+    let
+        ( fg, bg, border ) =
+            case config.onPress of
+                Just _ ->
+                    if config.selected then
+                        ( white, purple, black )
+
+                    else
+                        ( black, lightPurple, purple )
+
+                Nothing ->
+                    ( black, gray, purple )
+
+        common : List (Attribute msg)
+        common =
+            Ui.border 1
+                :: padding
+                :: Font.center
+                :: Ui.width Ui.shrink
+                :: Ui.widthMin 38
+                :: Ui.background bg
+                :: Font.color fg
+                :: Ui.borderColor border
+                :: attrs
+    in
     el
         (case config.onPress of
-            Just msg ->
-                if config.selected then
-                    Input.button msg :: buttonAttrs white purple black attrs
-
-                else
-                    Input.button msg :: buttonAttrs black lightPurple purple attrs
-
             Nothing ->
-                buttonAttrs black gray purple attrs
+                common
+
+            Just msg ->
+                Input.button msg
+                    :: Ui.Anim.hovered (Ui.Anim.ms 100)
+                        [ Ui.Anim.backgroundColor barelyLightPurple
+                        , Ui.Anim.fontColor white
+                        ]
+                    :: common
         )
         config.label
-
-
-buttonAttrs : Color -> Color -> Color -> List (Attribute msg) -> List (Attribute msg)
-buttonAttrs fg bg border attrs =
-    Ui.border 1
-        :: padding
-        :: Font.center
-        :: Ui.width Ui.shrink
-        :: Ui.widthMin 38
-        :: Ui.background bg
-        :: Font.color fg
-        :: Ui.borderColor border
-        :: Ui.Anim.hovered (Ui.Anim.ms 100) [ Ui.Anim.backgroundColor barelyLightPurple ]
-        :: attrs
 
 
 lightGray : Color
