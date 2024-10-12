@@ -920,7 +920,14 @@ viewPlaying shared model =
             , el [] Ui.none
             ]
         , viewMeters model
-        , el [ Font.bold ] (text "Orgasm")
+        , viewTurn shared model
+        ]
+
+
+viewTurn : Shared.Model -> PlayingModel -> Element PlayingMsg
+viewTurn shared model =
+    Theme.column []
+        [ el [ Font.bold ] (text "Orgasm")
         , viewOrgasm model.player
         , Theme.row
             [ Ui.wrap
@@ -1255,6 +1262,7 @@ viewTemperament model ( name, description, consequence ) =
     Theme.selectableButton
         [ Ui.widthMin 400
         , height fill
+        , width fill
         , Font.alignLeft
         ]
         { selected = selected
