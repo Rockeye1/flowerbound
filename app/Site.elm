@@ -46,6 +46,7 @@ head =
     [ Head.metaName "viewport" (Head.raw "width=device-width,initial-scale=1")
     , Head.icon [ ( 48, 48 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-48x48.png" ])
     , Head.icon [] (MimeType.OtherImage "svg+xml") (Pages.Url.fromPath [ "favicon.svg" ])
+    , Head.icon [] (MimeType.OtherImage "x-icon") (Pages.Url.fromPath [ "favicon.ico" ])
     , Head.appleTouchIcon (Just 180) (Pages.Url.fromPath [ "apple-touch-icon.png" ])
     , Head.metaName "apple-mobile-web-app-title" (Head.raw manifest.name)
     , Head.manifestLink "/manifest.json"
@@ -60,8 +61,12 @@ manifest =
         { name = "Flowerbound"
         , description = "An helper for the Flowerbound RPG"
         , startUrl = Route.Index |> Route.toPath
-        , icons = [ androidChromeIcon 192 ]
+        , icons =
+            [ androidChromeIcon 192
+            , androidChromeIcon 512
+            ]
         }
+        |> Manifest.withShortName "Flowerbound"
         |> Manifest.withThemeColor Theme.purple
         |> Manifest.withBackgroundColor Theme.purple
         |> Manifest.withDisplayMode Manifest.Standalone
