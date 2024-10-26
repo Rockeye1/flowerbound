@@ -855,6 +855,7 @@ viewPersonas playingModel =
     List.indexedMap
         (\i { persona } ->
             let
+                maybeIndex : Maybe Int
                 maybeIndex =
                     if i == 0 then
                         Nothing
