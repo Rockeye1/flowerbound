@@ -67,8 +67,8 @@ type PlayingMsg
     | RolledStimulation (List ( Int, Int ))
     | PickedUpdate File
     | ReadUpdate (Result String Persona)
-    | PickedAdd File
-    | ReadAdd (Result String Persona)
+    | AddFromFilePicked File
+    | AddFromFileRead (Result String Persona)
     | PickedUpdateOther Int File
     | ReadUpdateOther Int (Result String Persona)
     | MouseDown (Point2d Pixels ())
@@ -359,15 +359,15 @@ innerUpdate msg model =
             ( model, Effect.none )
 
         AddFromFile ->
-            ( model, Effect.PickMarkdown PickedAdd )
+            ( model, Effect.PickMarkdown AddFromFilePicked )
 
-        PickedAdd file ->
-            ( model, Effect.ReadPersonaFromMarkdown file ReadAdd )
+        AddFromFilePicked file ->
+            ( model, Effect.ReadPersonaFromMarkdown file AddFromFileRead )
 
-        ReadAdd (Ok persona) ->
-            ( { model | others = model.others ++ [ persona ] }, Effect.none )
+        AddFromFileRead (Ok persona) ->
+            addPersona model persona
 
-        ReadAdd (Err _) ->
+        AddFromFileRead (Err _) ->
             -- TODO
             ( model, Effect.none )
 
@@ -378,7 +378,7 @@ innerUpdate msg model =
                     ( model, Effect.none )
 
                 Ok persona ->
-                    ( { model | others = model.others ++ [ persona ] }, Effect.none )
+                    addPersona model persona
 
         UpdateOther index persona ->
             ( { model | others = List.Extra.setAt index persona model.others } |> checkOrgans, Effect.none )
@@ -456,6 +456,17 @@ innerUpdate msg model =
 
         Rearrange ->
             ( { model | organsPositions = rearrange model.organsPositions }, Effect.none )
+
+
+addPersona : PlayingModel -> Persona -> ( PlayingModel, Effect PlayingMsg )
+addPersona model persona =
+    let
+        added : PlayingModel
+        added =
+            { model | others = model.others ++ [ persona ] }
+                |> checkOrgans
+    in
+    ( { added | organsPositions = rearrange added.organsPositions }, Effect.none )
 
 
 rearrange : Dict OrganKey OrganPosition -> Dict OrganKey OrganPosition
