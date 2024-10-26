@@ -4,7 +4,6 @@ import BackendTask exposing (BackendTask)
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
-import Hex
 import LanguageTag.Language
 import LanguageTag.Region
 import MimeType
@@ -44,23 +43,12 @@ defaultSummary =
 
 head : BackendTask FatalError (List Head.Tag)
 head =
-    let
-        colorCss : String
-        colorCss =
-            "#" ++ Hex.toString Theme.purpleHex
-    in
     [ Head.metaName "viewport" (Head.raw "width=device-width,initial-scale=1")
+    , Head.icon [ ( 48, 48 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-48x48.png" ])
+    , Head.icon [] (MimeType.OtherImage "svg+xml") (Pages.Url.fromPath [ "favicon.svg" ])
     , Head.appleTouchIcon (Just 180) (Pages.Url.fromPath [ "apple-touch-icon.png" ])
-    , Head.icon [ ( 32, 32 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-32x32.png" ])
-    , Head.icon [ ( 16, 16 ) ] MimeType.Png (Pages.Url.fromPath [ "favicon-16x16.png" ])
+    , Head.metaName "apple-mobile-web-app-title" (Head.raw manifest.name)
     , Head.manifestLink "/manifest.json"
-    , Head.nonLoadingNode "link"
-        [ ( "rel", Head.raw "mask-icon" )
-        , ( "href", Head.urlAttribute (Pages.Url.fromPath [ "safari-pinned-tab.svg" ]) )
-        , ( "color", Head.raw colorCss )
-        ]
-    , Head.metaName "msapplication-TileColor" (Head.raw colorCss)
-    , Head.metaName "theme-color" (Head.raw colorCss)
     , Head.sitemapLink "/sitemap.xml"
     ]
         |> BackendTask.succeed
@@ -89,7 +77,7 @@ androidChromeIcon size =
     { src = Pages.Url.fromPath [ "android-chrome-" ++ sizeString ++ "x" ++ sizeString ++ ".png" ]
     , mimeType = Just MimeType.Png
     , sizes = [ ( size, size ) ]
-    , purposes = []
+    , purposes = [ Manifest.IconPurposeMaskable ]
     }
 
 
