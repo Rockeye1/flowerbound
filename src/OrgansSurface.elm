@@ -59,8 +59,8 @@ view :
     ->
         { a
             | organsPositions : Dict OrganKey OrganPosition
-            , persona : Persona
-            , others : List Persona
+            , player : { p | persona : Persona }
+            , others : List { p | persona : Persona }
             , dragging : Maybe b
         }
     -> Html msg
@@ -94,17 +94,17 @@ view config model =
 outerViewOrgan :
     { a
         | organsPositions : Dict ( Int, String ) ( Point2d Pixels (), comparable )
-        , persona : Persona
-        , others : List Persona
+        , player : { p | persona : Persona }
+        , others : List { p | persona : Persona }
         , dragging : Maybe b
     }
     -> (( ( Int, String ), ( Point2d Pixels (), comparable ) ) -> List (Html.Html c))
 outerViewOrgan model ( ( i, organName ), ( pos, _ ) ) =
     let
-        maybePersona : Maybe Persona
+        maybePersona : Maybe { p | persona : Persona }
         maybePersona =
             if i < 0 then
-                Just model.persona
+                Just model.player
 
             else
                 List.Extra.getAt i model.others
@@ -113,7 +113,7 @@ outerViewOrgan model ( ( i, organName ), ( pos, _ ) ) =
         Nothing ->
             []
 
-        Just persona ->
+        Just { persona } ->
             case
                 persona.gendertrope
                     |> Persona.Data.gendertropeToRecord

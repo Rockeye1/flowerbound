@@ -47,35 +47,35 @@ type Msg
 
 
 type PlayingMsg
-    = StimulationCost Int
-    | UpdatePersona Persona
-    | UpdateFromFile
-    | UpdateOther Int Persona
-    | UpdateOtherFromFile Int
+    = PlayerMsg (Maybe Int) PlayerMsg
     | AddFromFile
     | AddFromUrl String
-    | UpdateMeters Meters
-    | SelectMove (Maybe String)
-    | SelectTemperament (Maybe Temperament)
-    | BeginEncounter
+    | AddFromFilePicked File
+    | AddFromFileRead (Result String Persona)
+    | MouseDown (Point2d Pixels ())
+    | MouseMove (Point2d Pixels ())
+    | MouseUp
+    | Rearrange
+
+
+type PlayerMsg
+    = BeginEncounter
     | Rest
     | RestedSatiation Int
     | RestedCraving Int
     | RollValiantModifier
     | RolledValiantModifier Int
+    | UpdateMeters Meters
+    | StimulationCost Int
+    | SelectMove (Maybe String)
+    | SelectTemperament (Maybe Temperament)
     | RollStimulation
     | RolledStimulation (List ( Int, Int ))
-    | PickedUpdate File
-    | ReadUpdate (Result String Persona)
-    | AddFromFilePicked File
-    | AddFromFileRead (Result String Persona)
-    | PickedUpdateOther Int File
-    | ReadUpdateOther Int (Result String Persona)
-    | MouseDown (Point2d Pixels ())
-    | MouseMove (Point2d Pixels ())
-    | MouseUp
-    | Rearrange
-    | RemoveOther Int
+    | UpdatePersona Persona
+    | UpdatePersonaFromFile
+    | UpdatePersonaPicked File
+    | UpdatePersonaRead (Result String Persona)
+    | Remove
 
 
 type Model
@@ -84,11 +84,10 @@ type Model
 
 
 type alias PlayingModel =
-    { persona : Persona
-    , others : List Persona
+    { player : PlayerModel
+    , others : List PlayerModel
     , organsPositions : Dict OrganKey OrganPosition
     , dragging : Maybe ( OrganKey, Vector2d Pixels () )
-    , player : PlayerModel
     }
 
 
@@ -99,6 +98,7 @@ type alias PlayerModel =
     , selectedTemperament : Maybe Temperament
     , valiantModifier : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
+    , persona : Persona
     }
 
 
@@ -190,7 +190,16 @@ update _ _ msg model =
                         ( newModel, effect ) =
                             innerUpdate playingMsg playingModel
                     in
-                    ( Playing (checkOrgans newModel), Effect.map PlayingMsg effect )
+                    ( case newModel of
+                        Just new ->
+                            new
+                                |> checkOrgans
+                                |> Playing
+
+                        Nothing ->
+                            WaitingForPersona
+                    , Effect.map PlayingMsg effect
+                    )
 
         PickedFile file ->
             ( model, Effect.ReadPersonaFromMarkdown file LoadedFromFile )
@@ -201,9 +210,9 @@ checkOrgans model =
     let
         expected : Set OrganKey
         expected =
-            (model.persona :: model.others)
+            (model.player :: model.others)
                 |> List.indexedMap
-                    (\index persona ->
+                    (\index { persona } ->
                         persona.gendertrope
                             |> Persona.Data.gendertropeToRecord
                             |> .organs
@@ -241,196 +250,91 @@ checkOrgans model =
     }
 
 
-innerUpdate : PlayingMsg -> PlayingModel -> ( PlayingModel, Effect PlayingMsg )
+innerUpdate : PlayingMsg -> PlayingModel -> ( Maybe PlayingModel, Effect PlayingMsg )
 innerUpdate msg model =
-    let
-        alterPlayer : (PlayerModel -> PlayerModel) -> PlayingModel
-        alterPlayer f =
-            { model | player = f model.player }
-
-        alterMeters : (Meters -> Meters) -> PlayingModel
-        alterMeters f =
-            alterPlayer (\player -> { player | meters = f player.meters })
-    in
     case msg of
-        StimulationCost stimulationCost ->
-            ( alterPlayer
-                (\player ->
-                    { player
-                        | stimulationCost = stimulationCost
-                        , stimulationRoll = Nothing
-                    }
-                )
-            , Effect.none
-            )
+        PlayerMsg Nothing f ->
+            let
+                ( maybePlayer, cmd ) =
+                    playerUpdate f model.player
+            in
+            case maybePlayer of
+                Just newPlayer ->
+                    ( { model | player = newPlayer }
+                        |> checkOrgans
+                        |> Just
+                    , Effect.map (PlayerMsg Nothing) cmd
+                    )
 
-        UpdateMeters newMeters ->
-            ( alterMeters (\_ -> newMeters)
-            , Effect.none
-            )
+                Nothing ->
+                    case model.others of
+                        [] ->
+                            ( Nothing, Effect.none )
 
-        SelectMove selectedMove ->
-            ( alterPlayer (\player -> { player | selectedMove = selectedMove })
-            , Effect.none
-            )
+                        first :: tail ->
+                            ( { model | player = first, others = tail }
+                                |> Just
+                            , Effect.none
+                            )
 
-        SelectTemperament selectedTemperament ->
-            ( alterPlayer (\player -> { player | selectedTemperament = selectedTemperament })
-            , Effect.none
-            )
+        PlayerMsg (Just index) f ->
+            case List.Extra.getAt index model.others of
+                Nothing ->
+                    ( Just model, Effect.none )
 
-        BeginEncounter ->
-            ( alterMeters <| \meters -> { meters | stamina = 5 + model.persona.fitness }
-            , Effect.none
-            )
+                Just player ->
+                    let
+                        ( maybePlayer, cmd ) =
+                            playerUpdate f player
+                    in
+                    case maybePlayer of
+                        Just newPlayer ->
+                            ( { model | others = List.Extra.setAt index newPlayer model.others }
+                                |> checkOrgans
+                                |> Just
+                            , Effect.map (PlayerMsg (Just index)) cmd
+                            )
 
-        Rest ->
-            ( alterMeters
-                (\meters ->
-                    { meters
-                        | arousal = 1
-                        , sensitivity = 0
-                    }
-                )
-            , Effect.batch
-                [ Effect.rollCheck model.persona.ardor RestedSatiation
-                , Effect.rollCheck model.persona.sanity RestedCraving
-                ]
-            )
-
-        RestedSatiation satiation ->
-            ( alterMeters (\meters -> { meters | satiation = min (Persona.maxSatiation model.persona) satiation })
-            , Effect.none
-            )
-
-        RestedCraving craving ->
-            ( alterMeters (\meters -> { meters | craving = min (Persona.maxCraving model.persona) craving })
-            , Effect.none
-            )
-
-        RollValiantModifier ->
-            ( model, Effect.rollCheck model.persona.moxie RolledValiantModifier )
-
-        RolledValiantModifier modifier ->
-            ( alterPlayer (\player -> { player | valiantModifier = modifier })
-            , Effect.none
-            )
-
-        RollStimulation ->
-            ( alterPlayer (\player -> { player | stimulationRoll = Nothing })
-            , case
-                stimulationDice
-                    |> List.Extra.findMap
-                        (\( cost, dice ) ->
-                            if cost == model.player.stimulationCost then
-                                Just dice
-
-                            else
-                                Nothing
-                        )
-                    |> Maybe.withDefault []
-              of
-                [] ->
-                    Effect.none
-
-                dice ->
-                    Effect.RollStimulation dice RolledStimulation
-            )
-
-        RolledStimulation stimulationRoll ->
-            ( alterPlayer (\player -> { player | stimulationRoll = Just stimulationRoll })
-            , Effect.none
-            )
-
-        UpdatePersona persona ->
-            ( { model | persona = persona }, Effect.none )
-
-        UpdateFromFile ->
-            ( model, Effect.PickMarkdown PickedUpdate )
-
-        PickedUpdate file ->
-            ( model, Effect.ReadPersonaFromMarkdown file ReadUpdate )
-
-        ReadUpdate (Ok persona) ->
-            ( { model | persona = persona }, Effect.none )
-
-        ReadUpdate (Err _) ->
-            -- TODO
-            ( model, Effect.none )
+                        Nothing ->
+                            ( { model | others = List.Extra.removeAt index model.others }
+                                |> Just
+                            , Effect.none
+                            )
 
         AddFromFile ->
-            ( model, Effect.PickMarkdown AddFromFilePicked )
+            ( Just model, Effect.PickMarkdown AddFromFilePicked )
 
         AddFromFilePicked file ->
-            ( model, Effect.ReadPersonaFromMarkdown file AddFromFileRead )
+            ( Just model, Effect.ReadPersonaFromMarkdown file AddFromFileRead )
 
         AddFromFileRead (Ok persona) ->
-            addPersona model persona
+            addPlayer model persona
 
         AddFromFileRead (Err _) ->
             -- TODO
-            ( model, Effect.none )
+            ( Just model, Effect.none )
 
         AddFromUrl url ->
             case Persona.Codec.fromUrl url of
                 Err _ ->
                     -- TODO
-                    ( model, Effect.none )
+                    ( Just model, Effect.none )
 
                 Ok persona ->
-                    addPersona model persona
-
-        UpdateOther index persona ->
-            ( { model | others = List.Extra.setAt index persona model.others } |> checkOrgans, Effect.none )
-
-        UpdateOtherFromFile index ->
-            ( model, Effect.PickMarkdown (PickedUpdateOther index) )
-
-        PickedUpdateOther index file ->
-            ( model, Effect.ReadPersonaFromMarkdown file (ReadUpdateOther index) )
-
-        ReadUpdateOther index (Ok persona) ->
-            ( { model | others = List.Extra.setAt index persona model.others }, Effect.none )
-
-        ReadUpdateOther _ (Err _) ->
-            -- TODO
-            ( model, Effect.none )
-
-        RemoveOther index ->
-            ( { model
-                | others = List.Extra.removeAt index model.others
-                , organsPositions =
-                    model.organsPositions
-                        |> Dict.toList
-                        |> List.map
-                            (\( ( i, name ), value ) ->
-                                ( ( if i >= index then
-                                        i - 1
-
-                                    else
-                                        i
-                                  , name
-                                  )
-                                , value
-                                )
-                            )
-                        |> Dict.fromList
-              }
-            , Effect.none
-            )
+                    addPlayer model persona
 
         MouseDown position ->
             case raycast model position of
                 Nothing ->
-                    ( model, Effect.none )
+                    ( Just model, Effect.none )
 
                 Just ( key, delta ) ->
-                    ( { model | dragging = Just ( key, delta ) }, Effect.none )
+                    ( Just { model | dragging = Just ( key, delta ) }, Effect.none )
 
         MouseMove position ->
             case model.dragging of
                 Nothing ->
-                    ( model, Effect.none )
+                    ( Just model, Effect.none )
 
                 Just ( key, delta ) ->
                     let
@@ -448,25 +352,143 @@ innerUpdate msg model =
                                 model.organsPositions
                       }
                         |> trySnap
+                        |> Just
                     , Effect.none
                     )
 
         MouseUp ->
-            ( { model | dragging = Nothing, organsPositions = reStack model.organsPositions }, Effect.none )
+            ( Just { model | dragging = Nothing, organsPositions = reStack model.organsPositions }, Effect.none )
 
         Rearrange ->
-            ( { model | organsPositions = rearrange model.organsPositions }, Effect.none )
+            ( Just { model | organsPositions = rearrange model.organsPositions }, Effect.none )
 
 
-addPersona : PlayingModel -> Persona -> ( PlayingModel, Effect PlayingMsg )
-addPersona model persona =
+playerUpdate : PlayerMsg -> PlayerModel -> ( Maybe PlayerModel, Effect PlayerMsg )
+playerUpdate msg ({ persona } as player) =
+    let
+        alterMeters : (Meters -> Meters) -> Maybe PlayerModel
+        alterMeters f =
+            Just { player | meters = f player.meters }
+    in
+    case msg of
+        StimulationCost stimulationCost ->
+            ( { player
+                | stimulationCost = stimulationCost
+                , stimulationRoll = Nothing
+              }
+                |> Just
+            , Effect.none
+            )
+
+        UpdateMeters newMeters ->
+            ( alterMeters (\_ -> newMeters)
+            , Effect.none
+            )
+
+        SelectMove selectedMove ->
+            ( { player | selectedMove = selectedMove } |> Just
+            , Effect.none
+            )
+
+        SelectTemperament selectedTemperament ->
+            ( { player | selectedTemperament = selectedTemperament } |> Just
+            , Effect.none
+            )
+
+        BeginEncounter ->
+            ( alterMeters <| \meters -> { meters | stamina = 5 + persona.fitness }
+            , Effect.none
+            )
+
+        Rest ->
+            ( alterMeters
+                (\meters ->
+                    { meters
+                        | arousal = 1
+                        , sensitivity = 0
+                    }
+                )
+            , Effect.batch
+                [ Effect.rollCheck persona.ardor RestedSatiation
+                , Effect.rollCheck persona.sanity RestedCraving
+                ]
+            )
+
+        RestedSatiation satiation ->
+            ( alterMeters (\meters -> { meters | satiation = min (Persona.maxSatiation persona) satiation })
+            , Effect.none
+            )
+
+        RestedCraving craving ->
+            ( alterMeters (\meters -> { meters | craving = min (Persona.maxCraving persona) craving })
+            , Effect.none
+            )
+
+        RollValiantModifier ->
+            ( Just player, Effect.rollCheck persona.moxie RolledValiantModifier )
+
+        RolledValiantModifier modifier ->
+            ( { player | valiantModifier = modifier } |> Just
+            , Effect.none
+            )
+
+        RollStimulation ->
+            ( { player | stimulationRoll = Nothing } |> Just
+            , case
+                stimulationDice
+                    |> List.Extra.findMap
+                        (\( cost, dice ) ->
+                            if cost == player.stimulationCost then
+                                Just dice
+
+                            else
+                                Nothing
+                        )
+                    |> Maybe.withDefault []
+              of
+                [] ->
+                    Effect.none
+
+                dice ->
+                    Effect.RollStimulation dice RolledStimulation
+            )
+
+        RolledStimulation stimulationRoll ->
+            ( { player | stimulationRoll = Just stimulationRoll } |> Just
+            , Effect.none
+            )
+
+        UpdatePersona newPersona ->
+            ( { player | persona = newPersona } |> Just, Effect.none )
+
+        UpdatePersonaFromFile ->
+            ( Just player, Effect.PickMarkdown UpdatePersonaPicked )
+
+        UpdatePersonaPicked file ->
+            ( Just player, Effect.ReadPersonaFromMarkdown file UpdatePersonaRead )
+
+        UpdatePersonaRead (Ok newPersona) ->
+            ( { player | persona = newPersona } |> Just, Effect.none )
+
+        UpdatePersonaRead (Err _) ->
+            -- TODO
+            ( Just player, Effect.none )
+
+        Remove ->
+            ( Nothing, Effect.none )
+
+
+addPlayer : PlayingModel -> Persona -> ( Maybe PlayingModel, Effect PlayingMsg )
+addPlayer model persona =
     let
         added : PlayingModel
         added =
-            { model | others = model.others ++ [ persona ] }
+            { model | others = model.others ++ [ initPlayerModel persona ] }
                 |> checkOrgans
     in
-    ( { added | organsPositions = rearrange added.organsPositions }, Effect.none )
+    ( Just { added | organsPositions = rearrange added.organsPositions }
+    , Effect.none
+    )
 
 
 rearrange : Dict OrganKey OrganPosition -> Dict OrganKey OrganPosition
@@ -746,28 +768,33 @@ initPlayingModel persona =
     let
         player : PlayerModel
         player =
-            { stimulationCost = 1
-            , meters =
-                { sensitivity = 0
-                , arousal = 0
-                , craving = 0
-                , satiation = 0
-                , stamina = 0
-                , intensity = 0
-                }
-            , selectedMove = Nothing
-            , selectedTemperament = Nothing
-            , valiantModifier = 0
-            , stimulationRoll = Nothing
-            }
+            initPlayerModel persona
     in
-    { persona = persona
+    { player = player
     , others = []
     , organsPositions = Dict.empty
     , dragging = Nothing
-    , player = player
     }
         |> checkOrgans
+
+
+initPlayerModel : Persona -> PlayerModel
+initPlayerModel persona =
+    { stimulationCost = 1
+    , meters =
+        { sensitivity = 0
+        , arousal = 0
+        , craving = 0
+        , satiation = 0
+        , stamina = 0
+        , intensity = 0
+        }
+    , selectedMove = Nothing
+    , selectedTemperament = Nothing
+    , valiantModifier = 0
+    , stimulationRoll = Nothing
+    , persona = persona
+    }
 
 
 subscriptions : RouteParams -> UrlPath -> Shared.Model -> Model -> Sub Msg
@@ -825,24 +852,26 @@ view _ shared model =
 
 viewPersonas : PlayingModel -> List (Element PlayingMsg)
 viewPersonas playingModel =
-    Persona.View.persona
-        [ alignTop, centerX ]
-        { update = UpdatePersona
-        , upload = UpdateFromFile
-        , remove = Nothing
-        , persona = playingModel.persona
-        }
-        :: List.indexedMap
-            (\i other ->
-                Persona.View.persona
-                    [ alignTop, centerX ]
-                    { update = UpdateOther i
-                    , upload = UpdateOtherFromFile i
-                    , remove = Just (RemoveOther i)
-                    , persona = other
-                    }
-            )
-            playingModel.others
+    List.indexedMap
+        (\i { persona } ->
+            let
+                maybeIndex =
+                    if i == 0 then
+                        Nothing
+
+                    else
+                        Just (i - 1)
+            in
+            Persona.View.persona
+                [ alignTop, centerX ]
+                { update = UpdatePersona
+                , upload = UpdatePersonaFromFile
+                , remove = Just Remove
+                , persona = persona
+                }
+                |> Ui.map (PlayerMsg maybeIndex)
+        )
+        (playingModel.player :: playingModel.others)
         ++ [ Theme.column [ centerX, centerY ]
                 [ Theme.row
                     [ Font.color Theme.purple
@@ -911,35 +940,40 @@ viewPlaying shared model =
     Theme.column []
         [ viewOrgans shared model
         , el [ Font.bold ] (text "Status meters")
-        , paragraph []
-            [ text "Before an encounter you should probably "
-            , Theme.iconAndTextButton [ width shrink ]
-                { onPress = Just Rest
-                , icon = Icons.rest
-                , label = "Rest"
-                }
-            , text " to reset your "
-            , el [ Font.bold ] (text "Satiation")
-            , text " and "
-            , el [ Font.bold ] (text "Craving")
-            , text " and then "
-            , Theme.iconAndTextButton []
-                { onPress = Just BeginEncounter
-                , label = "Begin the Encounter"
-                , icon = Icons.beginEncounter
-                }
-            , el [] Ui.none
-            ]
-        , viewMeters model
-        , viewTurn shared model
+        , Ui.map (PlayerMsg Nothing) restParagraph
+        , Ui.map (PlayerMsg Nothing) (viewMeters model.player)
+        , Ui.map (PlayerMsg Nothing) (viewTurn shared model.player)
         ]
 
 
-viewTurn : Shared.Model -> PlayingModel -> Element PlayingMsg
-viewTurn shared model =
+restParagraph : Element PlayerMsg
+restParagraph =
+    paragraph []
+        [ text "Before an encounter you should probably "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just Rest
+            , icon = Icons.rest
+            , label = "Rest"
+            }
+        , text " to reset your "
+        , el [ Font.bold ] (text "Satiation")
+        , text " and "
+        , el [ Font.bold ] (text "Craving")
+        , text " and then "
+        , Theme.iconAndTextButton []
+            { onPress = Just BeginEncounter
+            , label = "Begin the Encounter"
+            , icon = Icons.beginEncounter
+            }
+        , el [] Ui.none
+        ]
+
+
+viewTurn : Shared.Model -> PlayerModel -> Element PlayerMsg
+viewTurn shared player =
     Theme.column []
         [ el [ Font.bold ] (text "Orgasm")
-        , viewOrgasm model.player
+        , viewOrgasm player
         , Theme.row
             [ Ui.wrap
             , Ui.widthMax (shared.width - 2 * Theme.rhythm)
@@ -947,23 +981,23 @@ viewTurn shared model =
             [ Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
                 , text "Choose a move."
-                , viewMoves model
+                , viewMoves player
                 ]
             , Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold ] (text "Stimulation")
                 , text "Choose a stamina cost."
                 , Theme.row []
-                    [ viewRoll model
+                    [ viewRoll player
                     , Theme.iconButton [ alignRight ]
                         { onPress =
-                            if model.player.stimulationCost == 1 then
+                            if player.stimulationCost == 1 then
                                 Nothing
 
                             else
                                 Just RollStimulation
                         , icon = Icons.roll
                         , title =
-                            case model.player.stimulationRoll of
+                            case player.stimulationRoll of
                                 Nothing ->
                                     "Roll"
 
@@ -971,23 +1005,19 @@ viewTurn shared model =
                                     "Reroll"
                         }
                     ]
-                , staminaTable model.player
+                , staminaTable player
                 ]
             , Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
                 , text "(Optionally) choose a Temperament"
-                , viewTemperaments model.player
+                , viewTemperaments player
                 ]
             ]
         ]
 
 
-viewMeters : PlayingModel -> Element PlayingMsg
-viewMeters ({ persona } as model) =
-    let
-        { meters } =
-            model.player
-    in
+viewMeters : PlayerModel -> Element PlayerMsg
+viewMeters { persona, meters } =
     [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
     , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> { meters | satiation = newValue }
     , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> { meters | craving = newValue }
@@ -1000,9 +1030,9 @@ viewMeters ({ persona } as model) =
         |> Ui.map UpdateMeters
 
 
-viewRoll : PlayingModel -> Element PlayingMsg
-viewRoll model =
-    case model.player.stimulationRoll of
+viewRoll : PlayerModel -> Element PlayerMsg
+viewRoll player =
+    case player.stimulationRoll of
         Nothing ->
             el [ Font.color Theme.gray ]
                 (text "No roll yet.")
@@ -1019,13 +1049,13 @@ viewRoll model =
                 corrected : Int
                 corrected =
                     if raw < 0 then
-                        min 0 (raw + model.persona.prowess)
+                        min 0 (raw + player.persona.prowess)
 
                     else if raw == 0 then
                         0
 
                     else
-                        max 0 (raw - model.persona.prowess)
+                        max 0 (raw - player.persona.prowess)
 
                 otherColumns : List (List (Element msg))
                 otherColumns =
@@ -1044,7 +1074,7 @@ viewRoll model =
                         []
 
                      else
-                        [ text ("PRW " ++ String.fromInt model.persona.prowess)
+                        [ text ("PRW " ++ String.fromInt player.persona.prowess)
                         , el [ centerX ] (text "⇒")
                         ]
                    , if raw == corrected then
@@ -1141,7 +1171,7 @@ viewOrgans shared model =
         ]
 
 
-viewOrgasm : PlayerModel -> Element PlayingMsg
+viewOrgasm : PlayerModel -> Element PlayerMsg
 viewOrgasm player =
     let
         meters : Meters
@@ -1252,7 +1282,7 @@ viewOrgasm player =
         ]
 
 
-viewTemperaments : PlayerModel -> Element PlayingMsg
+viewTemperaments : PlayerModel -> Element PlayerMsg
 viewTemperaments model =
     [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. If the result is _less_ than your current **Craving** value, drain the value of the result from your **Sensitivity**." )
     , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "When calculating the Aftermath of your turn, first roll a **Moxie Check**. If the result is _less_ than your current **Arousal** value, drain the value of the result from your **Satiation**." )
@@ -1263,7 +1293,7 @@ viewTemperaments model =
         |> Theme.row [ Ui.wrap ]
 
 
-viewTemperament : PlayerModel -> ( Temperament, String, String ) -> Element PlayingMsg
+viewTemperament : PlayerModel -> ( Temperament, String, String ) -> Element PlayerMsg
 viewTemperament model ( name, description, consequence ) =
     let
         selected : Bool
@@ -1311,14 +1341,14 @@ temperamentToString temperament =
             "Perverse"
 
 
-viewMoves : PlayingModel -> Element PlayingMsg
-viewMoves model =
-    (defaultMoves ++ featureMoves model.persona)
-        |> List.map (viewMove model.player)
+viewMoves : PlayerModel -> Element PlayerMsg
+viewMoves player =
+    (defaultMoves ++ featureMoves player.persona)
+        |> List.map (viewMove player)
         |> Theme.column [ width shrink ]
 
 
-viewMove : PlayerModel -> Move -> Element PlayingMsg
+viewMove : PlayerModel -> Move -> Element PlayerMsg
 viewMove model move =
     let
         selected : Bool
@@ -1416,7 +1446,7 @@ statusMeter label value cap setter =
     ]
 
 
-staminaTable : PlayerModel -> Element PlayingMsg
+staminaTable : PlayerModel -> Element PlayerMsg
 staminaTable model =
     let
         header : String -> Element msg
