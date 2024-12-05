@@ -449,7 +449,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | valiantModifier = modifier } |> Just
             , Effect.none
             )
-            
+
         RollFitnessCheck ->
             ( Just player, Effect.rollCheck persona.fitness RolledFitnessCheck )
 
@@ -457,7 +457,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | fitnessCheck = modifier } |> Just
             , Effect.none
             )
-            
+
         RollGraceCheck ->
             ( Just player, Effect.rollCheck persona.grace RolledGraceCheck )
 
@@ -465,7 +465,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | graceCheck = modifier } |> Just
             , Effect.none
             )
-            
+
         RollArdorCheck ->
             ( Just player, Effect.rollCheck persona.ardor RolledArdorCheck )
 
@@ -473,7 +473,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | ardorCheck = modifier } |> Just
             , Effect.none
             )
-            
+
         RollSanityCheck ->
             ( Just player, Effect.rollCheck persona.sanity RolledSanityCheck )
 
@@ -481,7 +481,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | sanityCheck = modifier } |> Just
             , Effect.none
             )
-            
+
         RollProwessCheck ->
             ( Just player, Effect.rollCheck persona.prowess RolledProwessCheck )
 
@@ -489,7 +489,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | prowessCheck = modifier } |> Just
             , Effect.none
             )
-            
+
         RollMoxieCheck ->
             ( Just player, Effect.rollCheck persona.moxie RolledMoxieCheck )
 
@@ -497,7 +497,7 @@ playerUpdate msg ({ persona } as player) =
             ( { player | moxieCheck = modifier } |> Just
             , Effect.none
             )
-            
+
         RollStimulation ->
             ( { player | stimulationRoll = Nothing } |> Just
             , case
@@ -1343,18 +1343,20 @@ viewOrgasm player =
                         , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
                         , text " modifier to your Orgasm Threshold, if you had enough "
                         , el [ Font.bold ] (text "Stamina")
-                ]
+                        ]
                 , Theme.iconButton [ width shrink, alignRight ]
                     { onPress = Just RollValiantModifier
                     , icon = Icons.roll
                     , title = "Re-Roll"
                     }
-                        ]
+                ]
+
           else
             Ui.none
         ]
 
-viewGenericRolls: PlayerModel -> Element PlayerMsg
+
+viewGenericRolls : PlayerModel -> Element PlayerMsg
 viewGenericRolls player =
     paragraph []
         [ text "You can use these buttons to roll status checks. Result: "
@@ -1407,6 +1409,7 @@ viewGenericRolls player =
         , el [ Font.bold ] (text (String.fromInt player.moxieCheck))
         , el [] Ui.none
         ]
+
 
 viewTemperaments : PlayerModel -> Element PlayerMsg
 viewTemperaments model =
