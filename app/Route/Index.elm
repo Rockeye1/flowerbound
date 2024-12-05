@@ -1366,7 +1366,7 @@ viewGenericRolls player =
             }
         , text " - "
         , el [ Font.bold ] (text (String.fromInt player.fitnessCheck))
-        , text "  "
+        , text " "
         , Theme.iconAndTextButton [ width shrink ]
             { onPress = Just RollGraceCheck
             , icon = Icons.roll
@@ -1374,7 +1374,7 @@ viewGenericRolls player =
             }
         , text " - "
         , el [ Font.bold ] (text (String.fromInt player.graceCheck))
-        , text "  "
+        , text " "
         , Theme.iconAndTextButton [ width shrink ]
             { onPress = Just RollArdorCheck
             , icon = Icons.roll
@@ -1382,7 +1382,7 @@ viewGenericRolls player =
             }
         , text " - "
         , el [ Font.bold ] (text (String.fromInt player.ardorCheck))
-        , text "  "
+        , text " "
         , Theme.iconAndTextButton [ width shrink ]
             { onPress = Just RollSanityCheck
             , icon = Icons.roll
@@ -1390,7 +1390,7 @@ viewGenericRolls player =
             }
         , text " - "
         , el [ Font.bold ] (text (String.fromInt player.sanityCheck))
-        , text "  "
+        , text " "
         , Theme.iconAndTextButton [ width shrink ]
             { onPress = Just RollProwessCheck
             , icon = Icons.roll
@@ -1398,7 +1398,7 @@ viewGenericRolls player =
             }
         , text " - "
         , el [ Font.bold ] (text (String.fromInt player.prowessCheck))
-        , text "  "
+        , text " "
         , Theme.iconAndTextButton [ width shrink ]
             { onPress = Just RollMoxieCheck
             , icon = Icons.roll
