@@ -65,6 +65,18 @@ type PlayerMsg
     | RestedCraving Int
     | RollValiantModifier
     | RolledValiantModifier Int
+    | RollFitnessCheck
+    | RolledFitnessCheck Int
+    | RollGraceCheck
+    | RolledGraceCheck Int
+    | RollArdorCheck
+    | RolledArdorCheck Int
+    | RollSanityCheck
+    | RolledSanityCheck Int
+    | RollProwessCheck
+    | RolledProwessCheck Int
+    | RollMoxieCheck
+    | RolledMoxieCheck Int
     | UpdateMeters Meters
     | StimulationCost Int
     | SelectMove (Maybe String)
@@ -97,6 +109,12 @@ type alias PlayerModel =
     , selectedMove : Maybe String
     , selectedTemperament : Maybe Temperament
     , valiantModifier : Int
+    , fitnessCheck : Int
+    , graceCheck : Int
+    , ardorCheck : Int
+    , sanityCheck : Int
+    , prowessCheck : Int
+    , moxieCheck : Int
     , stimulationRoll : Maybe (List ( Int, Int ))
     , persona : Persona
     }
@@ -431,7 +449,55 @@ playerUpdate msg ({ persona } as player) =
             ( { player | valiantModifier = modifier } |> Just
             , Effect.none
             )
+            
+        RollFitnessCheck ->
+            ( Just player, Effect.rollCheck persona.fitness RolledFitnessCheck )
 
+        RolledFitnessCheck modifier ->
+            ( { player | fitnessCheck = modifier } |> Just
+            , Effect.none
+            )
+            
+        RollGraceCheck ->
+            ( Just player, Effect.rollCheck persona.grace RolledGraceCheck )
+
+        RolledGraceCheck modifier ->
+            ( { player | graceCheck = modifier } |> Just
+            , Effect.none
+            )
+            
+        RollArdorCheck ->
+            ( Just player, Effect.rollCheck persona.ardor RolledArdorCheck )
+
+        RolledArdorCheck modifier ->
+            ( { player | ardorCheck = modifier } |> Just
+            , Effect.none
+            )
+            
+        RollSanityCheck ->
+            ( Just player, Effect.rollCheck persona.sanity RolledSanityCheck )
+
+        RolledSanityCheck modifier ->
+            ( { player | sanityCheck = modifier } |> Just
+            , Effect.none
+            )
+            
+        RollProwessCheck ->
+            ( Just player, Effect.rollCheck persona.prowess RolledProwessCheck )
+
+        RolledProwessCheck modifier ->
+            ( { player | prowessCheck = modifier } |> Just
+            , Effect.none
+            )
+            
+        RollMoxieCheck ->
+            ( Just player, Effect.rollCheck persona.moxie RolledMoxieCheck )
+
+        RolledMoxieCheck modifier ->
+            ( { player | moxieCheck = modifier } |> Just
+            , Effect.none
+            )
+            
         RollStimulation ->
             ( { player | stimulationRoll = Nothing } |> Just
             , case
@@ -792,6 +858,12 @@ initPlayerModel persona =
     , selectedMove = Nothing
     , selectedTemperament = Nothing
     , valiantModifier = 0
+    , fitnessCheck = 0
+    , graceCheck = 0
+    , ardorCheck = 0
+    , sanityCheck = 0
+    , prowessCheck = 0
+    , moxieCheck = 0
     , stimulationRoll = Nothing
     , persona = persona
     }
@@ -975,6 +1047,7 @@ viewTurn shared player =
     Theme.column []
         [ el [ Font.bold ] (text "Orgasm")
         , viewOrgasm player
+        , viewGenericRolls player
         , Theme.row
             [ Ui.wrap
             , Ui.widthMax (shared.width - 2 * Theme.rhythm)
@@ -1270,18 +1343,70 @@ viewOrgasm player =
                         , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
                         , text " modifier to your Orgasm Threshold, if you had enough "
                         , el [ Font.bold ] (text "Stamina")
-                        ]
+                ]
                 , Theme.iconButton [ width shrink, alignRight ]
                     { onPress = Just RollValiantModifier
                     , icon = Icons.roll
                     , title = "Re-Roll"
                     }
-                ]
-
+                        ]
           else
             Ui.none
         ]
 
+viewGenericRolls: PlayerModel -> Element PlayerMsg
+viewGenericRolls player =
+    paragraph []
+        [ text "You can use these buttons to roll status checks. Result: "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just RollFitnessCheck
+            , icon = Icons.roll
+            , label = "FIT"
+            }
+        , text " - "
+        , el [ Font.bold ] (text (String.fromInt player.fitnessCheck))
+        , text "  "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just RollGraceCheck
+            , icon = Icons.roll
+            , label = "GRC"
+            }
+        , text " - "
+        , el [ Font.bold ] (text (String.fromInt player.graceCheck))
+        , text "  "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just RollArdorCheck
+            , icon = Icons.roll
+            , label = "ARD"
+            }
+        , text " - "
+        , el [ Font.bold ] (text (String.fromInt player.ardorCheck))
+        , text "  "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just RollSanityCheck
+            , icon = Icons.roll
+            , label = "SAN"
+            }
+        , text " - "
+        , el [ Font.bold ] (text (String.fromInt player.sanityCheck))
+        , text "  "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just RollProwessCheck
+            , icon = Icons.roll
+            , label = "PRW"
+            }
+        , text " - "
+        , el [ Font.bold ] (text (String.fromInt player.prowessCheck))
+        , text "  "
+        , Theme.iconAndTextButton [ width shrink ]
+            { onPress = Just RollMoxieCheck
+            , icon = Icons.roll
+            , label = "MOX"
+            }
+        , text " - "
+        , el [ Font.bold ] (text (String.fromInt player.moxieCheck))
+        , el [] Ui.none
+        ]
 
 viewTemperaments : PlayerModel -> Element PlayerMsg
 viewTemperaments model =
