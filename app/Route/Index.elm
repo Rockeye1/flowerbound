@@ -109,12 +109,12 @@ type alias PlayerModel =
     , selectedMove : Maybe String
     , selectedTemperament : Maybe Temperament
     , valiantModifier : Int
-    , fitnessCheck : Int
-    , graceCheck : Int
-    , ardorCheck : Int
-    , sanityCheck : Int
-    , prowessCheck : Int
-    , moxieCheck : Int
+    , fitnessCheck : Maybe Int
+    , graceCheck : Maybe Int
+    , ardorCheck : Maybe Int
+    , sanityCheck : Maybe Int
+    , prowessCheck : Maybe Int
+    , moxieCheck : Maybe Int
     , stimulationRoll : Maybe (List ( Int, Int ))
     , persona : Persona
     }
@@ -454,7 +454,7 @@ playerUpdate msg ({ persona } as player) =
             ( Just player, Effect.rollCheck persona.fitness RolledFitnessCheck )
 
         RolledFitnessCheck modifier ->
-            ( { player | fitnessCheck = modifier } |> Just
+            ( { player | fitnessCheck = Just modifier } |> Just
             , Effect.none
             )
 
@@ -462,7 +462,7 @@ playerUpdate msg ({ persona } as player) =
             ( Just player, Effect.rollCheck persona.grace RolledGraceCheck )
 
         RolledGraceCheck modifier ->
-            ( { player | graceCheck = modifier } |> Just
+            ( { player | graceCheck = Just modifier } |> Just
             , Effect.none
             )
 
@@ -470,7 +470,7 @@ playerUpdate msg ({ persona } as player) =
             ( Just player, Effect.rollCheck persona.ardor RolledArdorCheck )
 
         RolledArdorCheck modifier ->
-            ( { player | ardorCheck = modifier } |> Just
+            ( { player | ardorCheck = Just modifier } |> Just
             , Effect.none
             )
 
@@ -478,7 +478,7 @@ playerUpdate msg ({ persona } as player) =
             ( Just player, Effect.rollCheck persona.sanity RolledSanityCheck )
 
         RolledSanityCheck modifier ->
-            ( { player | sanityCheck = modifier } |> Just
+            ( { player | sanityCheck = Just modifier } |> Just
             , Effect.none
             )
 
@@ -486,7 +486,7 @@ playerUpdate msg ({ persona } as player) =
             ( Just player, Effect.rollCheck persona.prowess RolledProwessCheck )
 
         RolledProwessCheck modifier ->
-            ( { player | prowessCheck = modifier } |> Just
+            ( { player | prowessCheck = Just modifier } |> Just
             , Effect.none
             )
 
@@ -494,7 +494,7 @@ playerUpdate msg ({ persona } as player) =
             ( Just player, Effect.rollCheck persona.moxie RolledMoxieCheck )
 
         RolledMoxieCheck modifier ->
-            ( { player | moxieCheck = modifier } |> Just
+            ( { player | moxieCheck = Just modifier } |> Just
             , Effect.none
             )
 
@@ -858,12 +858,12 @@ initPlayerModel persona =
     , selectedMove = Nothing
     , selectedTemperament = Nothing
     , valiantModifier = 0
-    , fitnessCheck = 0
-    , graceCheck = 0
-    , ardorCheck = 0
-    , sanityCheck = 0
-    , prowessCheck = 0
-    , moxieCheck = 0
+    , fitnessCheck = Nothing
+    , graceCheck = Nothing
+    , ardorCheck = Nothing
+    , sanityCheck = Nothing
+    , prowessCheck = Nothing
+    , moxieCheck = Nothing
     , stimulationRoll = Nothing
     , persona = persona
     }
@@ -1360,17 +1360,28 @@ viewGenericRolls player =
     Theme.column []
         [ paragraph [] [ text "You can use these buttons to roll status checks:" ]
         , let
-            viewButtonAndResult : msg -> Phosphor.IconVariant -> String -> Int -> List (Element msg)
+            viewButtonAndResult : msg -> Phosphor.IconVariant -> String -> Maybe Int -> List (Element msg)
             viewButtonAndResult msg icon label result =
                 [ Theme.row [ width shrink ]
-                    [ Theme.iconAndTextButton [ width shrink ]
+                    (Theme.iconAndTextButton [ width shrink ]
                         { icon = icon
                         , onPress = Just msg
                         , label = label
                         }
-                    , text " - "
-                    , el [ Font.bold ] (text (String.fromInt result))
+                        :: viewResult result
+                    )
                 ]
+
+            viewResult : Maybe Int -> List (Element msg)
+            viewResult result =
+                case result of
+                    Nothing ->
+                        []
+
+                    Just value ->
+                        [ text " - "
+                        , el [ Font.bold ] (text (String.fromInt value))
+                        ]
           in
           [ viewButtonAndResult RollFitnessCheck Icons.roll "FIT" player.fitnessCheck
           , viewButtonAndResult RollGraceCheck Icons.roll "GRC" player.graceCheck
