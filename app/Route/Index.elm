@@ -1357,55 +1357,30 @@ viewOrgasm player =
 
 viewGenericRolls : PlayerModel -> Element PlayerMsg
 viewGenericRolls player =
-    paragraph []
-        [ text "You can use these buttons to roll status checks. Result: "
-        , Theme.iconAndTextButton [ width shrink ]
-            { onPress = Just RollFitnessCheck
-            , icon = Icons.roll
-            , label = "FIT"
-            }
-        , text " - "
-        , el [ Font.bold ] (text (String.fromInt player.fitnessCheck))
-        , text " "
-        , Theme.iconAndTextButton [ width shrink ]
-            { onPress = Just RollGraceCheck
-            , icon = Icons.roll
-            , label = "GRC"
-            }
-        , text " - "
-        , el [ Font.bold ] (text (String.fromInt player.graceCheck))
-        , text " "
-        , Theme.iconAndTextButton [ width shrink ]
-            { onPress = Just RollArdorCheck
-            , icon = Icons.roll
-            , label = "ARD"
-            }
-        , text " - "
-        , el [ Font.bold ] (text (String.fromInt player.ardorCheck))
-        , text " "
-        , Theme.iconAndTextButton [ width shrink ]
-            { onPress = Just RollSanityCheck
-            , icon = Icons.roll
-            , label = "SAN"
-            }
-        , text " - "
-        , el [ Font.bold ] (text (String.fromInt player.sanityCheck))
-        , text " "
-        , Theme.iconAndTextButton [ width shrink ]
-            { onPress = Just RollProwessCheck
-            , icon = Icons.roll
-            , label = "PRW"
-            }
-        , text " - "
-        , el [ Font.bold ] (text (String.fromInt player.prowessCheck))
-        , text " "
-        , Theme.iconAndTextButton [ width shrink ]
-            { onPress = Just RollMoxieCheck
-            , icon = Icons.roll
-            , label = "MOX"
-            }
-        , text " - "
-        , el [ Font.bold ] (text (String.fromInt player.moxieCheck))
+    Theme.column []
+        [ paragraph [] [ text "You can use these buttons to roll status checks:" ]
+        , let
+            viewButtonAndResult : msg -> Phosphor.IconVariant -> String -> Int -> List (Element msg)
+            viewButtonAndResult msg icon label result =
+                [ Theme.row [ width shrink ]
+                    [ Theme.iconAndTextButton [ width shrink ]
+                        { icon = icon
+                        , onPress = Just msg
+                        , label = label
+                        }
+                    , text " - "
+                    , el [ Font.bold ] (text (String.fromInt result))
+                ]
+          in
+          [ viewButtonAndResult RollFitnessCheck Icons.roll "FIT" player.fitnessCheck
+          , viewButtonAndResult RollGraceCheck Icons.roll "GRC" player.graceCheck
+          , viewButtonAndResult RollArdorCheck Icons.roll "ARD" player.ardorCheck
+          , viewButtonAndResult RollSanityCheck Icons.roll "SAN" player.sanityCheck
+          , viewButtonAndResult RollProwessCheck Icons.roll "PRW" player.prowessCheck
+          , viewButtonAndResult RollMoxieCheck Icons.roll "MOX" player.moxieCheck
+          ]
+            |> List.concat
+            |> Theme.wrappedRow []
         ]
 
 
