@@ -1038,7 +1038,6 @@ restParagraph =
             , label = "Begin the Encounter"
             , icon = Icons.beginEncounter
             }
-        , el [] Ui.none
         ]
 
 
@@ -1407,7 +1406,6 @@ viewGenericRolls player =
             }
         , text " - "
         , el [ Font.bold ] (text (String.fromInt player.moxieCheck))
-        , el [] Ui.none
         ]
 
 
