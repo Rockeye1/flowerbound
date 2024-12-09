@@ -10,7 +10,7 @@ import Markdown.Parser
 import Markdown.Renderer
 import Phosphor
 import Route
-import Ui exposing (Attribute, Element)
+import Ui exposing (Attribute, Element, shrink, width)
 import Ui.Accessibility as Accessibility
 import Ui.Anim
 import Ui.Font as Font
@@ -609,7 +609,7 @@ iconAndTextButton attrs config =
     button attrs
         { onPress = config.onPress
         , label =
-            row []
+            row [ width shrink ]
                 [ Icons.toElement config.icon
                 , Ui.text config.label
                 ]

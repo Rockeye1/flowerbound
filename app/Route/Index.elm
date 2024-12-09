@@ -67,16 +67,22 @@ type PlayerMsg
     | RolledValiantModifier Int
     | RollFitnessCheck
     | RolledFitnessCheck Int
+    | DeleteFitnessCheck
     | RollGraceCheck
     | RolledGraceCheck Int
+    | DeleteGraceCheck
     | RollArdorCheck
     | RolledArdorCheck Int
+    | DeleteArdorCheck
     | RollSanityCheck
     | RolledSanityCheck Int
+    | DeleteSanityCheck
     | RollProwessCheck
     | RolledProwessCheck Int
+    | DeleteProwessCheck
     | RollMoxieCheck
     | RolledMoxieCheck Int
+    | DeleteMoxieCheck
     | UpdateMeters Meters
     | StimulationCost Int
     | SelectMove (Maybe String)
@@ -458,11 +464,21 @@ playerUpdate msg ({ persona } as player) =
             , Effect.none
             )
 
+        DeleteFitnessCheck ->
+            ( { player | fitnessCheck = Nothing } |> Just
+            , Effect.none
+            )
+
         RollGraceCheck ->
             ( Just player, Effect.rollCheck persona.grace RolledGraceCheck )
 
         RolledGraceCheck modifier ->
             ( { player | graceCheck = Just modifier } |> Just
+            , Effect.none
+            )
+
+        DeleteGraceCheck ->
+            ( { player | graceCheck = Nothing } |> Just
             , Effect.none
             )
 
@@ -474,11 +490,21 @@ playerUpdate msg ({ persona } as player) =
             , Effect.none
             )
 
+        DeleteArdorCheck ->
+            ( { player | ardorCheck = Nothing } |> Just
+            , Effect.none
+            )
+
         RollSanityCheck ->
             ( Just player, Effect.rollCheck persona.sanity RolledSanityCheck )
 
         RolledSanityCheck modifier ->
             ( { player | sanityCheck = Just modifier } |> Just
+            , Effect.none
+            )
+
+        DeleteSanityCheck ->
+            ( { player | sanityCheck = Nothing } |> Just
             , Effect.none
             )
 
@@ -490,11 +516,21 @@ playerUpdate msg ({ persona } as player) =
             , Effect.none
             )
 
+        DeleteProwessCheck ->
+            ( { player | prowessCheck = Nothing } |> Just
+            , Effect.none
+            )
+
         RollMoxieCheck ->
             ( Just player, Effect.rollCheck persona.moxie RolledMoxieCheck )
 
         RolledMoxieCheck modifier ->
             ( { player | moxieCheck = Just modifier } |> Just
+            , Effect.none
+            )
+
+        DeleteMoxieCheck ->
+            ( { player | moxieCheck = Nothing } |> Just
             , Effect.none
             )
 
@@ -1046,12 +1082,16 @@ viewTurn shared player =
     Theme.column []
         [ el [ Font.bold ] (text "Orgasm")
         , viewOrgasm player
-        , viewGenericRolls player
         , Theme.row
             [ Ui.wrap
             , Ui.widthMax (shared.width - 2 * Theme.rhythm)
             ]
             [ Theme.column [ alignTop, centerX ]
+                [ el [ Font.bold ] (text "Status checks")
+                , paragraph [] [ text "You can use these buttons to roll status checks:" ]
+                , viewGenericRolls player
+                ]
+            , Theme.column [ alignTop, centerX ]
                 [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
                 , text "Choose a move."
                 , viewMoves player
@@ -1358,42 +1398,48 @@ viewOrgasm player =
 
 viewGenericRolls : PlayerModel -> Element PlayerMsg
 viewGenericRolls player =
-    Theme.column []
-        [ paragraph [] [ text "You can use these buttons to roll status checks:" ]
-        , let
-            viewButtonAndResult : msg -> Phosphor.IconVariant -> String -> Maybe Int -> List (Element msg)
-            viewButtonAndResult msg icon label result =
-                [ Theme.row [ width shrink ]
-                    (Theme.iconAndTextButton [ width shrink ]
-                        { icon = icon
-                        , onPress = Just msg
-                        , label = label
+    let
+        viewButtonAndResult : msg -> msg -> Phosphor.IconVariant -> String -> Maybe Int -> List (Element msg)
+        viewButtonAndResult rollMsg deleteMsg icon label result =
+            Theme.iconAndTextButton []
+                { icon = icon
+                , onPress = Just rollMsg
+                , label = label
+                }
+                :: viewResult deleteMsg result
+
+        viewResult : msg -> Maybe Int -> List (Element msg)
+        viewResult deleteMsg result =
+            case result of
+                Nothing ->
+                    [ text ""
+                    , text ""
+                    ]
+
+                Just value ->
+                    [ el [ Font.bold, centerY, alignRight ] (text (String.fromInt value))
+                    , Theme.iconButton []
+                        { icon = Icons.delete
+                        , onPress = Just deleteMsg
+                        , title = "Delete"
                         }
-                        :: viewResult result
-                    )
-                ]
-
-            viewResult : Maybe Int -> List (Element msg)
-            viewResult result =
-                case result of
-                    Nothing ->
-                        []
-
-                    Just value ->
-                        [ text " - "
-                        , el [ Font.bold ] (text (String.fromInt value))
-                        ]
-          in
-          [ viewButtonAndResult RollFitnessCheck Icons.roll "FIT" player.fitnessCheck
-          , viewButtonAndResult RollGraceCheck Icons.roll "GRC" player.graceCheck
-          , viewButtonAndResult RollArdorCheck Icons.roll "ARD" player.ardorCheck
-          , viewButtonAndResult RollSanityCheck Icons.roll "SAN" player.sanityCheck
-          , viewButtonAndResult RollProwessCheck Icons.roll "PRW" player.prowessCheck
-          , viewButtonAndResult RollMoxieCheck Icons.roll "MOX" player.moxieCheck
-          ]
-            |> List.concat
-            |> Theme.wrappedRow []
+                    ]
+    in
+    Layout.rowWithConstraints
+        [ Layout.byContent
+        , Layout.byContent
+        , Layout.byContent
         ]
+        [ Theme.spacing ]
+        ([ viewButtonAndResult RollFitnessCheck DeleteFitnessCheck Icons.roll "Fitness" player.fitnessCheck
+         , viewButtonAndResult RollGraceCheck DeleteGraceCheck Icons.roll "Grace" player.graceCheck
+         , viewButtonAndResult RollArdorCheck DeleteArdorCheck Icons.roll "Ardor" player.ardorCheck
+         , viewButtonAndResult RollSanityCheck DeleteSanityCheck Icons.roll "Sanity" player.sanityCheck
+         , viewButtonAndResult RollProwessCheck DeleteProwessCheck Icons.roll "Prowess" player.prowessCheck
+         , viewButtonAndResult RollMoxieCheck DeleteMoxieCheck Icons.roll "Moxie" player.moxieCheck
+         ]
+            |> List.concat
+        )
 
 
 viewTemperaments : PlayerModel -> Element PlayerMsg
