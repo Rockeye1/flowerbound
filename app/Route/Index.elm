@@ -1254,8 +1254,8 @@ viewOrgasm player =
         modifiers : Int
         modifiers =
             if player.selectedTemperament == Just Valiant then
-                if player.valiantModifier < meters.stamina then
-                    player.valiantModifier
+                if player.valiantModifier > meters.stamina then
+                    meters.stamina
 
                 else
                     0
@@ -1325,23 +1325,24 @@ viewOrgasm player =
             ]
         , if player.selectedTemperament == Just Valiant then
             Theme.row []
-                [ if player.valiantModifier < meters.stamina then
+                [ if player.valiantModifier > meters.stamina then
                     paragraph []
                         [ text "You are being "
                         , el [ Font.bold ] (text "Valiant")
                         , text " which currently gives you a +"
-                        , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
-                        , text " modifier to your Orgasm Threshold"
+                        , el [ Font.bold ] (text (String.fromInt meters.stamina))
+                        , text " modifier to your Orgasm Threshold."
                         ]
 
                   else
                     paragraph []
-                        [ text "You are being "
+                        [ text "You are trying being "
                         , el [ Font.bold ] (text "Valiant")
                         , text " which would give you a +"
+                        , el [ Font.bold ] (text (String.fromInt meters.stamina))
+                        , text " modifier to your Orgasm Threshold, but you only rolled "
                         , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
-                        , text " modifier to your Orgasm Threshold, if you had enough "
-                        , el [ Font.bold ] (text "Stamina")
+                        , text "."
                         ]
                 , Theme.iconButton [ width shrink, alignRight ]
                     { onPress = Just RollValiantModifier
