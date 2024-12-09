@@ -1091,8 +1091,7 @@ viewTurn shared player =
         , Theme.column [] (viewTemperaments player)
         , Theme.column [] (viewStatusChecks player)
         , Theme.column [] (viewMoves player)
-        , Theme.column []
-            (viewStimulationTable player)
+        , Theme.column [] (viewStimulationTable player)
         ]
 
 
@@ -1559,26 +1558,28 @@ viewStimulationTable : PlayerModel -> List (Element PlayerMsg)
 viewStimulationTable player =
     [ el [ Font.bold ] (text "Stimulation")
     , text "Choose a stamina cost."
+    , staminaTable player
     , Theme.row []
-        [ viewRoll player
+        [ text "Then"
+        , Theme.iconAndTextButton [ alignRight ]
+            { onPress =
+                if player.stimulationCost == 1 then
+                    Nothing
+
+                else
+                    Just RollStimulation
+            , icon = Icons.roll
+            , label =
+                case player.stimulationRoll of
+                    Nothing ->
+                        "Roll"
+
+                    Just _ ->
+                        "Reroll"
+            }
+        , viewRoll player
         , Theme.column []
-            [ Theme.iconButton [ alignRight ]
-                { onPress =
-                    if player.stimulationCost == 1 then
-                        Nothing
-
-                    else
-                        Just RollStimulation
-                , icon = Icons.roll
-                , title =
-                    case player.stimulationRoll of
-                        Nothing ->
-                            "Roll"
-
-                        Just _ ->
-                            "Reroll"
-                }
-            , case player.stimulationRoll of
+            [ case player.stimulationRoll of
                 Nothing ->
                     Ui.none
 
@@ -1590,7 +1591,6 @@ viewStimulationTable player =
                         }
             ]
         ]
-    , staminaTable player
     ]
 
 
@@ -1636,57 +1636,64 @@ staminaTable model =
         header : String -> Element msg
         header label =
             el [ Theme.style "white-space" "pre" ] (text label)
+
+        columns : List (List (Element PlayerMsg))
+        columns =
+            stimulationDice
+                |> List.map
+                    (\( cost, dice ) ->
+                        [ Theme.selectableButton []
+                            { onPress = Just (StimulationCost cost)
+                            , label = text (String.fromInt cost)
+                            , selected = cost == model.stimulationCost
+                            }
+                        , Theme.selectableButton []
+                            { onPress = Just (StimulationCost cost)
+                            , label =
+                                text
+                                    (if cost == 1 then
+                                        "0"
+
+                                     else
+                                        String.fromInt (cost * 2)
+                                    )
+                            , selected = cost == model.stimulationCost
+                            }
+                        , Theme.selectableButton []
+                            { onPress = Just (StimulationCost cost)
+                            , label =
+                                text
+                                    (if List.isEmpty dice then
+                                        "No Roll"
+
+                                     else
+                                        dice
+                                            |> List.Extra.gatherEquals
+                                            |> List.map
+                                                (\( die, other ) ->
+                                                    (if List.isEmpty other then
+                                                        "1"
+
+                                                     else
+                                                        String.fromInt (1 + List.length other)
+                                                    )
+                                                        ++ "d"
+                                                        ++ String.fromInt die
+                                                )
+                                            |> String.join ", "
+                                    )
+                            , selected = cost == model.stimulationCost
+                            }
+                        ]
+                    )
+                |> (::) [ header "Stamina", header "Stimulation", header "Dice Type" ]
     in
-    stimulationDice
-        |> List.map
-            (\( cost, dice ) ->
-                [ Theme.selectableButton []
-                    { onPress = Just (StimulationCost cost)
-                    , label = text (String.fromInt cost)
-                    , selected = cost == model.stimulationCost
-                    }
-                , Theme.selectableButton []
-                    { onPress = Just (StimulationCost cost)
-                    , label =
-                        text
-                            (if cost == 1 then
-                                "0"
-
-                             else
-                                String.fromInt (cost * 2)
-                            )
-                    , selected = cost == model.stimulationCost
-                    }
-                , Theme.selectableButton []
-                    { onPress = Just (StimulationCost cost)
-                    , label =
-                        text
-                            (if List.isEmpty dice then
-                                "No Roll"
-
-                             else
-                                dice
-                                    |> List.Extra.gatherEquals
-                                    |> List.map
-                                        (\( die, other ) ->
-                                            (if List.isEmpty other then
-                                                "1"
-
-                                             else
-                                                String.fromInt (1 + List.length other)
-                                            )
-                                                ++ "d"
-                                                ++ String.fromInt die
-                                        )
-                                    |> String.join " and "
-                            )
-                    , selected = cost == model.stimulationCost
-                    }
-                ]
-            )
-        |> (::) [ header "Stamina", header "Stimulation", header "Dice Type" ]
+    columns
+        |> List.Extra.transpose
         |> List.concat
-        |> Layout.rowWithConstraints (List.repeat 3 Layout.byContent) [ Theme.spacing ]
+        |> Layout.rowWithConstraints
+            (List.repeat (List.length columns) Layout.byContent)
+            [ Theme.spacing ]
 
 
 stimulationDice : List ( Int, List Int )
