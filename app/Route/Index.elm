@@ -89,6 +89,7 @@ type PlayerMsg
     | SelectTemperament (Maybe Temperament)
     | RollStimulation
     | RolledStimulation (List ( Int, Int ))
+    | DeleteStimulation
     | UpdatePersona Persona
     | UpdatePersonaFromFile
     | UpdatePersonaPicked File
@@ -557,6 +558,11 @@ playerUpdate msg ({ persona } as player) =
 
         RolledStimulation stimulationRoll ->
             ( { player | stimulationRoll = Just stimulationRoll } |> Just
+            , Effect.none
+            )
+
+        DeleteStimulation ->
+            ( { player | stimulationRoll = Nothing } |> Just
             , Effect.none
             )
 
@@ -1551,22 +1557,34 @@ viewStimulationTable player =
     , text "Choose a stamina cost."
     , Theme.row []
         [ viewRoll player
-        , Theme.iconButton [ alignRight ]
-            { onPress =
-                if player.stimulationCost == 1 then
-                    Nothing
+        , Theme.column []
+            [ Theme.iconButton [ alignRight ]
+                { onPress =
+                    if player.stimulationCost == 1 then
+                        Nothing
 
-                else
-                    Just RollStimulation
-            , icon = Icons.roll
-            , title =
-                case player.stimulationRoll of
-                    Nothing ->
-                        "Roll"
+                    else
+                        Just RollStimulation
+                , icon = Icons.roll
+                , title =
+                    case player.stimulationRoll of
+                        Nothing ->
+                            "Roll"
 
-                    Just _ ->
-                        "Reroll"
-            }
+                        Just _ ->
+                            "Reroll"
+                }
+            , case player.stimulationRoll of
+                Nothing ->
+                    Ui.none
+
+                Just _ ->
+                    Theme.iconButton [ alignRight ]
+                        { onPress = Just DeleteStimulation
+                        , icon = Icons.delete
+                        , title = "Delete"
+                        }
+            ]
         ]
     , staminaTable player
     ]
