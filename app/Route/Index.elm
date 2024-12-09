@@ -1082,50 +1082,17 @@ viewTurn shared player =
     Theme.column []
         [ el [ Font.bold ] (text "Orgasm")
         , viewOrgasm player
-        , Theme.row
-            [ Ui.wrap
-            , Ui.widthMax (shared.width - 2 * Theme.rhythm)
-            ]
-            [ Theme.column [ alignTop, centerX ]
-                [ el [ Font.bold ] (text "Status checks")
-                , paragraph [] [ text "You can use these buttons to roll status checks:" ]
-                , viewGenericRolls player
+        , [ viewGenericRolls player
+          , viewMoves player
+          , viewStimulationTable player
+          , viewTemperaments player
+          ]
+            |> List.map
+                (Theme.column [ alignTop, centerX ])
+            |> Theme.row
+                [ Ui.wrap
+                , Ui.widthMax (shared.width - 2 * Theme.rhythm)
                 ]
-            , Theme.column [ alignTop, centerX ]
-                [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
-                , text "Choose a move."
-                , viewMoves player
-                ]
-            , Theme.column [ alignTop, centerX ]
-                [ el [ Font.bold ] (text "Stimulation")
-                , text "Choose a stamina cost."
-                , Theme.row []
-                    [ viewRoll player
-                    , Theme.iconButton [ alignRight ]
-                        { onPress =
-                            if player.stimulationCost == 1 then
-                                Nothing
-
-                            else
-                                Just RollStimulation
-                        , icon = Icons.roll
-                        , title =
-                            case player.stimulationRoll of
-                                Nothing ->
-                                    "Roll"
-
-                                Just _ ->
-                                    "Reroll"
-                        }
-                    ]
-                , staminaTable player
-                ]
-            , Theme.column [ alignTop, centerX ]
-                [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
-                , text "(Optionally) choose a Temperament"
-                , viewTemperaments player
-                ]
-            ]
         ]
 
 
@@ -1396,7 +1363,7 @@ viewOrgasm player =
         ]
 
 
-viewGenericRolls : PlayerModel -> Element PlayerMsg
+viewGenericRolls : PlayerModel -> List (Element PlayerMsg)
 viewGenericRolls player =
     let
         viewButtonAndResult : msg -> msg -> Phosphor.IconVariant -> String -> Maybe Int -> List (Element msg)
@@ -1425,7 +1392,9 @@ viewGenericRolls player =
                         }
                     ]
     in
-    Layout.rowWithConstraints
+    [ el [ Font.bold ] (text "Status checks")
+    , paragraph [] [ text "You can use these buttons to roll status checks:" ]
+    , Layout.rowWithConstraints
         [ Layout.byContent
         , Layout.byContent
         , Layout.byContent
@@ -1440,17 +1409,21 @@ viewGenericRolls player =
          ]
             |> List.concat
         )
-
-
-viewTemperaments : PlayerModel -> Element PlayerMsg
-viewTemperaments model =
-    [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Sensitivity** to your **Craving**." )
-    , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Satiation** to your **Craving**." )
-    , ( Perverse, "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Arousal** value, you may transfer points from your **Craving** to your **Arousal**." )
-    , ( Valiant, "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "Upon declaration, roll a **Moxie Check**. While the result is greater than your **Stamina** value, add your **Stamina** value to your **Orgasm Threshold** as a Modifier." )
     ]
+
+
+viewTemperaments : PlayerModel -> List (Element PlayerMsg)
+viewTemperaments model =
+    [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
+    , text "(Optionally) choose a Temperament"
+    , [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Sensitivity** to your **Craving**." )
+      , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Satiation** to your **Craving**." )
+      , ( Perverse, "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Arousal** value, you may transfer points from your **Craving** to your **Arousal**." )
+      , ( Valiant, "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "Upon declaration, roll a **Moxie Check**. While the result is greater than your **Stamina** value, add your **Stamina** value to your **Orgasm Threshold** as a Modifier." )
+      ]
         |> List.map (viewTemperament model)
         |> Theme.row [ Ui.wrap ]
+    ]
 
 
 viewTemperament : PlayerModel -> ( Temperament, String, String ) -> Element PlayerMsg
@@ -1501,11 +1474,13 @@ temperamentToString temperament =
             "Perverse"
 
 
-viewMoves : PlayerModel -> Element PlayerMsg
+viewMoves : PlayerModel -> List (Element PlayerMsg)
 viewMoves player =
-    (defaultMoves ++ featureMoves player.persona)
-        |> List.map (viewMove player)
-        |> Theme.column [ width shrink ]
+    el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
+        :: text "Choose a move."
+        :: List.map
+            (viewMove player)
+            (defaultMoves ++ featureMoves player.persona)
 
 
 viewMove : PlayerModel -> Move -> Element PlayerMsg
@@ -1568,6 +1543,33 @@ featureMoves : Persona -> List Move
 featureMoves _ =
     -- TODO: implement this
     []
+
+
+viewStimulationTable : PlayerModel -> List (Element PlayerMsg)
+viewStimulationTable player =
+    [ el [ Font.bold ] (text "Stimulation")
+    , text "Choose a stamina cost."
+    , Theme.row []
+        [ viewRoll player
+        , Theme.iconButton [ alignRight ]
+            { onPress =
+                if player.stimulationCost == 1 then
+                    Nothing
+
+                else
+                    Just RollStimulation
+            , icon = Icons.roll
+            , title =
+                case player.stimulationRoll of
+                    Nothing ->
+                        "Roll"
+
+                    Just _ ->
+                        "Reroll"
+            }
+        ]
+    , staminaTable player
+    ]
 
 
 defaultMoves : List Move
