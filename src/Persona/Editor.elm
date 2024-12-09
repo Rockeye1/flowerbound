@@ -354,7 +354,7 @@ viewGendertrope ({ gendertrope } as persona) =
             (Types.standardGendertropes ++ [ Custom gendertropeRecord ])
                 |> List.map
                     (\option ->
-                        Theme.row
+                        Theme.el
                             (if option == gendertrope then
                                 Ui.background Theme.purple
                                     :: Font.color Theme.white
@@ -366,16 +366,24 @@ viewGendertrope ({ gendertrope } as persona) =
                                     :: Ui.borderColor Theme.purple
                                     :: common option
                             )
-                            [ Theme.row [ centerX ]
+                            (Theme.row [ centerX ]
                                 [ Data.gendertropeIconElement option
                                 , case option of
                                     Custom { name } ->
-                                        text (name ++ " [Custom]")
+                                        if
+                                            List.any
+                                                (\r -> (Data.gendertropeToRecord r).name == name)
+                                                Types.standardGendertropes
+                                        then
+                                            text (name ++ " [Custom]")
+
+                                        else
+                                            text name
 
                                     _ ->
                                         text (Data.gendertropeToRecord option).name
                                 ]
-                            ]
+                            )
                     )
                 |> Theme.wrappedRow []
     in
