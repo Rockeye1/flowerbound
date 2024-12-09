@@ -1088,17 +1088,11 @@ viewTurn shared player =
     Theme.column []
         [ el [ Font.bold ] (text "Orgasm")
         , viewOrgasm player
-        , [ viewGenericRolls player
-          , viewMoves player
-          , viewStimulationTable player
-          , viewTemperaments player
-          ]
-            |> List.map
-                (Theme.column [ alignTop, centerX ])
-            |> Theme.row
-                [ Ui.wrap
-                , Ui.widthMax (shared.width - 2 * Theme.rhythm)
-                ]
+        , Theme.column [] (viewTemperaments player)
+        , Theme.column [] (viewStatusChecks player)
+        , Theme.column [] (viewMoves player)
+        , Theme.column []
+            (viewStimulationTable player)
         ]
 
 
@@ -1369,25 +1363,24 @@ viewOrgasm player =
         ]
 
 
-viewGenericRolls : PlayerModel -> List (Element PlayerMsg)
-viewGenericRolls player =
+viewStatusChecks : PlayerModel -> List (Element PlayerMsg)
+viewStatusChecks player =
     let
         viewButtonAndResult : msg -> msg -> Phosphor.IconVariant -> String -> Maybe Int -> List (Element msg)
         viewButtonAndResult rollMsg deleteMsg icon label result =
-            Theme.iconAndTextButton []
+            [ Theme.iconAndTextButton []
                 { icon = icon
                 , onPress = Just rollMsg
                 , label = label
                 }
-                :: viewResult deleteMsg result
+            , Theme.row [] (viewResult deleteMsg result)
+            ]
 
         viewResult : msg -> Maybe Int -> List (Element msg)
         viewResult deleteMsg result =
             case result of
                 Nothing ->
-                    [ text ""
-                    , text ""
-                    ]
+                    []
 
                 Just value ->
                     [ el [ Font.bold, centerY, alignRight ] (text (String.fromInt value))
@@ -1404,6 +1397,9 @@ viewGenericRolls player =
         [ Layout.byContent
         , Layout.byContent
         , Layout.byContent
+        , Layout.byContent
+        , Layout.byContent
+        , Layout.byContent
         ]
         [ Theme.spacing ]
         ([ viewButtonAndResult RollFitnessCheck DeleteFitnessCheck Icons.roll "Fitness" player.fitnessCheck
@@ -1413,6 +1409,7 @@ viewGenericRolls player =
          , viewButtonAndResult RollProwessCheck DeleteProwessCheck Icons.roll "Prowess" player.prowessCheck
          , viewButtonAndResult RollMoxieCheck DeleteMoxieCheck Icons.roll "Moxie" player.moxieCheck
          ]
+            |> List.Extra.transpose
             |> List.concat
         )
     ]
@@ -1482,11 +1479,14 @@ temperamentToString temperament =
 
 viewMoves : PlayerModel -> List (Element PlayerMsg)
 viewMoves player =
-    el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
-        :: text "Choose a move."
-        :: List.map
+    [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
+    , text "Choose a move."
+    , Theme.row [ Ui.wrap ]
+        (List.map
             (viewMove player)
             (defaultMoves ++ featureMoves player.persona)
+        )
+    ]
 
 
 viewMove : PlayerModel -> Move -> Element PlayerMsg
@@ -1496,7 +1496,11 @@ viewMove model move =
         selected =
             model.selectedMove == Just move.name
     in
-    Theme.selectableButton [ Font.alignLeft, width fill ]
+    Theme.selectableButton
+        [ Font.alignLeft
+        , width fill
+        , height fill
+        ]
         { onPress =
             if move.cravingThreshold > model.meters.craving then
                 Nothing
