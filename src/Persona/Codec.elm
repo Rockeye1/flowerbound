@@ -16,7 +16,7 @@ import Persona.Data as Data
 import Result.Extra
 import Rope
 import Route exposing (Route)
-import Types exposing (Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), PartialGendertrope(..), PartialPersona, Persona)
+import Types exposing (Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganOrAppendage, OrganType(..), PartialGendertrope(..), PartialPersona, Persona)
 import Url
 
 
@@ -387,63 +387,84 @@ organToString value =
             else
                 ""
 
-        canString : String
-        canString =
-            if
-                (value.canSquish /= reference.canSquish)
-                    || (value.canGrip /= reference.canGrip)
-                    || (value.canPenetrate /= reference.canPenetrate)
-                    || (value.canEnsheathe /= reference.canEnsheathe)
-            then
-                group "Can"
-                    [ ( "Squish", value.canSquish )
-                    , ( "Grip", value.canGrip )
-                    , ( "Penetrate", value.canPenetrate )
-                    , ( "Ensheathe", value.canEnsheathe )
-                    ]
+        appendagesString : String
+        appendagesString =
+            if value.appendages /= reference.appendages then
+                value.appendages
+                    |> List.map appendageString
+                    |> String.join "\n"
 
             else
                 ""
 
-        isString : String
-        isString =
-            if
-                (value.isSquishable /= reference.isSquishable)
-                    || (value.isGrippable /= reference.isGrippable)
-                    || (value.isPenetrable /= reference.isPenetrable)
-                    || (value.isEnsheatheable /= reference.isEnsheatheable)
-            then
-                group "Is"
-                    [ ( "Squishable", value.isSquishable )
-                    , ( "Grippable", value.isGrippable )
-                    , ( "Penetrable", value.isPenetrable )
-                    , ( "Ensheatheable", value.isEnsheatheable )
-                    ]
-
-            else
-                ""
-
-        group : String -> List ( String, Bool ) -> String
-        group label items =
-            ("\n  - " ++ label ++ ":")
-                :: List.filterMap
-                    (\( item, enable ) ->
-                        if enable then
-                            Just item
-
-                        else
-                            Nothing
-                    )
-                    items
-                |> String.join "\n    - "
+        appendageString : Appendage -> String
+        appendageString app =
+            "\n  - Appendage: "
+                ++ app.name
+                ++ String.join "\n  " (String.split "\n" (canString app value))
+                ++ String.join "\n  " (String.split "\n" (isString app value))
     in
     ( typeString
     , value.name
         ++ contourString
         ++ erogenyString
-        ++ canString
-        ++ isString
+        ++ canString value reference
+        ++ isString value reference
+        ++ appendagesString
     )
+
+
+canString : OrganOrAppendage a -> OrganOrAppendage b -> String
+canString value reference =
+    if
+        (value.canSquish /= reference.canSquish)
+            || (value.canGrip /= reference.canGrip)
+            || (value.canPenetrate /= reference.canPenetrate)
+            || (value.canEnsheathe /= reference.canEnsheathe)
+    then
+        group "Can"
+            [ ( "Squish", value.canSquish )
+            , ( "Grip", value.canGrip )
+            , ( "Penetrate", value.canPenetrate )
+            , ( "Ensheathe", value.canEnsheathe )
+            ]
+
+    else
+        ""
+
+
+isString : OrganOrAppendage a -> OrganOrAppendage b -> String
+isString value reference =
+    if
+        (value.isSquishable /= reference.isSquishable)
+            || (value.isGrippable /= reference.isGrippable)
+            || (value.isPenetrable /= reference.isPenetrable)
+            || (value.isEnsheatheable /= reference.isEnsheatheable)
+    then
+        group "Is"
+            [ ( "Squishable", value.isSquishable )
+            , ( "Grippable", value.isGrippable )
+            , ( "Penetrable", value.isPenetrable )
+            , ( "Ensheatheable", value.isEnsheatheable )
+            ]
+
+    else
+        ""
+
+
+group : String -> List ( String, Bool ) -> String
+group label items =
+    ("\n  - " ++ label ++ ":")
+        :: List.filterMap
+            (\( item, enable ) ->
+                if enable then
+                    Just item
+
+                else
+                    Nothing
+            )
+            items
+        |> String.join "\n    - "
 
 
 organTypeToReference : OrganType -> String -> Organ
@@ -615,8 +636,8 @@ organParser =
                 |. Parser.commit ()
                 |. Parser.spaces
 
-        group : String -> List String -> Parser (Maybe (List String))
-        group label options =
+        groupParser : String -> List String -> Parser (Maybe (List String))
+        groupParser label options =
             Parser.oneOf
                 [ Parser.succeed Just
                     |. Parser.backtrackable (Parser.symbol "-")
@@ -645,46 +666,70 @@ organParser =
                         }
                 , Parser.succeed Nothing
                 ]
+
+        appendageParser : Parser (OrganOrAppendage a -> Appendage)
+        appendageParser =
+            Parser.succeed
+                (\name maybeCan maybeIs partialOrgan ->
+                    { name = name
+                    , canSquish = partialOrgan.canSquish
+                    , canGrip = partialOrgan.canGrip
+                    , canPenetrate = partialOrgan.canPenetrate
+                    , canEnsheathe = partialOrgan.canEnsheathe
+                    , isSquishable = partialOrgan.isSquishable
+                    , isGrippable = partialOrgan.isGrippable
+                    , isPenetrable = partialOrgan.isPenetrable
+                    , isEnsheatheable = partialOrgan.isEnsheatheable
+                    }
+                        |> withCan maybeCan
+                        |> withIs maybeIs
+                )
+                |. Parser.symbol "Appendage"
+                |. Parser.spaces
+                |. Parser.symbol ":"
+                |. Parser.spaces
+                |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
+                |. Parser.spaces
+                |. Parser.spaces
+                |= groupParser "Can"
+                    [ "Squish"
+                    , "Grip"
+                    , "Penetrate"
+                    , "Ensheathe"
+                    ]
+                |= groupParser "Is"
+                    [ "Squishable"
+                    , "Grippable"
+                    , "Penetrable"
+                    , "Ensheatheable"
+                    ]
     in
     Parser.succeed
-        (\type_ name contour erogeny maybeCan maybeIs ->
+        (\type_ name contour erogeny maybeCan maybeIs appendages ->
             let
-                reference : Organ
-                reference =
-                    organTypeToReference type_ name
-
-                withNumbers : Organ
-                withNumbers =
-                    { reference
-                        | contour = contour |> Maybe.withDefault reference.contour
-                        , erogeny = erogeny |> Maybe.withDefault reference.erogeny
+                withNumbersAndAppendages : Organ -> Organ
+                withNumbersAndAppendages partial =
+                    { partial
+                        | contour = contour |> Maybe.withDefault partial.contour
+                        , erogeny = erogeny |> Maybe.withDefault partial.erogeny
                     }
 
-                withCan : Organ
-                withCan =
-                    case maybeCan of
-                        Just can ->
-                            { withNumbers
-                                | canSquish = List.member "Squish" can
-                                , canGrip = List.member "Grip" can
-                                , canPenetrate = List.member "Penetrate" can
-                                , canEnsheathe = List.member "Ensheathe" can
-                            }
+                withAppendages : Organ -> Organ
+                withAppendages partial =
+                    { partial
+                        | appendages =
+                            if List.isEmpty (appendages partial) then
+                                partial.appendages
 
-                        Nothing ->
-                            withNumbers
+                            else
+                                appendages partial
+                    }
             in
-            case maybeIs of
-                Just is ->
-                    { withCan
-                        | isSquishable = List.member "Squishable" is
-                        , isGrippable = List.member "Grippable" is
-                        , isPenetrable = List.member "Penetrable" is
-                        , isEnsheatheable = List.member "Ensheatheable" is
-                    }
-
-                Nothing ->
-                    withCan
+            organTypeToReference type_ name
+                |> withNumbersAndAppendages
+                |> withCan maybeCan
+                |> withIs maybeIs
+                |> withAppendages
         )
         |. Parser.symbol "-"
         |. Parser.spaces
@@ -722,19 +767,64 @@ organParser =
                 |. Parser.spaces
             , Parser.succeed Nothing
             ]
-        |= group "Can"
+        |= groupParser "Can"
             [ "Squish"
             , "Grip"
             , "Penetrate"
             , "Ensheathe"
             ]
-        |= group "Is"
+        |= groupParser "Is"
             [ "Squishable"
             , "Grippable"
             , "Penetrable"
             , "Ensheatheable"
             ]
+        |= (Parser.sequence
+                { start = ""
+                , end = ""
+                , separator = ""
+                , spaces = Parser.spaces
+                , item = appendageParser
+                , trailing = Parser.Optional
+                }
+                |> Parser.map
+                    (\list partial ->
+                        List.map
+                            (\a -> a partial)
+                            list
+                    )
+           )
         |. Parser.spaces
+
+
+withCan : Maybe (List String) -> OrganOrAppendage a -> OrganOrAppendage a
+withCan maybeCan partial =
+    case maybeCan of
+        Just can ->
+            { partial
+                | canSquish = List.member "Squish" can
+                , canGrip = List.member "Grip" can
+                , canPenetrate = List.member "Penetrate" can
+                , canEnsheathe = List.member "Ensheathe" can
+            }
+
+        Nothing ->
+            partial
+
+
+withIs : Maybe (List String) -> OrganOrAppendage a -> OrganOrAppendage a
+withIs maybeIs partial =
+    case maybeIs of
+        Just is ->
+            { partial
+                | isSquishable = List.member "Squishable" is
+                , isGrippable = List.member "Grippable" is
+                , isPenetrable = List.member "Penetrable" is
+                , isEnsheatheable = List.member "Ensheatheable" is
+            }
+
+        Nothing ->
+            partial
 
 
 featureParser : Parser Feature
