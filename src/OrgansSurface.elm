@@ -1,7 +1,7 @@
 module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, organWidth, view, width)
 
 import Color
-import Color.Oklch
+import Color.Oklch as Oklch exposing (Oklch)
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Lazy
@@ -28,11 +28,11 @@ type alias OrganPosition =
 
 organColors : List Color
 organColors =
-    [ Color.Oklch.oklch 0.93 0.03 0
-    , Color.Oklch.oklch 0.93 0.03 (1 / 3)
-    , Color.Oklch.oklch 0.93 0.03 (2 / 3)
+    [ Oklch.oklch 0.9 0.04 0
+    , Oklch.oklch 0.9 0.04 (1 / 3)
+    , Oklch.oklch 0.9 0.04 (2 / 3)
     ]
-        |> List.map Color.Oklch.toColor
+        |> List.map Oklch.toColor
 
 
 width : number
@@ -292,7 +292,22 @@ viewOrgan persona color pos organ appendage =
             [ Svg.Attributes.width (String.fromFloat organWidth)
             , Svg.Attributes.height (String.fromFloat organHeight)
             , Svg.Attributes.stroke "black"
-            , Svg.Attributes.fill (Color.toCssString color)
+            , Svg.Attributes.fill
+                (Color.toCssString
+                    (if appendage == Nothing then
+                        color
+
+                     else
+                        let
+                            oklch : Oklch
+                            oklch =
+                                color
+                                    |> Oklch.fromColor
+                        in
+                        { oklch | chroma = 0.5 * oklch.chroma }
+                            |> Oklch.toColor
+                    )
+                )
             ]
             []
         , Persona.Data.organTypeToIcon organ.type_
