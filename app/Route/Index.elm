@@ -1086,8 +1086,7 @@ restParagraph =
 viewTurn : Shared.Model -> PlayerModel -> Element PlayerMsg
 viewTurn shared player =
     Theme.column []
-        [ el [ Font.bold ] (text "Orgasm")
-        , viewOrgasm player
+        [ Theme.column [] (viewOrgasm player)
         , Theme.column [] (viewTemperaments player)
         , Theme.column [] (viewStatusChecks player)
         , Theme.column [] (viewMoves player)
@@ -1249,7 +1248,7 @@ viewOrgans shared model =
         ]
 
 
-viewOrgasm : PlayerModel -> Element PlayerMsg
+viewOrgasm : PlayerModel -> List (Element PlayerMsg)
 viewOrgasm player =
     let
         meters : Meters
@@ -1276,89 +1275,89 @@ viewOrgasm player =
         isOrgasm =
             meters.arousal > orgasmThreshold
     in
-    Theme.column []
-        [ if isOrgasm then
-            paragraph
-                [ Theme.padding
-                , Ui.border 1
-                , Ui.background Theme.purple
-                , Font.color Theme.white
-                ]
-                (if player.selectedTemperament == Just Valiant then
-                    [ text "You are having an orgasm!"
-                    ]
-
-                 else
-                    [ text "You are having an orgasm! (You can try resisting "
-                    , el [ Font.bold ] (text "Valiant")
-                    , text "ly though)"
-                    ]
-                )
-
-          else
-            paragraph
-                [ Theme.padding
-                , Ui.border 1
-                ]
-                (if player.selectedTemperament == Just Valiant && meters.arousal > meters.sensitivity + meters.satiation then
-                    [ text "You are resisting "
-                    , el [ Font.bold ] (text "Valiant")
-                    , text "ly."
-                    ]
-
-                 else
-                    [ text "You are not having an orgasm (yet!)." ]
-                )
-        , paragraph []
-            [ text ("Arousal: " ++ String.fromInt meters.arousal)
-            , el [ Font.bold ] <|
-                if meters.arousal <= orgasmThreshold then
-                    text " ≤ "
-
-                else
-                    text " > "
-            , text
-                ("Orgasm Threshold: "
-                    ++ String.fromInt meters.sensitivity
-                    ++ " (Sensitivity) + "
-                    ++ String.fromInt meters.satiation
-                    ++ " (Satiation) + "
-                    ++ String.fromInt modifiers
-                    ++ " (Modifiers) = "
-                    ++ String.fromInt orgasmThreshold
-                )
+    [ el [ Font.bold ] (text "Orgasm")
+    , if isOrgasm then
+        paragraph
+            [ Theme.padding
+            , Ui.border 1
+            , Ui.background Theme.purple
+            , Font.color Theme.white
             ]
-        , if player.selectedTemperament == Just Valiant then
-            Theme.row []
-                [ if player.valiantModifier > meters.stamina then
-                    paragraph []
-                        [ text "You are being "
-                        , el [ Font.bold ] (text "Valiant")
-                        , text " which currently gives you a +"
-                        , el [ Font.bold ] (text (String.fromInt meters.stamina))
-                        , text " modifier to your Orgasm Threshold."
-                        ]
-
-                  else
-                    paragraph []
-                        [ text "You are trying being "
-                        , el [ Font.bold ] (text "Valiant")
-                        , text " which would give you a +"
-                        , el [ Font.bold ] (text (String.fromInt meters.stamina))
-                        , text " modifier to your Orgasm Threshold, but you only rolled "
-                        , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
-                        , text "."
-                        ]
-                , Theme.iconButton [ width shrink, alignRight ]
-                    { onPress = Just RollValiantModifier
-                    , icon = Icons.roll
-                    , title = "Re-Roll"
-                    }
+            (if player.selectedTemperament == Just Valiant then
+                [ text "You are having an orgasm!"
                 ]
 
-          else
-            Ui.none
+             else
+                [ text "You are having an orgasm! (You can try resisting "
+                , el [ Font.bold ] (text "Valiant")
+                , text "ly though)"
+                ]
+            )
+
+      else
+        paragraph
+            [ Theme.padding
+            , Ui.border 1
+            ]
+            (if player.selectedTemperament == Just Valiant && meters.arousal > meters.sensitivity + meters.satiation then
+                [ text "You are resisting "
+                , el [ Font.bold ] (text "Valiant")
+                , text "ly."
+                ]
+
+             else
+                [ text "You are not having an orgasm (yet!)." ]
+            )
+    , paragraph []
+        [ text ("Arousal: " ++ String.fromInt meters.arousal)
+        , el [ Font.bold ] <|
+            if meters.arousal <= orgasmThreshold then
+                text " ≤ "
+
+            else
+                text " > "
+        , text
+            ("Orgasm Threshold: "
+                ++ String.fromInt meters.sensitivity
+                ++ " (Sensitivity) + "
+                ++ String.fromInt meters.satiation
+                ++ " (Satiation) + "
+                ++ String.fromInt modifiers
+                ++ " (Modifiers) = "
+                ++ String.fromInt orgasmThreshold
+            )
         ]
+    , if player.selectedTemperament == Just Valiant then
+        Theme.row []
+            [ if player.valiantModifier > meters.stamina then
+                paragraph []
+                    [ text "You are being "
+                    , el [ Font.bold ] (text "Valiant")
+                    , text " which currently gives you a +"
+                    , el [ Font.bold ] (text (String.fromInt meters.stamina))
+                    , text " modifier to your Orgasm Threshold."
+                    ]
+
+              else
+                paragraph []
+                    [ text "You are trying being "
+                    , el [ Font.bold ] (text "Valiant")
+                    , text " which would give you a +"
+                    , el [ Font.bold ] (text (String.fromInt meters.stamina))
+                    , text " modifier to your Orgasm Threshold, but you only rolled "
+                    , el [ Font.bold ] (text (String.fromInt player.valiantModifier))
+                    , text "."
+                    ]
+            , Theme.iconButton [ width shrink, alignRight ]
+                { onPress = Just RollValiantModifier
+                , icon = Icons.roll
+                , title = "Re-Roll"
+                }
+            ]
+
+      else
+        Ui.none
+    ]
 
 
 viewStatusChecks : PlayerModel -> List (Element PlayerMsg)
