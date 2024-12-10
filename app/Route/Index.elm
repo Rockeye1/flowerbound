@@ -387,7 +387,7 @@ innerUpdate msg model =
                         | organsPositions =
                             Dict.insert key
                                 ( Point2d.translateBy delta position
-                                    |> clipOrganPosition
+                                    |> clipOrganPosition model
                                 , zOrder
                                 )
                                 model.organsPositions
@@ -848,15 +848,15 @@ trySnapHorizontallyToPoint snapPoint organPos =
                     Nothing
 
 
-clipOrganPosition : Point2d Pixels () -> Point2d Pixels ()
-clipOrganPosition position =
+clipOrganPosition : PlayingModel -> Point2d Pixels () -> Point2d Pixels ()
+clipOrganPosition model position =
     let
         { x, y } =
             Point2d.toPixels position
     in
     Point2d.pixels
         (clamp 0 (OrgansSurface.width - OrgansSurface.organWidth) x)
-        (clamp 0 (OrgansSurface.height - OrgansSurface.organHeight) y)
+        (clamp 0 (OrgansSurface.height model - OrgansSurface.organHeight) y)
 
 
 getNewZOrder : Dict OrganKey OrganPosition -> Int
@@ -1168,7 +1168,7 @@ viewOrgans shared model =
         |> Ui.html
         |> Theme.el
             [ width <| px OrgansSurface.width
-            , height <| px (ceiling OrgansSurface.height)
+            , height <| px (ceiling (OrgansSurface.height model))
             , Ui.border 1
             , Ui.background Theme.lightPurple
             ]
@@ -1178,7 +1178,7 @@ viewOrgans shared model =
                 |> min (shared.width - 2 * Theme.rhythm)
                 |> px
                 |> width
-            , height <| px <| floor (OrgansSurface.height + 8)
+            , height <| px <| floor (OrgansSurface.height model + 8)
             , Ui.scrollableX
             ]
     ]

@@ -37,12 +37,7 @@ organColors =
 
 width : number
 width =
-    1600
-
-
-height : Float
-height =
-    width * 9 / 16
+    1400
 
 
 organWidth : number
@@ -79,7 +74,7 @@ view config model =
             , [ 0
               , 0
               , width
-              , height
+              , height model
               ]
                 |> List.map String.fromFloat
                 |> String.join " "
@@ -93,6 +88,15 @@ view config model =
                     Svg.Attributes.class ""
             , Svg.Events.onMouseUp config.mouseUp
             ]
+
+
+height :
+    { a
+        | organsPositions : Dict OrganKey OrganPosition
+    }
+    -> Float
+height model =
+    44 * toFloat (Dict.size model.organsPositions)
 
 
 outerViewOrgan :
