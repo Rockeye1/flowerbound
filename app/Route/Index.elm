@@ -243,7 +243,15 @@ checkOrgans model =
                         persona.gendertrope
                             |> Persona.Data.gendertropeToRecord
                             |> .organs
-                            |> List.map (\{ name } -> ( index - 1, name ))
+                            |> List.concatMap
+                                (\organ ->
+                                    ( index - 1, organ.name )
+                                        :: List.map
+                                            (\appendage ->
+                                                ( index - 1, organ.name ++ "-" ++ appendage.name )
+                                            )
+                                            organ.appendages
+                                )
                     )
                 |> List.concat
                 |> Set.fromList

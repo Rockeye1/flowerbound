@@ -16,7 +16,7 @@ import Persona.Data as Data
 import Result.Extra
 import Rope
 import Route exposing (Route)
-import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), PartialGendertrope(..), PartialPersona, Persona)
+import Types exposing (Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), PartialGendertrope(..), PartialPersona, Persona)
 import Url
 
 
@@ -867,6 +867,22 @@ organ =
         |> Codec.field .type_ organTypeCodec
         |> Codec.field .contour Codec.nonNegativeInt
         |> Codec.field .erogeny Codec.nonNegativeInt
+        |> Codec.field .appendages (Codec.list appendage)
+        |> Codec.field .canSquish Codec.bool
+        |> Codec.field .canGrip Codec.bool
+        |> Codec.field .canPenetrate Codec.bool
+        |> Codec.field .canEnsheathe Codec.bool
+        |> Codec.field .isSquishable Codec.bool
+        |> Codec.field .isGrippable Codec.bool
+        |> Codec.field .isPenetrable Codec.bool
+        |> Codec.field .isEnsheatheable Codec.bool
+        |> Codec.buildObject
+
+
+appendage : Codec e Appendage
+appendage =
+    Codec.object Appendage
+        |> Codec.field .name Codec.string
         |> Codec.field .canSquish Codec.bool
         |> Codec.field .canGrip Codec.bool
         |> Codec.field .canPenetrate Codec.bool

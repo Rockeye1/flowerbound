@@ -5,7 +5,7 @@ import Icons
 import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
-import Types exposing (Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..))
+import Types exposing (Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..))
 import Ui exposing (Element)
 
 
@@ -98,6 +98,21 @@ emptyOrgan =
     , type_ = Other
     , contour = 0
     , erogeny = 0
+    , appendages = []
+    , canSquish = False
+    , canGrip = False
+    , canPenetrate = False
+    , canEnsheathe = False
+    , isSquishable = False
+    , isGrippable = False
+    , isPenetrable = False
+    , isEnsheatheable = False
+    }
+
+
+emptyAppendage : Appendage
+emptyAppendage =
+    { name = ""
     , canSquish = False
     , canGrip = False
     , canPenetrate = False
@@ -136,6 +151,35 @@ hands name =
         , isGrippable = True
         , isEnsheatheable = True
     }
+        |> bilateral
+
+
+bilateral : Organ -> Organ
+bilateral organ =
+    { organ
+        | appendages =
+            [ { name = "Left"
+              , canSquish = organ.canSquish
+              , canGrip = organ.canGrip
+              , canPenetrate = organ.canPenetrate
+              , canEnsheathe = organ.canEnsheathe
+              , isSquishable = organ.isSquishable
+              , isGrippable = organ.isGrippable
+              , isPenetrable = organ.isPenetrable
+              , isEnsheatheable = organ.isEnsheatheable
+              }
+            , { name = "Right"
+              , canSquish = organ.canSquish
+              , canGrip = organ.canGrip
+              , canPenetrate = organ.canPenetrate
+              , canEnsheathe = organ.canEnsheathe
+              , isSquishable = organ.isSquishable
+              , isGrippable = organ.isGrippable
+              , isPenetrable = organ.isPenetrable
+              , isEnsheatheable = organ.isEnsheatheable
+              }
+            ]
+    }
 
 
 breasts : String -> Organ
@@ -149,6 +193,7 @@ breasts name =
         , isSquishable = True
         , isGrippable = True
     }
+        |> bilateral
 
 
 hips : String -> Organ
@@ -158,6 +203,19 @@ hips name =
         , type_ = Hips
         , contour = 1
         , erogeny = 4
+        , appendages =
+            [ { emptyAppendage
+                | name = "Orifice"
+                , isPenetrable = True
+                , canEnsheathe = True
+              }
+            , { emptyAppendage
+                | name = "Flanks"
+                , isSquishable = True
+                , isGrippable = True
+                , canSquish = True
+              }
+            ]
         , canSquish = True
         , canEnsheathe = True
         , isSquishable = True
@@ -176,6 +234,7 @@ legs name =
         , canSquish = True
         , isGrippable = True
     }
+        |> bilateral
 
 
 phallic : String -> Organ

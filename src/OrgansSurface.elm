@@ -1,5 +1,7 @@
 module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, organWidth, view, width)
 
+import Color
+import Color.Oklch
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Lazy
@@ -12,7 +14,8 @@ import Point2d exposing (Point2d)
 import Svg
 import Svg.Attributes
 import Svg.Events
-import Types exposing (Action(..), Organ, Persona)
+import Types exposing (Action(..), Appendage, Organ, Persona)
+import Ui exposing (Color)
 
 
 type alias OrganKey =
@@ -23,12 +26,13 @@ type alias OrganPosition =
     ( Point2d Pixels (), Int )
 
 
-organColors : List String
+organColors : List Color
 organColors =
-    [ "#f0e0e0"
-    , "#e0f0e0"
-    , "#e0e0f0"
+    [ Color.Oklch.oklch 0.93 0.03 0
+    , Color.Oklch.oklch 0.93 0.03 (1 / 3)
+    , Color.Oklch.oklch 0.93 0.03 (2 / 3)
     ]
+        |> List.map Color.Oklch.toColor
 
 
 width : number
@@ -118,21 +122,37 @@ outerViewOrgan model ( ( i, organName ), ( pos, _ ) ) =
                 persona.gendertrope
                     |> Persona.Data.gendertropeToRecord
                     |> .organs
-                    |> List.Extra.find (\organ -> organ.name == organName)
+                    |> List.Extra.findMap
+                        (\organ ->
+                            if organ.name == organName then
+                                Just ( organ, Nothing )
+
+                            else
+                                List.Extra.findMap
+                                    (\appendage ->
+                                        if organ.name ++ "-" ++ appendage.name == organName then
+                                            -- TODO: this breaks lazy
+                                            Just ( organ, Just appendage )
+
+                                        else
+                                            Nothing
+                                    )
+                                    organ.appendages
+                        )
             of
                 Nothing ->
                     []
 
-                Just organ ->
+                Just ( organ, appendage ) ->
                     let
-                        color : String
+                        color : Color
                         color =
                             organColors
                                 |> List.drop (modBy (List.length organColors) i)
                                 |> List.head
-                                |> Maybe.withDefault "white"
+                                |> Maybe.withDefault Color.white
                     in
-                    [ Html.Lazy.lazy4 viewOrgan persona color pos organ ]
+                    [ Html.Lazy.lazy5 viewOrgan persona color pos organ appendage ]
 
 
 type TextAnchor
@@ -140,8 +160,8 @@ type TextAnchor
     | AnchorEnd
 
 
-viewOrgan : Persona -> String -> Point2d Pixels () -> Organ -> Svg.Svg msg
-viewOrgan persona color pos organ =
+viewOrgan : Persona -> Color -> Point2d Pixels () -> Organ -> Maybe Appendage -> Svg.Svg msg
+viewOrgan persona color pos organ appendage =
     let
         { x, y } =
             Point2d.toPixels pos
@@ -196,8 +216,15 @@ viewOrgan persona color pos organ =
                         )
                     ]
 
-        iifLeft : Bool -> Action -> Float -> Svg.Svg msg
-        iifLeft condition action dy =
+        iifLeft : (Organ -> Bool) -> (Appendage -> Bool) -> Action -> Float -> Svg.Svg msg
+        iifLeft toConditionO toConditionA action dy =
+            let
+                condition : Bool
+                condition =
+                    appendage
+                        |> Maybe.map toConditionA
+                        |> Maybe.withDefault (toConditionO organ)
+            in
             Svg.g
                 [ if condition then
                     Svg.Attributes.fill "black"
@@ -223,8 +250,15 @@ viewOrgan persona color pos organ =
                 , Svg.title [] [ Svg.text (Types.actionToIs action) ]
                 ]
 
-        iifRight : Bool -> Action -> Float -> Svg.Svg msg
-        iifRight condition attribute dy =
+        iifRight : (Organ -> Bool) -> (Appendage -> Bool) -> Action -> Float -> Svg.Svg msg
+        iifRight toConditionO toConditionA attribute dy =
+            let
+                condition : Bool
+                condition =
+                    appendage
+                        |> Maybe.map toConditionA
+                        |> Maybe.withDefault (toConditionO organ)
+            in
             Svg.g
                 [ if condition then
                     Svg.Attributes.fill "black"
@@ -258,7 +292,7 @@ viewOrgan persona color pos organ =
             [ Svg.Attributes.width (String.fromFloat organWidth)
             , Svg.Attributes.height (String.fromFloat organHeight)
             , Svg.Attributes.stroke "black"
-            , Svg.Attributes.fill color
+            , Svg.Attributes.fill (Color.toCssString color)
             ]
             []
         , Persona.Data.organTypeToIcon organ.type_
@@ -271,7 +305,7 @@ viewOrgan persona color pos organ =
         , textAt []
             { x = 28
             , y = 0
-            , label = organ.name
+            , label = Maybe.withDefault organ.name (Maybe.map .name appendage)
             , anchor = AnchorStart
             }
         , Persona.Data.gendertropeIcon persona.gendertrope
@@ -293,14 +327,14 @@ viewOrgan persona color pos organ =
             , label = "Erogeny: " ++ String.fromInt organ.erogeny
             , anchor = AnchorEnd
             }
-        , iifRight organ.canSquish Squishes 2
-        , iifRight organ.canGrip Grips 3
-        , iifRight organ.canPenetrate Penetrates 4
-        , iifRight organ.canEnsheathe Ensheathes 5
-        , iifLeft organ.isSquishable Squishes 2
-        , iifLeft organ.isGrippable Grips 3
-        , iifLeft organ.isPenetrable Penetrates 4
-        , iifLeft organ.isEnsheatheable Ensheathes 5
+        , iifRight .canSquish .canSquish Squishes 2
+        , iifRight .canGrip .canGrip Grips 3
+        , iifRight .canPenetrate .canPenetrate Penetrates 4
+        , iifRight .canEnsheathe .canEnsheathe Ensheathes 5
+        , iifLeft .isSquishable .isSquishable Squishes 2
+        , iifLeft .isGrippable .isGrippable Grips 3
+        , iifLeft .isPenetrable .isPenetrable Penetrates 4
+        , iifLeft .isEnsheatheable .isEnsheatheable Ensheathes 5
         ]
 
 

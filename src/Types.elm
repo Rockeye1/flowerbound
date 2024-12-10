@@ -1,4 +1,4 @@
-module Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Move, Organ, OrganType(..), PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), actionToCan, actionToCanIcon, actionToInitial, actionToIs, actionToIsIcon, actionToString, standardGendertropes, stimulationTypeToString)
+module Types exposing (Action(..), Appendage, Feature, Gendertrope(..), GendertropeRecord, Move, Organ, OrganOrAppendage, OrganType(..), PartialGendertrope(..), PartialPersona, Persona, StimulationType(..), actionToCan, actionToCanIcon, actionToInitial, actionToIs, actionToIsIcon, actionToString, standardGendertropes, stimulationTypeToString)
 
 import Dict exposing (Dict)
 import Icons
@@ -101,6 +101,7 @@ type alias Organ =
     , type_ : OrganType
     , contour : Int
     , erogeny : Int
+    , appendages : List Appendage
     , canSquish : Bool
     , canGrip : Bool
     , canPenetrate : Bool
@@ -109,6 +110,33 @@ type alias Organ =
     , isGrippable : Bool
     , isPenetrable : Bool
     , isEnsheatheable : Bool
+    }
+
+
+type alias Appendage =
+    { name : String
+    , canSquish : Bool
+    , canGrip : Bool
+    , canPenetrate : Bool
+    , canEnsheathe : Bool
+    , isSquishable : Bool
+    , isGrippable : Bool
+    , isPenetrable : Bool
+    , isEnsheatheable : Bool
+    }
+
+
+type alias OrganOrAppendage a =
+    { a
+        | name : String
+        , canSquish : Bool
+        , canGrip : Bool
+        , canPenetrate : Bool
+        , canEnsheathe : Bool
+        , isSquishable : Bool
+        , isGrippable : Bool
+        , isPenetrable : Bool
+        , isEnsheatheable : Bool
     }
 
 
