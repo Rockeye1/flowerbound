@@ -148,21 +148,24 @@ nameRow config persona =
             ]
         , let
             { id, element } =
-                Input.label "hue-slider" [] (text "Hue")
+                Input.label "hue-slider" [ width shrink ] (text "Hue")
+
+            hue : Float
+            hue =
+                Maybe.withDefault Persona.defaultHue persona.hue
           in
           Theme.row []
             [ element
-            , Input.sliderHorizontal []
+            , Input.sliderHorizontal [ width fill ]
                 { label = id
                 , min = 0
                 , max = 360
                 , step = Nothing
                 , thumb = Nothing
                 , onChange = \newHue -> config.update { persona | hue = Just newHue }
-                , value =
-                    persona.hue
-                        |> Maybe.withDefault Persona.defaultHue
+                , value = hue
                 }
+            , text (String.fromInt (round hue))
             ]
         ]
 
