@@ -1,4 +1,5 @@
 - Turn tracker
+- UI for appendages customization
 - Collapsible sections
 - Use IP to up organ stats
 - Log of actions
