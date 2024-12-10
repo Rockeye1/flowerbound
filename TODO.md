@@ -1,4 +1,3 @@
-- Hide button
 - Dark mode
 - Save/restore play area
 - UI for show/hide appendages

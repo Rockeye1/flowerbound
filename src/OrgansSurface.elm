@@ -2,6 +2,7 @@ module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, org
 
 import Dict exposing (Dict)
 import Html exposing (Html)
+import Icons
 import Json.Decode
 import List.Extra
 import List.NonEmpty exposing (NonEmpty)
@@ -324,33 +325,50 @@ viewOrgan config persona color pos organ appendage =
                 , Svg.title [] [ Svg.text (Types.actionToCan attribute) ]
                 ]
 
-        chevron : Svg.Svg msg
-        chevron =
+        centerButtons : List (Svg.Svg msg)
+        centerButtons =
             if appendage == Nothing && not (List.isEmpty organ.appendages) then
-                Svg.g [ Svg.Events.onClick config.showAppendages ]
-                    [ Svg.rect
-                        [ Svg.Attributes.x (String.fromFloat (organWidth / 2 - 16))
-                        , Svg.Attributes.y "28"
-                        , Svg.Attributes.width "32"
-                        , Svg.Attributes.height (String.fromFloat (organHeight - 32))
-                        , Svg.Attributes.fill
-                            (Ui.colorToCss (Theme.toAccent color))
-                        , Svg.Attributes.stroke "black"
-                        ]
-                        []
-                    , Svg.text_
-                        [ Svg.Attributes.x "29"
-                        , Svg.Attributes.y (String.fromFloat (-organWidth / 2))
-                        , Svg.Attributes.textAnchor "start"
-                        , Svg.Attributes.dominantBaseline "middle"
-                        , Svg.Attributes.transform "rotate(90)"
-                        , Svg.Attributes.fill "white"
-                        ]
-                        [ Svg.text "Appendages >" ]
-                    ]
+                [ centerButton 0 Icons.plus config.showAppendages
+                , centerButton 1 Icons.hide config.hideOrganOrAppendage
+                ]
 
             else
-                Svg.g [] []
+                [ centerButton 0 Icons.hide config.hideOrganOrAppendage ]
+
+        centerButton : Int -> IconVariant -> msg -> Svg.Svg msg
+        centerButton index icon msg =
+            let
+                buttonY : Float
+                buttonY =
+                    organHeight - 40 * (toFloat index + 1)
+            in
+            Svg.g
+                [ Svg.Events.onClick msg
+                , Svg.Attributes.cursor "pointer"
+                ]
+                [ Svg.rect
+                    [ Svg.Attributes.x (String.fromFloat (organWidth / 2 - 16))
+                    , Svg.Attributes.y (String.fromFloat buttonY)
+                    , Svg.Attributes.width "32"
+                    , Svg.Attributes.height "32"
+                    , Svg.Attributes.fill (Ui.colorToCss (Theme.toAccent color))
+                    , Svg.Attributes.stroke "black"
+                    ]
+                    []
+                , icon
+                    |> Phosphor.withSize 24
+                    |> Phosphor.withSizeUnit "px"
+                    |> Phosphor.toHtml
+                        [ Svg.Attributes.transform
+                            ("translate("
+                                ++ String.fromFloat (organWidth / 2 - 12)
+                                ++ " "
+                                ++ String.fromFloat (buttonY + 4)
+                                ++ ")"
+                            )
+                        , Svg.Attributes.fill "white"
+                        ]
+                ]
     in
     Svg.g
         [ Svg.Attributes.transform
@@ -411,7 +429,7 @@ viewOrgan config persona color pos organ appendage =
         , iifLeft .isGrippable .isGrippable Grips 3
         , iifLeft .isPenetrable .isPenetrable Penetrates 4
         , iifLeft .isEnsheatheable .isEnsheatheable Ensheathes 5
-        , chevron
+        , Svg.g [] centerButtons
         ]
 
 

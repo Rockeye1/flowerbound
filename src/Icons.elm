@@ -5,6 +5,7 @@ module Icons exposing
     , buck, butterfly, custom, doll, fiend, flower, vixen
     , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
     , toElement
+    , hide
     )
 
 {-|
@@ -401,3 +402,8 @@ other =
 delete : Phosphor.IconVariant
 delete =
     Phosphor.trash Phosphor.Duotone
+
+
+hide : Phosphor.IconVariant
+hide =
+    Phosphor.eyeSlash Phosphor.Duotone
