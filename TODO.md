@@ -1,6 +1,5 @@
 - Dark mode
 - Save/restore play area
-- Customize organ color
 - UI for show/hide appendages
 - Legs and Bosom appendages
 - UI for appendages customization
