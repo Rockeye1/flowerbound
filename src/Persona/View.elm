@@ -7,13 +7,13 @@ import Persona.Codec
 import Persona.Data as Data
 import Phosphor exposing (IconVariant)
 import Site
-import Theme
+import Theme exposing (Attribute, Element)
 import Types exposing (Action(..), Feature, GendertropeRecord, Organ, Persona)
-import Ui exposing (Attribute, Element, alignRight, centerX, centerY, el, fill, height, padding, px, row, shrink, spacing, text, width)
-import Ui.Font as Font
-import Ui.Input as Input
-import Ui.Layout as Layout
-import Ui.Prose exposing (paragraph)
+import Ui.WithContext as Ui exposing (alignRight, centerX, centerY, el, fill, height, padding, px, row, shrink, spacing, text, width)
+import Ui.WithContext.Font as Font
+import Ui.WithContext.Input as Input
+import Ui.WithContext.Layout as Layout
+import Ui.WithContext.Prose exposing (paragraph)
 
 
 type alias Config msg =
@@ -34,26 +34,22 @@ persona attrs config =
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
             Data.gendertropeToRecord input.gendertrope
-
-        colors : Persona.Colors
-        colors =
-            Persona.toColors input
     in
     Theme.column
         (Ui.border 1
             :: Ui.width (px 640)
-            :: Ui.background colors.background
+            :: Theme.backgroundColorBackground
             :: Theme.padding
             :: attrs
         )
         [ let
             label : { element : Element msg, id : Input.Label }
             label =
-                Input.label "url" [ width shrink ] (text "URL")
+                Input.label "url" [ width shrink ] (Ui.text "URL")
           in
           Theme.row []
             (label.element
-                :: Theme.input [ Font.color colors.accent ]
+                :: Theme.input []
                     { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input
                     , onChange =
                         \newUrl ->
@@ -63,11 +59,11 @@ persona attrs config =
                     , placeholder = Nothing
                     , label = label.id
                     }
-                :: topButtons config colors
+                :: topButtons config
             )
         , Theme.row
             [ centerX
-            , Font.color colors.accent
+            , Theme.fontColorAccent
             ]
             [ Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text input.name)
@@ -75,19 +71,19 @@ persona attrs config =
             ]
         , Theme.row [ centerX ]
             [ viewAbilities input
-            , viewStatus input colors
+            , viewStatus input
             ]
         , Theme.row
             [ centerX
-            , Font.color colors.accent
+            , Theme.fontColorAccent
             ]
             [ Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text gendertropeRecord.name)
             , Data.gendertropeIconElement input.gendertrope
             ]
         , paragraph [ Font.italic ] [ text gendertropeRecord.description ]
-        , viewOrgans gendertropeRecord.organs colors
-        , viewStandardFeatures input.features gendertropeRecord colors
+        , viewOrgans gendertropeRecord.organs
+        , viewStandardFeatures input.features gendertropeRecord
         ]
 
 
@@ -109,8 +105,8 @@ viewAbilities input =
         |> Layout.rowWithConstraints [ Layout.fill, Layout.byContent ] [ Theme.spacing ]
 
 
-viewStatus : Persona -> Persona.Colors -> Element msg
-viewStatus input colors =
+viewStatus : Persona -> Element msg
+viewStatus input =
     let
         statusRow : String -> Int -> ( String, Int )
         statusRow label bonusToCap =
@@ -144,7 +140,7 @@ viewStatus input colors =
                 , bottom = 0
                 , right = 0
                 }
-            , Ui.borderColor colors.accent
+            , Theme.borderColorAccent
             , Theme.spacing
             ]
 
@@ -191,8 +187,8 @@ tallyMark =
         Ui.none
 
 
-viewStandardFeatures : List Int -> GendertropeRecord -> Persona.Colors -> Element msg
-viewStandardFeatures features gendertropeRecord colors =
+viewStandardFeatures : List Int -> GendertropeRecord -> Element msg
+viewStandardFeatures features gendertropeRecord =
     let
         viewStandardFeature : ( Int, Feature ) -> Element msg
         viewStandardFeature ( level, feature ) =
@@ -201,7 +197,7 @@ viewStandardFeatures features gendertropeRecord colors =
                 , Theme.padding
                 ]
                 (paragraph
-                    [ Font.color colors.accent
+                    [ Theme.fontColorAccent
                     , Font.underline
                     ]
                     [ text ("Level " ++ String.fromInt level ++ " Feature: ")
@@ -217,13 +213,12 @@ viewStandardFeatures features gendertropeRecord colors =
         |> Theme.column []
 
 
-topButtons : Config msg -> Persona.Colors -> List (Element msg)
-topButtons config colors =
+topButtons : Config msg -> List (Element msg)
+topButtons config =
     [ Theme.iconButton [ alignRight ]
         { onPress = Just config.upload
         , icon = Icons.upload
         , title = "Upload"
-        , accentColor = colors.accent
         }
     , case config.remove of
         Nothing ->
@@ -234,13 +229,12 @@ topButtons config colors =
                 { onPress = Just remove
                 , icon = Icons.remove
                 , title = "Remove"
-                , accentColor = colors.accent
                 }
     ]
 
 
-viewOrgans : List Organ -> Persona.Colors -> Element msg
-viewOrgans input colors =
+viewOrgans : List Organ -> Element msg
+viewOrgans input =
     let
         wrap : Int -> List (Attribute msg) -> Element msg -> Element msg
         wrap index attrs child =
@@ -271,7 +265,7 @@ viewOrgans input colors =
         boolColumn : IconVariant -> (c -> Bool) -> c -> Element msg
         boolColumn img prop organ =
             if prop organ then
-                el [ centerX, Font.color colors.accent ] (Icons.toElement img)
+                el [ centerX, Theme.fontColorAccent ] (Icons.toElement img)
 
             else
                 Ui.none
@@ -309,7 +303,7 @@ viewOrgans input colors =
         |> List.indexedMap
             (\index element ->
                 [ text element.name
-                , el [ centerX, Font.color colors.accent ] (Icons.toElement (Data.organTypeToIcon element.type_))
+                , el [ centerX, Theme.fontColorAccent ] (Icons.toElement (Data.organTypeToIcon element.type_))
                 , intColumn .contour element
                 , intColumn .erogeny element
                 , canColumn Squishes .canSquish element

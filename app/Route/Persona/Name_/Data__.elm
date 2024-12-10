@@ -23,7 +23,7 @@ import Shared
 import Site
 import Theme
 import Types exposing (GendertropeRecord, PartialPersona, Persona)
-import Ui
+import Ui.WithContext as Ui
 import Url
 import UrlPath exposing (UrlPath)
 import View exposing (View)
@@ -247,6 +247,7 @@ view app shared model =
             { persona = model
             , flipped = shared.flipped
             }
+            |> Ui.replaceContext { colors = Persona.toColors model }
             |> Theme.el [ Theme.padding ]
             |> Ui.map PagesMsg.fromMsg
     }

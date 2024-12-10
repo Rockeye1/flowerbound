@@ -44,10 +44,10 @@ module Icons exposing
 import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
-import Ui exposing (Element, el)
+import Ui.WithContext as Ui exposing (Element, el)
 
 
-toElement : IconVariant -> Element msg
+toElement : IconVariant -> Element context msg
 toElement variant =
     variant
         |> Phosphor.toHtml []

@@ -6,10 +6,10 @@ import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
 import Types exposing (Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..))
-import Ui exposing (Element)
+import Ui.WithContext as Ui exposing (Element)
 
 
-gendertropeIconElement : Gendertrope -> Element msg
+gendertropeIconElement : Gendertrope -> Element context msg
 gendertropeIconElement gendertrope =
     gendertropeIcon gendertrope
         |> Icons.toElement

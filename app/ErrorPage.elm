@@ -1,8 +1,8 @@
 module ErrorPage exposing (ErrorPage(..), Model, Msg, init, internalError, notFound, statusCode, update, view)
 
 import Effect exposing (Effect)
-import Ui exposing (text)
-import Ui.Prose exposing (paragraph)
+import Ui.WithContext as Ui exposing (text)
+import Ui.WithContext.Prose exposing (paragraph)
 import View exposing (View)
 
 

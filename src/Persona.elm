@@ -280,7 +280,7 @@ type alias Colors =
 
 
 toColors :
-    Persona
+    { a | hue : Maybe Float }
     -> Colors
 toColors persona =
     let

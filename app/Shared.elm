@@ -8,12 +8,14 @@ import Hex
 import Html exposing (Html)
 import Pages.Flags
 import Pages.PageUrl exposing (PageUrl)
+import Persona
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
 import Theme
 import Ui
 import Ui.Anim
 import Ui.Font as Font
+import Ui.WithContext
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -169,7 +171,7 @@ div.popover button:hover {
                 ]
             , Font.size 20
             ]
-            pageView.body
+            (Ui.WithContext.withContext { colors = Persona.toColors { hue = Nothing } } pageView.body)
         ]
     , title = pageView.title
     }

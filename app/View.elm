@@ -6,7 +6,8 @@ module View exposing (View, map)
 
 -}
 
-import Ui exposing (Element)
+import Theme exposing (Element)
+import Ui.WithContext as Ui
 
 
 {-| -}

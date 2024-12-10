@@ -10,14 +10,14 @@ import Persona
 import Persona.Data as Data
 import Persona.View
 import Phosphor
-import Theme
+import Theme exposing (Attribute, Context, Element)
 import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), Persona)
-import Ui exposing (Attribute, Element, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
-import Ui.Font as Font
-import Ui.Input as Input
-import Ui.Layout as Layout
-import Ui.Prose exposing (paragraph)
-import Ui.Table as Table
+import Ui.WithContext as Ui exposing (alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
+import Ui.WithContext.Font as Font
+import Ui.WithContext.Input as Input
+import Ui.WithContext.Layout as Layout
+import Ui.WithContext.Prose exposing (paragraph)
+import Ui.WithContext.Table as Table
 
 
 type alias Config msg =
@@ -43,10 +43,6 @@ view :
     -> Element msg
 view config { flipped, persona } =
     let
-        colors : Persona.Colors
-        colors =
-            Persona.toColors persona
-
         fullWidth : number
         fullWidth =
             800
@@ -57,7 +53,7 @@ view config { flipped, persona } =
             , width <| px fullWidth
             , height fill
             , Theme.padding
-            , Ui.background colors.background
+            , Theme.backgroundColorBackground
             , Theme.style "backface-visibility" "hidden"
             , Theme.style "transition" "all .5s ease-in-out"
             , Theme.style "position" "absolute"
@@ -83,13 +79,13 @@ view config { flipped, persona } =
                     0
                 )
             )
-            [ nameRow config persona colors
+            [ nameRow config persona
             , Ui.map config.update <|
                 Theme.row []
-                    [ abilitiesView persona colors
+                    [ abilitiesView persona
                     , statusView persona
                     ]
-            , Ui.map config.update <| progressionView persona colors
+            , Ui.map config.update <| progressionView persona
             ]
         , Theme.column
             (commonAttrs
@@ -102,7 +98,7 @@ view config { flipped, persona } =
             )
             (Theme.row []
                 [ text "Gendertrope"
-                , topButtons config colors
+                , topButtons config
                 ]
                 :: List.map
                     (Ui.map
@@ -115,13 +111,13 @@ view config { flipped, persona } =
                                     config.update { persona | features = newFeatures }
                         )
                     )
-                    (viewGendertrope persona colors)
+                    (viewGendertrope persona)
             )
         ]
 
 
-nameRow : Config msg -> Persona -> Persona.Colors -> Element msg
-nameRow config persona colors =
+nameRow : Config msg -> Persona -> Element msg
+nameRow config persona =
     Theme.row
         [ Ui.paddingWith
             { top = 0
@@ -137,7 +133,7 @@ nameRow config persona colors =
             }
         ]
         [ el
-            [ Font.color colors.accent
+            [ Theme.fontColorAccent
             , width shrink
             ]
             (Data.gendertropeIconElement persona.gendertrope)
@@ -147,36 +143,33 @@ nameRow config persona colors =
             , onChange = \newValue -> config.update { persona | name = newValue }
             , placeholder = Just "Name"
             }
-        , topButtons config colors
+        , topButtons config
         ]
 
 
-topButtons : Config msg -> Persona.Colors -> Element msg
-topButtons config colors =
+topButtons : Config msg -> Element msg
+topButtons config =
     Theme.row [ alignRight ]
         [ Theme.iconButton []
             { onPress = Just config.upload
             , icon = Icons.upload
             , title = "Upload"
-            , accentColor = colors.accent
             }
         , Theme.iconButton []
             { onPress = Just config.download
             , icon = Icons.download
             , title = "Download"
-            , accentColor = colors.accent
             }
         , Theme.iconButton []
             { onPress = Just config.flip
             , icon = Icons.flip
             , title = "Flip"
-            , accentColor = colors.accent
             }
         ]
 
 
-abilitiesView : Persona -> Persona.Colors -> Element Persona
-abilitiesView persona colors =
+abilitiesView : Persona -> Element Persona
+abilitiesView persona =
     let
         availablePoints : Int
         availablePoints =
@@ -202,7 +195,6 @@ abilitiesView persona colors =
 
                     else
                         Nothing
-                , accentColor = colors.accent
                 }
             , Theme.iconButton []
                 { icon = Icons.plus
@@ -213,7 +205,6 @@ abilitiesView persona colors =
 
                     else
                         Nothing
-                , accentColor = colors.accent
                 }
             ]
     in
@@ -285,8 +276,8 @@ statusView persona =
         ]
 
 
-progressionView : Persona -> Persona.Colors -> Element Persona
-progressionView persona colors =
+progressionView : Persona -> Element Persona
+progressionView persona =
     Theme.column
         [ Ui.borderWith
             { top = 1
@@ -303,15 +294,15 @@ progressionView persona colors =
         ]
         [ el [ centerX ] <| text "Progression Tally"
         , Theme.wrappedRow []
-            [ viewPoints colors "EP" "Euphoria Points" persona.euphoriaPoints (Persona.usedEuphoriaPoints persona) <| \newValue -> { persona | euphoriaPoints = newValue }
-            , viewPoints colors "IP" "Ichor Points" persona.ichorPoints (Persona.usedIchorPoints persona) <| \newValue -> { persona | ichorPoints = newValue }
-            , viewPoints colors "NP" "Numinous Points" persona.numinousPoints (Persona.usedNuminousPoints persona) <| \newValue -> { persona | numinousPoints = newValue }
+            [ viewPoints "EP" "Euphoria Points" persona.euphoriaPoints (Persona.usedEuphoriaPoints persona) <| \newValue -> { persona | euphoriaPoints = newValue }
+            , viewPoints "IP" "Ichor Points" persona.ichorPoints (Persona.usedIchorPoints persona) <| \newValue -> { persona | ichorPoints = newValue }
+            , viewPoints "NP" "Numinous Points" persona.numinousPoints (Persona.usedNuminousPoints persona) <| \newValue -> { persona | numinousPoints = newValue }
             ]
         ]
 
 
-viewPoints : Persona.Colors -> String -> String -> Int -> Int -> (Int -> Persona) -> Element Persona
-viewPoints colors label fullName value used setter =
+viewPoints : String -> String -> Int -> Int -> (Int -> Persona) -> Element Persona
+viewPoints label fullName value used setter =
     let
         unused : Int
         unused =
@@ -332,19 +323,17 @@ viewPoints colors label fullName value used setter =
 
                 else
                     Nothing
-            , accentColor = colors.accent
             }
         , Theme.iconButton [ alignRight ]
             { icon = Icons.plus
             , title = "Increase"
             , onPress = Just (setter (value + 1))
-            , accentColor = colors.accent
             }
         ]
 
 
-viewGendertrope : Persona -> Persona.Colors -> List (Element GendertropeMsg)
-viewGendertrope ({ gendertrope } as persona) colors =
+viewGendertrope : Persona -> List (Element GendertropeMsg)
+viewGendertrope ({ gendertrope } as persona) =
     let
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
@@ -367,14 +356,14 @@ viewGendertrope ({ gendertrope } as persona) colors =
                     (\option ->
                         Theme.el
                             (if option == gendertrope then
-                                Ui.background colors.accent
+                                Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
                                     :: Font.color Theme.white
                                     :: Ui.borderColor Theme.black
                                     :: common option
 
                              else
                                 Ui.background Theme.gray
-                                    :: Ui.borderColor colors.accent
+                                    :: Theme.borderColorAccent
                                     :: common option
                             )
                             (Theme.row [ centerX ]
@@ -436,8 +425,8 @@ viewGendertrope ({ gendertrope } as persona) colors =
                         |> Custom
                         |> UpdateGendertrope
                 )
-                (viewOrgans gendertropeRecord.organs colors)
-            , viewFeatures persona gendertropeRecord colors
+                (viewOrgans gendertropeRecord.organs)
+            , viewFeatures persona gendertropeRecord
             ]
 
         Doll ->
@@ -455,8 +444,8 @@ viewGendertrope ({ gendertrope } as persona) colors =
                         |> Custom
                         |> UpdateGendertrope
                 )
-                (viewOrgans gendertropeRecord.organs colors)
-            , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord colors)
+                (viewOrgans gendertropeRecord.organs)
+            , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
 
         _ ->
@@ -464,15 +453,15 @@ viewGendertrope ({ gendertrope } as persona) colors =
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
-            , Persona.View.viewOrgans gendertropeRecord.organs colors
-            , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord colors)
+            , Persona.View.viewOrgans gendertropeRecord.organs
+            , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord)
             ]
 
 
-viewOrgans : List Organ -> Persona.Colors -> Element (List Organ)
-viewOrgans organs colors =
+viewOrgans : List Organ -> Element (List Organ)
+viewOrgans organs =
     let
-        wrap : Int -> Element Organ -> Table.Cell (List Organ)
+        wrap : Int -> Element Organ -> Table.Cell Context (List Organ)
         wrap index child =
             Table.cell
                 [ height fill
@@ -499,7 +488,7 @@ viewOrgans organs colors =
             -> String
             -> (Organ -> Int)
             -> (Int -> Organ -> Organ)
-            -> Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column Context globalState rowState Organ (List Organ)
         intColumn label hint prop setter =
             Table.columnWithState
                 { header =
@@ -530,7 +519,7 @@ viewOrgans organs colors =
             -> String
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column Context globalState rowState Organ (List Organ)
         boolColumn label hint getter setter =
             Table.columnWithState
                 { header =
@@ -556,7 +545,7 @@ viewOrgans organs colors =
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column Context globalState rowState Organ (List Organ)
         canColumn attribute getter setter =
             boolColumn ("C" ++ Types.actionToInitial attribute) (Types.actionToCan attribute) getter setter
 
@@ -564,11 +553,11 @@ viewOrgans organs colors =
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Table.Column globalState rowState Organ (List Organ)
+            -> Table.Column Context globalState rowState Organ (List Organ)
         isColumn attribute getter setter =
             boolColumn ("I" ++ Types.actionToInitial attribute) (Types.actionToIs attribute) getter setter
 
-        nameColumn : Table.Column globalState rowState Organ (List Organ)
+        nameColumn : Table.Column Context globalState rowState Organ (List Organ)
         nameColumn =
             Table.columnWithState
                 { header = \_ -> Table.cell [] Ui.none
@@ -584,7 +573,7 @@ viewOrgans organs colors =
                             )
                 }
 
-        typeColumn : Table.Column globalState rowState Organ (List Organ)
+        typeColumn : Table.Column Context globalState rowState Organ (List Organ)
         typeColumn =
             Table.columnWithState
                 { header =
@@ -625,7 +614,6 @@ viewOrgans organs colors =
                                     ]
                                     { onPress = Just organ
                                     , label = Icons.toElement (Data.organTypeToIcon organ.type_)
-                                    , accentColor = colors.accent
                                     }
                                 , Html.div
                                     [ Html.Attributes.id popoverId
@@ -638,7 +626,7 @@ viewOrgans organs colors =
                             )
                 }
 
-        deleteColumn : Table.Column globalState rowState Organ (List Organ)
+        deleteColumn : Table.Column Context globalState rowState Organ (List Organ)
         deleteColumn =
             Table.columnWithState
                 { header = \_ -> Table.cell [] Ui.none
@@ -652,7 +640,6 @@ viewOrgans organs colors =
                                 Theme.button [ centerY ]
                                     { label = Icons.toElement Icons.delete
                                     , onPress = Just (Data.other "")
-                                    , accentColor = colors.accent
                                     }
                             )
                 }
@@ -677,8 +664,8 @@ viewOrgans organs colors =
         (organs ++ [ Data.other "" ])
 
 
-viewStandardFeatures : Persona -> GendertropeRecord -> Persona.Colors -> Element (List Int)
-viewStandardFeatures ({ features } as persona) gendertropeRecord colors =
+viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)
+viewStandardFeatures ({ features } as persona) gendertropeRecord =
     let
         viewStandardFeature : ( Int, Feature ) -> Element (List Int)
         viewStandardFeature ( level, feature ) =
@@ -710,15 +697,18 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord colors =
                     Theme.column
                         [ Ui.border 1
                         , Theme.padding
-                        , Ui.background
-                            (if selected then
-                                colors.accent
+                        , Ui.fromContextAttribute
+                            (\{ colors } ->
+                                Ui.background
+                                    (if selected then
+                                        colors.accent
 
-                             else if canSelect then
-                                Theme.white
+                                     else if canSelect then
+                                        Theme.white
 
-                             else
-                                Theme.gray
+                                     else
+                                        Theme.gray
+                                    )
                             )
                         , Font.color
                             (if selected then
@@ -734,7 +724,6 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord colors =
                             ]
                             :: Theme.viewMarkdown feature.description
                         )
-                , accentColor = colors.accent
                 }
     in
     gendertropeRecord.features
@@ -743,8 +732,8 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord colors =
         |> Theme.column []
 
 
-viewFeatures : Persona -> GendertropeRecord -> Persona.Colors -> Element GendertropeMsg
-viewFeatures ({ features } as persona) gendertropeRecord colors =
+viewFeatures : Persona -> GendertropeRecord -> Element GendertropeMsg
+viewFeatures ({ features } as persona) gendertropeRecord =
     let
         viewFeature : ( Int, Feature ) -> Element GendertropeMsg
         viewFeature ( level, feature ) =
@@ -791,15 +780,18 @@ viewFeatures ({ features } as persona) gendertropeRecord colors =
                 , Theme.column
                     [ Ui.border 1
                     , Theme.padding
-                    , Ui.background
-                        (if selected then
-                            colors.accent
+                    , Ui.fromContextAttribute
+                        (\{ colors } ->
+                            Ui.background
+                                (if selected then
+                                    colors.accent
 
-                         else if canSelect then
-                            Theme.white
+                                 else if canSelect then
+                                    Theme.white
 
-                         else
-                            Theme.gray
+                                 else
+                                    Theme.gray
+                                )
                         )
                     , Font.color
                         (if selected then

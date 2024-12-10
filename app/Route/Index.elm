@@ -26,14 +26,14 @@ import RouteBuilder exposing (StatefulRoute)
 import Set exposing (Set)
 import Shared
 import Site
-import Theme
+import Theme exposing (Element)
 import Triple
 import Types exposing (Action(..), Move, Persona, StimulationType(..))
-import Ui exposing (Element, alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, text, width)
-import Ui.Font as Font
-import Ui.Input as Input
-import Ui.Layout as Layout
-import Ui.Prose exposing (paragraph)
+import Ui.WithContext as Ui exposing (alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, text, width)
+import Ui.WithContext.Font as Font
+import Ui.WithContext.Input as Input
+import Ui.WithContext.Layout as Layout
+import Ui.WithContext.Prose exposing (paragraph)
 import UrlPath exposing (UrlPath)
 import Vector2d exposing (Vector2d)
 import View exposing (View)
@@ -959,7 +959,7 @@ view _ shared model =
                     , centerY
                     ]
                     [ Theme.row
-                        [ Font.color Theme.purple
+                        [ Theme.fontColorAccent
                         , centerX
                         , Font.center
                         ]
@@ -1005,11 +1005,12 @@ viewPersonas playingModel =
                 , persona = persona
                 }
                 |> Ui.map (PlayerMsg maybeIndex)
+                |> Ui.replaceContext { colors = Persona.toColors persona }
         )
         (playingModel.player :: playingModel.others)
         ++ [ Theme.column [ centerX, centerY ]
                 [ Theme.row
-                    [ Font.color Theme.purple
+                    [ Theme.fontColorAccent
                     , centerX
                     , Font.center
                     ]
@@ -1052,7 +1053,7 @@ loadPersona config =
             ]
         , el
             [ centerX
-            , Font.color Theme.purple
+            , Theme.fontColorAccent
             ]
             (text "or")
         , Theme.row
@@ -1066,10 +1067,9 @@ loadPersona config =
                 { onPress = Just config.loadFromFile
                 , icon = Icons.upload
                 , title = "Upload"
-                , accentColor = Theme.purple
                 }
             ]
-        , el [ centerX, Font.color Theme.purple ]
+        , el [ centerX, Theme.fontColorAccent ]
             (text "or")
         , Theme.link []
             { label = text "Go to the editor"
@@ -1080,28 +1080,37 @@ loadPersona config =
 
 viewPlaying : Shared.Model -> PlayingModel -> List (Element PlayingMsg)
 viewPlaying shared model =
-    let
-        colors : Persona.Colors
-        colors =
-            Persona.toColors model.player.persona
-    in
-    [ viewOrgans shared model colors
-    , List.map (Ui.map (PlayerMsg Nothing)) (viewMeters model.player colors)
-    , List.map (Ui.map (PlayerMsg Nothing)) (viewTurn model.player colors)
+    [ viewOrgans shared model
+    , List.map (Ui.map (PlayerMsg Nothing)) (viewTurn model.player)
+    ]
+        |> List.concat
+        |> List.map
+            (Ui.replaceContext { colors = Persona.toColors model.player.persona })
+
+
+viewTurn : PlayerModel -> List (Element PlayerMsg)
+viewTurn player =
+    [ viewMeters player
+    , viewNotes player
+    , viewOrgasm player
+    , viewTemperaments player
+    , viewStatusChecks player
+    , viewMoves player
+    , viewStimulationTable player
     ]
         |> List.concat
 
 
-viewMeters : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewMeters { persona, meters } colors =
+viewMeters : PlayerModel -> List (Element PlayerMsg)
+viewMeters { persona, meters } =
     [ el [ Font.bold ] (text "Status meters")
-    , restParagraph colors
-    , [ statusMeter colors "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
-      , statusMeter colors "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> { meters | satiation = newValue }
-      , statusMeter colors "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> { meters | craving = newValue }
-      , statusMeter colors "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> { meters | sensitivity = newValue }
-      , statusMeter colors "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> { meters | arousal = newValue }
-      , statusMeter colors "Intensity" meters.intensity 30 <| \newValue -> { meters | intensity = newValue }
+    , restParagraph
+    , [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
+      , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> { meters | satiation = newValue }
+      , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> { meters | craving = newValue }
+      , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> { meters | sensitivity = newValue }
+      , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> { meters | arousal = newValue }
+      , statusMeter "Intensity" meters.intensity 30 <| \newValue -> { meters | intensity = newValue }
       ]
         |> List.concat
         |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
@@ -1109,15 +1118,14 @@ viewMeters { persona, meters } colors =
     ]
 
 
-restParagraph : Persona.Colors -> Element PlayerMsg
-restParagraph colors =
+restParagraph : Element PlayerMsg
+restParagraph =
     paragraph []
         [ text "Before an encounter you should probably "
         , Theme.iconAndTextButton [ width shrink ]
             { onPress = Just Rest
             , icon = Icons.rest
             , label = "Rest"
-            , accentColor = colors.accent
             }
         , text " to reset your "
         , el [ Font.bold ] (text "Satiation")
@@ -1127,32 +1135,19 @@ restParagraph colors =
         , Theme.iconAndTextButton []
             { onPress = Just BeginEncounter
             , label = "Begin the Encounter"
-            , accentColor = colors.accent
             , icon = Icons.beginEncounter
             }
         ]
 
 
-viewTurn : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewTurn player colors =
-    [ viewNotes player colors
-    , viewOrgasm player colors
-    , viewTemperaments player colors
-    , viewStatusChecks player colors
-    , viewMoves player colors
-    , viewStimulationTable player colors
-    ]
-        |> List.concat
-
-
-viewNotes : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewNotes player colors =
+viewNotes : PlayerModel -> List (Element PlayerMsg)
+viewNotes player =
     let
         { element, id } =
             Input.label "notes-id" [ Font.bold ] (text "Notes")
     in
     [ element
-    , Theme.multiline [ Font.color colors.accent ]
+    , Theme.multiline []
         { label = id
         , onChange = Notes
         , placeholder = Just "Write your personal notes here"
@@ -1162,8 +1157,8 @@ viewNotes player colors =
     ]
 
 
-viewOrgans : Shared.Model -> PlayingModel -> Persona.Colors -> List (Element PlayingMsg)
-viewOrgans shared model colors =
+viewOrgans : Shared.Model -> PlayingModel -> List (Element PlayingMsg)
+viewOrgans shared model =
     [ Theme.row []
         [ el [ Font.bold ] (text "Organs")
         , Theme.iconButton
@@ -1172,7 +1167,6 @@ viewOrgans shared model colors =
             { icon = Icons.reset
             , title = "Rearrange unpaired organs"
             , onPress = Just Rearrange
-            , accentColor = colors.accent
             }
         ]
     , OrgansSurface.view
@@ -1200,8 +1194,8 @@ viewOrgans shared model colors =
     ]
 
 
-viewOrgasm : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewOrgasm player colors =
+viewOrgasm : PlayerModel -> List (Element PlayerMsg)
+viewOrgasm player =
     let
         meters : Meters
         meters =
@@ -1232,7 +1226,7 @@ viewOrgasm player colors =
         paragraph
             [ Theme.padding
             , Ui.border 1
-            , Ui.background colors.accent
+            , Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
             , Font.color Theme.white
             ]
             (if player.selectedTemperament == Just Valiant then
@@ -1304,7 +1298,6 @@ viewOrgasm player colors =
                 { onPress = Just RollValiantModifier
                 , icon = Icons.roll
                 , title = "Re-Roll"
-                , accentColor = colors.accent
                 }
             ]
 
@@ -1313,8 +1306,8 @@ viewOrgasm player colors =
     ]
 
 
-viewStatusChecks : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewStatusChecks player colors =
+viewStatusChecks : PlayerModel -> List (Element PlayerMsg)
+viewStatusChecks player =
     let
         viewButtonAndResult : msg -> msg -> Phosphor.IconVariant -> String -> Maybe Int -> List (Element msg)
         viewButtonAndResult rollMsg deleteMsg icon label result =
@@ -1322,7 +1315,6 @@ viewStatusChecks player colors =
                 { icon = icon
                 , onPress = Just rollMsg
                 , label = label
-                , accentColor = colors.accent
                 }
             , Theme.row [] (viewResult deleteMsg result)
             ]
@@ -1339,7 +1331,6 @@ viewStatusChecks player colors =
                         { icon = Icons.delete
                         , onPress = Just deleteMsg
                         , title = "Delete"
-                        , accentColor = colors.accent
                         }
                     ]
     in
@@ -1366,21 +1357,21 @@ viewStatusChecks player colors =
     ]
 
 
-viewTemperaments : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewTemperaments model colors =
+viewTemperaments : PlayerModel -> List (Element PlayerMsg)
+viewTemperaments model =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments (optional)")
     , [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Sensitivity** to your **Craving**." )
       , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Satiation** to your **Craving**." )
       , ( Perverse, "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Arousal** value, you may transfer points from your **Craving** to your **Arousal**." )
       , ( Valiant, "You are proud of yourself for enduring, but you are enduring rather than enjoying.", "Upon declaration, roll a **Moxie Check**. While the result is greater than your **Stamina** value, add your **Stamina** value to your **Orgasm Threshold** as a Modifier." )
       ]
-        |> List.map (viewTemperament model colors)
+        |> List.map (viewTemperament model)
         |> Theme.row [ Ui.wrap ]
     ]
 
 
-viewTemperament : PlayerModel -> Persona.Colors -> ( Temperament, String, String ) -> Element PlayerMsg
-viewTemperament model colors ( name, description, consequence ) =
+viewTemperament : PlayerModel -> ( Temperament, String, String ) -> Element PlayerMsg
+viewTemperament model ( name, description, consequence ) =
     let
         selected : Bool
         selected =
@@ -1408,7 +1399,6 @@ viewTemperament model colors ( name, description, consequence ) =
                     ]
                     :: Theme.viewMarkdown consequence
                 )
-        , accentColor = colors.accent
         }
 
 
@@ -1428,19 +1418,19 @@ temperamentToString temperament =
             "Perverse"
 
 
-viewMoves : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewMoves player colors =
+viewMoves : PlayerModel -> List (Element PlayerMsg)
+viewMoves player =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
     , Theme.row [ Ui.wrap ]
         (List.map
-            (viewMove player colors)
+            (viewMove player)
             (defaultMoves ++ featureMoves player.persona)
         )
     ]
 
 
-viewMove : PlayerModel -> Persona.Colors -> Move -> Element PlayerMsg
-viewMove model colors move =
+viewMove : PlayerModel -> Move -> Element PlayerMsg
+viewMove model move =
     let
         selected : Bool
         selected =
@@ -1461,7 +1451,6 @@ viewMove model colors move =
             else
                 Just (SelectMove (Just move.name))
         , selected = selected
-        , accentColor = colors.accent
         , label =
             Theme.column []
                 [ paragraph []
@@ -1529,10 +1518,10 @@ featureMoves _ =
     []
 
 
-viewStimulationTable : PlayerModel -> Persona.Colors -> List (Element PlayerMsg)
-viewStimulationTable player colors =
+viewStimulationTable : PlayerModel -> List (Element PlayerMsg)
+viewStimulationTable player =
     [ el [ Font.bold ] (text "Stimulation")
-    , staminaTable player colors
+    , staminaTable player
     , Theme.row []
         [ Theme.iconAndTextButton [ alignRight ]
             { onPress =
@@ -1549,9 +1538,8 @@ viewStimulationTable player colors =
 
                     Just _ ->
                         "Reroll"
-            , accentColor = colors.accent
             }
-        , viewRoll player colors
+        , viewRoll player
         , Theme.column []
             [ case player.stimulationRoll of
                 Nothing ->
@@ -1562,15 +1550,14 @@ viewStimulationTable player colors =
                         { onPress = Just DeleteStimulation
                         , icon = Icons.delete
                         , title = "Delete"
-                        , accentColor = colors.accent
                         }
             ]
         ]
     ]
 
 
-viewRoll : PlayerModel -> Persona.Colors -> Element PlayerMsg
-viewRoll player colors =
+viewRoll : PlayerModel -> Element PlayerMsg
+viewRoll player =
     case player.stimulationRoll of
         Nothing ->
             Ui.none
@@ -1643,7 +1630,7 @@ viewRoll player colors =
                                                 , right = 0
                                                 , bottom = 0
                                                 }
-                                            , Ui.borderColor colors.accent
+                                            , Theme.borderColorAccent
                                             , Theme.padding
                                             , Font.center
                                             , centerY
@@ -1651,7 +1638,7 @@ viewRoll player colors =
                                             child
                                     )
                                 |> Theme.column
-                                    [ Ui.background colors.background
+                                    [ Theme.backgroundColorBackground
                                     , Ui.borderWith
                                         { left =
                                             if c == 0 then
@@ -1663,7 +1650,7 @@ viewRoll player colors =
                                         , bottom = 1
                                         , right = 1
                                         }
-                                    , Ui.borderColor colors.accent
+                                    , Theme.borderColorAccent
                                     , height fill
                                     , width shrink
                                     ]
@@ -1671,8 +1658,8 @@ viewRoll player colors =
                 |> row []
 
 
-statusMeter : Persona.Colors -> String -> Int -> Int -> (Int -> msg) -> List (Element msg)
-statusMeter colors label value cap setter =
+statusMeter : String -> Int -> Int -> (Int -> msg) -> List (Element msg)
+statusMeter label value cap setter =
     [ el [ centerY ] (text label)
     , Theme.slider []
         { min = 0
@@ -1680,13 +1667,12 @@ statusMeter colors label value cap setter =
         , value = value
         , onChange = setter
         , label = label
-        , accentColor = colors.accent
         }
     ]
 
 
-staminaTable : PlayerModel -> Persona.Colors -> Element PlayerMsg
-staminaTable model colors =
+staminaTable : PlayerModel -> Element PlayerMsg
+staminaTable model =
     let
         header : String -> Element msg
         header label =
@@ -1701,7 +1687,6 @@ staminaTable model colors =
                             { onPress = Just (StimulationCost cost)
                             , label = text (String.fromInt cost)
                             , selected = cost == model.stimulationCost
-                            , accentColor = colors.accent
                             }
                         , Theme.selectableButton []
                             { onPress = Just (StimulationCost cost)
@@ -1714,7 +1699,6 @@ staminaTable model colors =
                                         String.fromInt (cost * 2)
                                     )
                             , selected = cost == model.stimulationCost
-                            , accentColor = colors.accent
                             }
                         , Theme.selectableButton []
                             { onPress = Just (StimulationCost cost)
@@ -1740,7 +1724,6 @@ staminaTable model colors =
                                             |> String.join ", "
                                     )
                             , selected = cost == model.stimulationCost
-                            , accentColor = colors.accent
                             }
                         ]
                     )

@@ -1,4 +1,4 @@
-module Theme exposing (barelyLightPurpleHex, black, button, checkbox, column, desaturate, el, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (Attribute, Context, Element, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
 import Color exposing (Color)
 import Color.Oklch as Oklch exposing (Oklch)
@@ -9,15 +9,29 @@ import Markdown.Block
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer
+import Persona
 import Phosphor
 import Route
-import Ui exposing (Attribute, Element, shrink, width)
-import Ui.Accessibility as Accessibility
 import Ui.Anim
-import Ui.Font as Font
-import Ui.Input as Input
-import Ui.Prose as Prose
-import Ui.Shadow as Shadow
+import Ui.WithContext as Ui exposing (Attribute)
+import Ui.WithContext.Accessibility as Accessibility
+import Ui.WithContext.Font as Font
+import Ui.WithContext.Input as Input
+import Ui.WithContext.Prose as Prose
+import Ui.WithContext.Shadow as Shadow
+
+
+type alias Context =
+    { colors : Persona.Colors
+    }
+
+
+type alias Attribute msg =
+    Ui.Attribute Context msg
+
+
+type alias Element msg =
+    Ui.Element Context msg
 
 
 rhythm : number
@@ -27,22 +41,39 @@ rhythm =
 
 column : List (Attribute msg) -> List (Element msg) -> Element msg
 column attrs children =
-    Ui.column (spacing :: Ui.borderColor purple :: attrs) children
+    Ui.column
+        (spacing :: borderColorAccent :: attrs)
+        children
 
 
 row : List (Attribute msg) -> List (Element msg) -> Element msg
 row attrs children =
-    Ui.row (spacing :: Ui.borderColor purple :: attrs) children
+    Ui.row (spacing :: borderColorAccent :: attrs) children
 
 
 wrappedRow : List (Attribute msg) -> List (Element msg) -> Element msg
 wrappedRow attrs children =
-    Ui.row (spacing :: Ui.wrap :: Ui.borderColor purple :: attrs) children
+    Ui.row (spacing :: Ui.wrap :: borderColorAccent :: attrs) children
 
 
 el : List (Attribute msg) -> Element msg -> Element msg
 el attrs child =
-    Ui.el (spacing :: Ui.borderColor purple :: attrs) child
+    Ui.el (spacing :: borderColorAccent :: attrs) child
+
+
+borderColorAccent : Attribute msg
+borderColorAccent =
+    Ui.fromContextAttribute (\{ colors } -> Ui.borderColor colors.accent)
+
+
+fontColorAccent : Attribute msg
+fontColorAccent =
+    Ui.fromContextAttribute (\{ colors } -> Font.color colors.accent)
+
+
+backgroundColorBackground : Attribute msg
+backgroundColorBackground =
+    Ui.fromContextAttribute (\{ colors } -> Ui.background colors.background)
 
 
 spacing : Attribute msg
@@ -60,7 +91,6 @@ button :
     ->
         { onPress : Maybe msg
         , label : Element msg
-        , accentColor : Color
         }
     -> Element msg
 button attrs config =
@@ -68,7 +98,6 @@ button attrs config =
         { onPress = config.onPress
         , label = config.label
         , selected = False
-        , accentColor = config.accentColor
         }
 
 
@@ -78,49 +107,53 @@ selectableButton :
         { onPress : Maybe msg
         , label : Element msg
         , selected : Bool
-        , accentColor : Color
         }
     -> Element msg
 selectableButton attrs config =
-    let
-        ( fg, bg, border ) =
-            case config.onPress of
-                Just _ ->
-                    if config.selected then
-                        ( white, config.accentColor, black )
+    Ui.fromContext
+        (\{ colors } ->
+            let
+                ( fg, bg, border ) =
+                    case config.onPress of
+                        Just _ ->
+                            if config.selected then
+                                ( white, colors.accent, black )
 
-                    else
-                        ( black, lighten config.accentColor, config.accentColor )
+                            else
+                                ( black, lighten colors.accent, colors.accent )
 
-                Nothing ->
-                    ( black, gray, config.accentColor )
+                        Nothing ->
+                            ( black, gray, colors.accent )
 
-        common : List (Attribute msg)
-        common =
-            Ui.border 1
-                :: padding
-                :: Font.center
-                :: Ui.width Ui.shrink
-                :: Ui.widthMin 38
-                :: Ui.background bg
-                :: Font.color fg
-                :: Ui.borderColor border
-                :: attrs
-    in
-    el
-        (case config.onPress of
-            Nothing ->
-                common
+                common : List (Attribute msg)
+                common =
+                    Ui.border 1
+                        :: padding
+                        :: Font.center
+                        :: Ui.width Ui.shrink
+                        :: Ui.widthMin 38
+                        :: Ui.background bg
+                        :: Font.color fg
+                        :: Ui.borderColor border
+                        :: attrs
+            in
+            Ui.el
+                (case config.onPress of
+                    Nothing ->
+                        common
 
-            Just msg ->
-                Input.button msg
-                    :: Ui.Anim.hovered (Ui.Anim.ms 100)
-                        [ Ui.Anim.backgroundColor (desaturate config.accentColor)
-                        , Ui.Anim.fontColor white
-                        ]
-                    :: common
+                    Just msg ->
+                        Input.button msg
+                            :: Ui.liftAttribute
+                                (Ui.Anim.hovered (Ui.Anim.ms 100)
+                                    [ Ui.Anim.backgroundColor (desaturate colors.accent)
+                                    , Ui.Anim.fontColor white
+                                    ]
+                                )
+                            :: common
+                )
+                config.label
         )
-        config.label
 
 
 transparentLightGray : Color
@@ -194,7 +227,9 @@ input :
         }
     -> Element msg
 input attrs config =
-    Input.text (Font.color purple :: attrs) config
+    Input.text
+        (fontColorAccent :: attrs)
+        config
 
 
 multiline :
@@ -208,22 +243,23 @@ multiline :
         }
     -> Element msg
 multiline attrs config =
-    Input.multiline (Font.color purple :: attrs) config
+    Input.multiline
+        (fontColorAccent :: attrs)
+        config
 
 
-purpleCheckbox : Bool -> Element msg
-purpleCheckbox checked =
+checkboxIcon : Bool -> Element msg
+checkboxIcon checked =
     Ui.el
         [ Ui.htmlAttribute (Html.Attributes.class "focusable")
-        , Ui.width
-            (Ui.px 14)
+        , Ui.width (Ui.px 14)
         , Ui.height (Ui.px 14)
         , Font.color white
         , Ui.centerY
         , Font.size 9
         , Font.center
         , Ui.rounded 3
-        , Ui.borderColor purple
+        , borderColorAccent
         , Shadow.shadows
             [ { x = 0
               , y = 0
@@ -237,12 +273,15 @@ purpleCheckbox checked =
                         Color.rgb (238 / 255) (238 / 255) (238 / 255)
               }
             ]
-        , Ui.background <|
-            if checked then
-                purple
+        , Ui.fromContextAttribute
+            (\{ colors } ->
+                Ui.background <|
+                    if checked then
+                        colors.accent
 
-            else
-                white
+                    else
+                        white
+            )
         , Ui.border <|
             if checked then
                 0
@@ -300,34 +339,56 @@ viewMarkdownBlocks blocks =
 
 markdownRenderer : Markdown.Renderer.Renderer (Element msg)
 markdownRenderer =
-    { heading = viewHeading
-    , paragraph = Prose.paragraph [ spacing ]
-    , blockQuote =
-        column
-            [ padding
-            , Ui.border 1
-            ]
-    , html = Markdown.Html.oneOf []
-    , text = Ui.text
-    , codeSpan = \code -> el [ Font.family [ Font.monospace ] ] (Ui.text code)
-    , strong = row [ Font.bold ]
-    , emphasis = row [ Font.italic ]
-    , strikethrough = row [ Font.strike ]
-    , hardLineBreak = Html.br [] [] |> Ui.html
-    , link =
-        \data body ->
-            el
-                [ maybeTitle data.title
-                , style "display" "inline-flex"
-                , Ui.linkNewTab data.destination
-                ]
-                (Prose.paragraph
-                    [ Font.color (Color.rgb255 0 0 255)
+    let
+        viewParagraph : List (Element msg) -> Element msg
+        viewParagraph =
+            Prose.paragraph [ spacing ]
+
+        viewBlockQuote : List (Element msg) -> Element msg
+        viewBlockQuote =
+            column [ padding, Ui.border 1 ]
+
+        viewHtml : Markdown.Html.Renderer (List (Element msg) -> Element msg)
+        viewHtml =
+            Markdown.Html.oneOf []
+
+        viewCodeSpan : String -> Element msg
+        viewCodeSpan code =
+            el [ Font.family [ Font.monospace ] ] (Ui.text code)
+
+        viewStrong : List (Element msg) -> Element msg
+        viewStrong =
+            row [ Font.bold ]
+
+        viewEmphasis : List (Element msg) -> Element msg
+        viewEmphasis =
+            row [ Font.italic ]
+
+        viewStrikethrough : List (Element msg) -> Element msg
+        viewStrikethrough =
+            row [ Font.strike ]
+
+        viewHardLineBreak : Element msg
+        viewHardLineBreak =
+            Html.br [] [] |> Ui.html
+
+        viewLink : { title : Maybe String, destination : String } -> List (Element msg) -> Element msg
+        viewLink =
+            \data body ->
+                el
+                    [ maybeTitle data.title
+                    , style "display" "inline-flex"
+                    , Ui.linkNewTab data.destination
                     ]
-                    body
-                )
-    , image =
-        \image ->
+                    (Prose.paragraph
+                        [ fontColorAccent
+                        , Font.underline
+                        ]
+                        body
+                    )
+
+        viewImage : { alt : String, src : String, title : Maybe String } -> Element msg
+        viewImage image =
             Ui.image
                 [ Ui.width Ui.fill
                 , maybeTitle image.title
@@ -336,40 +397,88 @@ markdownRenderer =
                 , description = image.alt
                 , onLoad = Nothing
                 }
-    , unorderedList =
-        \items ->
+
+        viewUnorderedList : List (Markdown.Block.ListItem (Element msg)) -> Element msg
+        viewUnorderedList items =
             items
                 |> List.map viewUnorderedListItem
                 |> column []
-    , orderedList = \_ _ -> Ui.text "TODO: orderedList"
-    , codeBlock = \_ -> Ui.text "TODO: codeBlock"
-    , thematicBreak = Ui.none
-    , table = Ui.column []
-    , tableHeader =
-        Ui.column
-            [ Font.bold
-            , Ui.width Ui.fill
-            , Font.center
-            ]
-    , tableBody = Ui.column [ Ui.width Ui.fill ]
-    , tableRow =
-        Ui.row
-            [ Ui.height Ui.fill
-            , Ui.width Ui.fill
-            ]
-    , tableCell =
-        \maybeAlignment ->
-            Prose.paragraph
-                (toAlignAttribute maybeAlignment
-                    :: Ui.borderWith
-                        { top = 1
-                        , bottom = 0
-                        , left = 0
-                        , right = 0
-                        }
-                    :: tableBorder
-                )
-    , tableHeaderCell = \_ -> Prose.paragraph tableBorder
+
+        viewOrderedList : Int -> List (List (Element msg)) -> Element msg
+        viewOrderedList _ _ =
+            Ui.text "TODO: orderedList"
+
+        viewCodeBlock : { body : String, language : Maybe String } -> Element msg
+        viewCodeBlock _ =
+            Ui.text "TODO: codeBlock"
+
+        viewThematicBreak : Element msg
+        viewThematicBreak =
+            Ui.none
+
+        viewTable : List (Element msg) -> Element msg
+        viewTable =
+            Ui.column []
+
+        viewTableHeader : List (Element msg) -> Element msg
+        viewTableHeader =
+            Ui.column
+                [ Font.bold
+                , Ui.width Ui.fill
+                , Font.center
+                ]
+
+        viewTableBody : List (Element msg) -> Element msg
+        viewTableBody =
+            Ui.column [ Ui.width Ui.fill ]
+
+        viewTableRow : List (Element msg) -> Element msg
+        viewTableRow =
+            Ui.row
+                [ Ui.height Ui.fill
+                , Ui.width Ui.fill
+                ]
+
+        viewTableCell : Maybe Markdown.Block.Alignment -> List (Element msg) -> Element msg
+        viewTableCell =
+            \maybeAlignment ->
+                Prose.paragraph
+                    (toAlignAttribute maybeAlignment
+                        :: Ui.borderWith
+                            { top = 1
+                            , bottom = 0
+                            , left = 0
+                            , right = 0
+                            }
+                        :: tableBorder
+                    )
+
+        viewTableHeaderCell : Maybe Markdown.Block.Alignment -> List (Element msg) -> Element msg
+        viewTableHeaderCell _ =
+            Prose.paragraph tableBorder
+    in
+    { heading = viewHeading
+    , paragraph = viewParagraph
+    , blockQuote = viewBlockQuote
+    , html = viewHtml
+    , text = Ui.text
+    , codeSpan = viewCodeSpan
+    , strong = viewStrong
+    , emphasis = viewEmphasis
+    , strikethrough = viewStrikethrough
+    , hardLineBreak = viewHardLineBreak
+    , link = viewLink
+    , image = viewImage
+    , unorderedList = viewUnorderedList
+    , orderedList = viewOrderedList
+    , codeBlock = viewCodeBlock
+    , thematicBreak = viewThematicBreak
+    , table = viewTable
+    , tableHeader = viewTableHeader
+    , tableBody = viewTableBody
+    , tableRow = viewTableRow
+    , tableCell = viewTableCell
+    , tableHeaderCell = viewTableHeaderCell
     }
 
 
@@ -503,11 +612,10 @@ slider :
         , onChange : Int -> msg
         , label : String
         , value : Int
-        , accentColor : Color
         }
     -> Element msg
 slider attrs config =
-    el [ Ui.paddingXY (rhythm * 2) rhythm ] <|
+    Ui.el [ Ui.paddingXY (rhythm * 2) rhythm ] <|
         Input.sliderHorizontal
             (Ui.height (Ui.px 30)
                 :: Ui.behindContent
@@ -515,7 +623,7 @@ slider attrs config =
                         [ Ui.width Ui.fill
                         , Ui.height (Ui.px 1)
                         , Ui.centerY
-                        , Ui.background config.accentColor
+                        , Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
                         , Ui.rounded 2
                         ]
                         Ui.none
@@ -524,12 +632,13 @@ slider attrs config =
                     (List.range config.min config.max
                         |> List.map
                             (\v ->
-                                el
+                                Ui.el
                                     [ Ui.width (Ui.px 1)
                                     , Ui.height (Ui.px 8)
                                     , Ui.borderWith { left = 1, right = 0, top = 0, bottom = 0 }
+                                    , borderColorAccent
                                     , Ui.behindContent
-                                        (el
+                                        (Ui.el
                                             [ Ui.centerX
                                             , Ui.move (Ui.down 10)
                                             , Input.button (config.onChange v)
@@ -539,10 +648,11 @@ slider attrs config =
                                     ]
                                     Ui.none
                             )
-                        |> List.intersperse (el [ Ui.width Ui.fill ] Ui.none)
-                        |> row
+                        |> List.intersperse (Ui.el [ Ui.width Ui.fill ] Ui.none)
+                        |> Ui.row
                             [ Ui.width Ui.fill
                             , Ui.height Ui.fill
+                            , spacing
                             ]
                     )
                 :: Ui.move (Ui.up 8)
@@ -560,8 +670,8 @@ slider attrs config =
                     , Ui.height (Ui.px 16)
                     , Ui.rounded 8
                     , Ui.border 1
-                    , Ui.borderColor config.accentColor
-                    , Ui.background (lighten config.accentColor)
+                    , borderColorAccent
+                    , Ui.fromContextAttribute (\{ colors } -> Ui.background (lighten colors.accent))
                     ]
                     |> Just
             }
@@ -572,7 +682,7 @@ pageTitle label =
     Ui.el
         [ Font.size 40
         , Font.bold
-        , Font.color purple
+        , fontColorAccent
         , Font.center
         , Ui.width Ui.fill
         ]
@@ -585,14 +695,12 @@ iconButton :
         { onPress : Maybe msg
         , icon : Phosphor.IconVariant
         , title : String
-        , accentColor : Color
         }
     -> Element msg
 iconButton attrs config =
     button (title config.title :: attrs)
         { onPress = config.onPress
         , label = Icons.toElement config.icon
-        , accentColor = config.accentColor
         }
 
 
@@ -602,18 +710,17 @@ iconAndTextButton :
         { onPress : Maybe msg
         , icon : Phosphor.IconVariant
         , label : String
-        , accentColor : Color
         }
     -> Element msg
 iconAndTextButton attrs config =
     button attrs
         { onPress = config.onPress
         , label =
-            row [ width shrink ]
+            row
+                [ Ui.width Ui.shrink ]
                 [ Icons.toElement config.icon
                 , Ui.text config.label
                 ]
-        , accentColor = config.accentColor
         }
 
 
@@ -626,10 +733,11 @@ checkbox :
         }
     -> Element msg
 checkbox attrs config =
-    Input.checkbox attrs
+    Input.checkbox
+        attrs
         { checked = config.checked
         , onChange = config.onChange
-        , icon = Just purpleCheckbox
+        , icon = Just (\b -> checkboxIcon b)
         , label = config.label
         }
 

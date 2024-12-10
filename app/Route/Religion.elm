@@ -15,15 +15,15 @@ import RouteBuilder exposing (StatelessRoute)
 import Shared
 import Site
 import Svg exposing (Attribute)
-import Theme
+import Theme exposing (Element)
 import TypedSvg exposing (circle, g, line, style, svg, text_)
 import TypedSvg.Attributes exposing (class, dominantBaseline, fill, id, stroke, textAnchor, viewBox)
 import TypedSvg.Attributes.InPx exposing (fontSize, height, r, strokeWidth, width, x, x1, x2, y, y1, y2)
 import TypedSvg.Core exposing (Svg, foreignObject, text)
 import TypedSvg.Types exposing (AnchorAlignment(..), DominantBaseline(..), Paint(..))
-import Ui exposing (background)
-import Ui.Font as Font
-import Ui.Prose exposing (paragraph)
+import Ui.WithContext as Ui exposing (background)
+import Ui.WithContext.Font as Font
+import Ui.WithContext.Prose exposing (paragraph)
 import UrlPath
 import View exposing (View)
 
@@ -264,7 +264,7 @@ religionRadius =
     baseWidth / 4
 
 
-viewIntro : Data -> List (Ui.Element (PagesMsg Msg))
+viewIntro : Data -> List (Element (PagesMsg Msg))
 viewIntro { intro } =
     List.indexedMap
         (\j line ->
