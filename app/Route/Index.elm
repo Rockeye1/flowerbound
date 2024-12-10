@@ -59,6 +59,7 @@ type PlayingMsg
     | Rearrange
     | ShowAppendages Int String
     | HideOrganOrAppendage Int String
+    | ShowHiddenOrgans
 
 
 type PlayerMsg
@@ -414,30 +415,41 @@ innerUpdate msg model =
             ( Just { model | organsPositions = rearrange model.organsPositions }, Effect.none )
 
         ShowAppendages i organName ->
-            ( Just
-                { model
-                    | organsPositions =
-                        Dict.map
-                            (\( candidateI, candidateOrganName ) position ->
-                                if i == candidateI && String.startsWith (organName ++ "-") candidateOrganName then
-                                    { position | show = True }
+            ( { model
+                | organsPositions =
+                    Dict.map
+                        (\( candidateI, candidateOrganName ) position ->
+                            if i == candidateI && String.startsWith (organName ++ "-") candidateOrganName then
+                                { position | show = True }
 
-                                else
-                                    position
-                            )
-                            model.organsPositions
-                }
+                            else
+                                position
+                        )
+                        model.organsPositions
+              }
+                |> Just
             , Effect.none
             )
 
         HideOrganOrAppendage i organName ->
-            ( Just
-                { model
-                    | organsPositions =
-                        Dict.update ( i, organName )
-                            (Maybe.map (\position -> { position | show = False }))
-                            model.organsPositions
-                }
+            ( { model
+                | organsPositions =
+                    Dict.update ( i, organName )
+                        (Maybe.map (\position -> { position | show = False }))
+                        model.organsPositions
+              }
+                |> Just
+            , Effect.none
+            )
+
+        ShowHiddenOrgans ->
+            ( { model
+                | organsPositions =
+                    Dict.map
+                        (\( _, organName ) position -> { position | show = position.show || not (String.contains "-" organName) })
+                        model.organsPositions
+              }
+                |> Just
             , Effect.none
             )
 
@@ -1213,6 +1225,13 @@ viewOrgans : Shared.Model -> PlayingModel -> List (Element PlayingMsg)
 viewOrgans shared model =
     [ Theme.row []
         [ el [ Font.bold ] (text "Organs")
+        , Theme.iconButton
+            [ alignRight
+            ]
+            { icon = Icons.show
+            , title = "Show all hidden organs"
+            , onPress = Just ShowHiddenOrgans
+            }
         , Theme.iconButton
             [ alignRight
             ]

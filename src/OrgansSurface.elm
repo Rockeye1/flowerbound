@@ -328,15 +328,15 @@ viewOrgan config persona color pos organ appendage =
         centerButtons : List (Svg.Svg msg)
         centerButtons =
             if appendage == Nothing && not (List.isEmpty organ.appendages) then
-                [ centerButton 0 Icons.plus config.showAppendages
-                , centerButton 1 Icons.hide config.hideOrganOrAppendage
+                [ centerButton 0 "Show appendage" Icons.plus config.showAppendages
+                , centerButton 1 "Hide" Icons.hide config.hideOrganOrAppendage
                 ]
 
             else
-                [ centerButton 0 Icons.hide config.hideOrganOrAppendage ]
+                [ centerButton 0 "Hide" Icons.hide config.hideOrganOrAppendage ]
 
-        centerButton : Int -> IconVariant -> msg -> Svg.Svg msg
-        centerButton index icon msg =
+        centerButton : Int -> String -> IconVariant -> msg -> Svg.Svg msg
+        centerButton index label icon msg =
             let
                 buttonY : Float
                 buttonY =
@@ -368,6 +368,7 @@ viewOrgan config persona color pos organ appendage =
                             )
                         , Svg.Attributes.fill "white"
                         ]
+                , Svg.title [] [ Svg.text label ]
                 ]
     in
     Svg.g
