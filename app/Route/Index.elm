@@ -959,10 +959,10 @@ view _ shared model =
                     ]
 
             Playing playingModel ->
-                [ Theme.row [ Ui.wrap, centerX ]
+                (Theme.row [ Ui.wrap, centerX ]
                     (viewPersonas playingModel)
-                , viewPlaying shared playingModel
-                ]
+                    :: viewPlaying shared playingModel
+                )
                     |> Theme.column [ Theme.padding ]
                     |> Ui.map PlayingMsg
         )
@@ -1056,15 +1056,13 @@ loadPersona config =
         ]
 
 
-viewPlaying : Shared.Model -> PlayingModel -> Element PlayingMsg
+viewPlaying : Shared.Model -> PlayingModel -> List (Element PlayingMsg)
 viewPlaying shared model =
-    Theme.column []
-        [ viewOrgans shared model
-        , el [ Font.bold ] (text "Status meters")
-        , Ui.map (PlayerMsg Nothing) restParagraph
-        , Ui.map (PlayerMsg Nothing) (viewMeters model.player)
-        , Ui.map (PlayerMsg Nothing) (viewTurn shared model.player)
-        ]
+    [ viewOrgans shared model
+    , List.map (Ui.map (PlayerMsg Nothing)) (viewMeters model.player)
+    , List.map (Ui.map (PlayerMsg Nothing)) (viewTurn shared model.player)
+    ]
+        |> List.concat
 
 
 restParagraph : Element PlayerMsg
@@ -1089,21 +1087,24 @@ restParagraph =
         ]
 
 
-viewMeters : PlayerModel -> Element PlayerMsg
+viewMeters : PlayerModel -> List (Element PlayerMsg)
 viewMeters { persona, meters } =
-    [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
-    , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> { meters | satiation = newValue }
-    , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> { meters | craving = newValue }
-    , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> { meters | sensitivity = newValue }
-    , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> { meters | arousal = newValue }
-    , statusMeter "Intensity" meters.intensity 30 <| \newValue -> { meters | intensity = newValue }
-    ]
+    [ el [ Font.bold ] (text "Status meters")
+    , restParagraph
+    , [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
+      , statusMeter "Satiation" meters.satiation (Persona.maxSatiation persona) <| \newValue -> { meters | satiation = newValue }
+      , statusMeter "Craving" meters.craving (Persona.maxCraving persona) <| \newValue -> { meters | craving = newValue }
+      , statusMeter "Sensitivity" meters.sensitivity (Persona.maxSensitivity persona) <| \newValue -> { meters | sensitivity = newValue }
+      , statusMeter "Arousal" meters.arousal (Persona.maxArousal persona) <| \newValue -> { meters | arousal = newValue }
+      , statusMeter "Intensity" meters.intensity 30 <| \newValue -> { meters | intensity = newValue }
+      ]
         |> List.concat
         |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         |> Ui.map UpdateMeters
+    ]
 
 
-viewTurn : Shared.Model -> PlayerModel -> Element PlayerMsg
+viewTurn : Shared.Model -> PlayerModel -> List (Element PlayerMsg)
 viewTurn shared player =
     [ viewNotes player
     , viewOrgasm player
@@ -1113,7 +1114,6 @@ viewTurn shared player =
     , viewStimulationTable player
     ]
         |> List.concat
-        |> Theme.column []
 
 
 viewNotes : PlayerModel -> List (Element PlayerMsg)
@@ -1133,42 +1133,41 @@ viewNotes player =
     ]
 
 
-viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
+viewOrgans : Shared.Model -> PlayingModel -> List (Element PlayingMsg)
 viewOrgans shared model =
-    Theme.column []
-        [ Theme.row []
-            [ el [ Font.bold ] (text "Organs")
-            , Theme.iconButton
-                [ alignRight
-                ]
-                { icon = Icons.reset
-                , title = "Rearrange unpaired organs"
-                , onPress = Just Rearrange
-                }
+    [ Theme.row []
+        [ el [ Font.bold ] (text "Organs")
+        , Theme.iconButton
+            [ alignRight
             ]
-        , OrgansSurface.view
-            { mouseDown = MouseDown
-            , mouseUp = MouseUp
-            , mouseMove = MouseMove
+            { icon = Icons.reset
+            , title = "Rearrange unpaired organs"
+            , onPress = Just Rearrange
             }
-            model
-            |> Ui.html
-            |> Theme.el
-                [ width <| px OrgansSurface.width
-                , height <| px (ceiling OrgansSurface.height)
-                , Ui.border 1
-                , Ui.background Theme.lightPurple
-                ]
-            |> Theme.el
-                [ centerX
-                , (floor <| OrgansSurface.width + 8)
-                    |> min (shared.width - 2 * Theme.rhythm)
-                    |> px
-                    |> width
-                , height <| px <| floor (OrgansSurface.height + 8)
-                , Ui.scrollableX
-                ]
         ]
+    , OrgansSurface.view
+        { mouseDown = MouseDown
+        , mouseUp = MouseUp
+        , mouseMove = MouseMove
+        }
+        model
+        |> Ui.html
+        |> Theme.el
+            [ width <| px OrgansSurface.width
+            , height <| px (ceiling OrgansSurface.height)
+            , Ui.border 1
+            , Ui.background Theme.lightPurple
+            ]
+        |> Theme.el
+            [ centerX
+            , (floor <| OrgansSurface.width + 8)
+                |> min (shared.width - 2 * Theme.rhythm)
+                |> px
+                |> width
+            , height <| px <| floor (OrgansSurface.height + 8)
+            , Ui.scrollableX
+            ]
+    ]
 
 
 viewOrgasm : PlayerModel -> List (Element PlayerMsg)
