@@ -1,4 +1,5 @@
 - Turn tracker
+- Collapsible sections
 - Use IP to up organ stats
 - Log of actions
     - Interspersed with chat log
