@@ -1,6 +1,7 @@
 module Site exposing (config, defaultSummary, manifest)
 
 import BackendTask exposing (BackendTask)
+import Color.Oklch as Oklch
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
@@ -67,8 +68,8 @@ manifest =
             ]
         }
         |> Manifest.withShortName "Flowerbound"
-        |> Manifest.withThemeColor Theme.purple
-        |> Manifest.withBackgroundColor Theme.purple
+        |> Manifest.withThemeColor (Theme.purple |> Oklch.toColor)
+        |> Manifest.withBackgroundColor (Theme.purple |> Oklch.toColor)
         |> Manifest.withDisplayMode Manifest.Standalone
 
 

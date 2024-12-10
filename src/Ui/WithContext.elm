@@ -1,7 +1,8 @@
-module Ui.WithContext exposing (Angle, Attribute, Color, Edges, Element, Length, Position, alignBottom, alignRight, alignTop, background, behindContent, below, border, borderColor, borderWith, centerX, centerY, column, down, el, fill, fromContext, fromContextAttribute, height, html, htmlAttribute, image, inFront, left, liftAttribute, liftElement, linkNewTab, map, move, noAttr, none, opacity, padding, paddingWith, paddingXY, px, radians, replaceContext, right, rotate, rounded, row, scrollableX, shrink, spacing, text, turns, up, width, widthMax, widthMin, withAttrs, withChild, withChildren, withContext, withContextAttribute, wrap)
+module Ui.WithContext exposing (Angle, Attribute, Color, Edges, Element, Length, Position, alignBottom, alignRight, alignTop, background, behindContent, below, border, borderColor, borderWith, centerX, centerY, colorToCss, column, down, el, fill, fromContext, fromContextAttribute, height, html, htmlAttribute, image, inFront, left, liftAttribute, liftElement, linkNewTab, map, move, noAttr, none, opacity, padding, paddingWith, paddingXY, px, radians, replaceContext, right, rotate, rounded, row, scrollableX, shrink, spacing, text, turns, up, width, widthMax, widthMin, withAttrs, withChild, withChildren, withContext, withContextAttribute, wrap)
 
-import Color
+import Color.Oklch as Oklch
 import Html
+import Html.Attributes
 import Ui
 
 
@@ -14,7 +15,7 @@ type Attribute context msg
 
 
 type alias Color =
-    Color.Color
+    Oklch.Oklch
 
 
 type alias Length =
@@ -135,12 +136,23 @@ text content =
 
 background : Color -> Attribute context msg
 background color =
-    liftAttribute (Ui.background color)
+    htmlAttribute (Html.Attributes.style "background-color" (colorToCss color))
 
 
 borderColor : Color -> Attribute context msg
 borderColor color =
-    liftAttribute (Ui.borderColor color)
+    htmlAttribute (Html.Attributes.style "border-color" (colorToCss color))
+
+
+colorToCss : Color -> String
+colorToCss color =
+    "oklch("
+        ++ String.fromFloat color.lightness
+        ++ " "
+        ++ String.fromFloat color.chroma
+        ++ " "
+        ++ String.fromFloat (360 * color.hue)
+        ++ ")"
 
 
 borderWith : Edges -> Attribute context msg

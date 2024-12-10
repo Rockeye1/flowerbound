@@ -1,7 +1,7 @@
 module Theme exposing (Attribute, Context, Element, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
-import Color exposing (Color)
-import Color.Oklch as Oklch exposing (Oklch)
+import Color
+import Color.Oklch as Oklch
 import Html
 import Html.Attributes
 import Icons
@@ -13,7 +13,7 @@ import Persona
 import Phosphor
 import Route
 import Ui.Anim
-import Ui.WithContext as Ui exposing (Attribute)
+import Ui.WithContext as Ui exposing (Color)
 import Ui.WithContext.Accessibility as Accessibility
 import Ui.WithContext.Font as Font
 import Ui.WithContext.Input as Input
@@ -146,8 +146,11 @@ selectableButton attrs config =
                         Input.button msg
                             :: Ui.liftAttribute
                                 (Ui.Anim.hovered (Ui.Anim.ms 100)
-                                    [ Ui.Anim.backgroundColor (desaturate colors.accent)
-                                    , Ui.Anim.fontColor white
+                                    [ Ui.Anim.backgroundColor
+                                        (desaturate colors.accent
+                                            |> Oklch.toColor
+                                        )
+                                    , Ui.Anim.fontColor Color.white
                                     ]
                                 )
                             :: common
@@ -158,32 +161,34 @@ selectableButton attrs config =
 
 transparentLightGray : Color
 transparentLightGray =
-    Color.rgba 0.85 0.85 0.85 0.4
+    Oklch.oklcha 0.85 0 0 0.4
 
 
 gray : Color
 gray =
-    Color.rgb 0.7 0.7 0.7
+    Oklch.oklch 0.7 0 0
 
 
 black : Color
 black =
-    Color.rgb 0 0 0
+    Oklch.oklch 0 0 0
 
 
 white : Color
 white =
-    Color.rgb 1 1 1
+    Oklch.oklch 1 0 0
 
 
 purple : Color
 purple =
     Color.rgb255 0x80 0 0x80
+        |> Oklch.fromColor
 
 
 lightPurple : Color
 lightPurple =
     Color.rgb255 0xE6 0xCC 0xE6
+        |> Oklch.fromColor
 
 
 purpleHex : number
@@ -268,9 +273,10 @@ checkboxIcon checked =
               , color =
                     if checked then
                         Color.rgba (238 / 255) (238 / 255) (238 / 255) 0
+                            |> Oklch.fromColor
 
                     else
-                        Color.rgb (238 / 255) (238 / 255) (238 / 255)
+                        Color.rgb (238 / 255) (238 / 255) (238 / 255) |> Oklch.fromColor
               }
             ]
         , Ui.fromContextAttribute
@@ -500,7 +506,7 @@ toAlignAttribute alignment =
 
 tableBorder : List (Attribute msg)
 tableBorder =
-    [ Ui.borderColor (Color.rgb255 223 226 229)
+    [ Ui.borderColor (Color.rgb255 223 226 229 |> Oklch.fromColor)
     , Ui.paddingXY 6 13
     , Ui.height Ui.fill
     , Ui.width Ui.fill
@@ -744,23 +750,9 @@ checkbox attrs config =
 
 desaturate : Color -> Color
 desaturate color =
-    let
-        oklch : Oklch
-        oklch =
-            color
-                |> Oklch.fromColor
-    in
-    { oklch | chroma = 0.5 * oklch.chroma }
-        |> Oklch.toColor
+    { color | chroma = 0.5 * color.chroma }
 
 
 lighten : Color -> Color
 lighten color =
-    let
-        oklch : Oklch
-        oklch =
-            color
-                |> Oklch.fromColor
-    in
-    { oklch | lightness = 0.98 }
-        |> Oklch.toColor
+    { color | lightness = 0.98 }

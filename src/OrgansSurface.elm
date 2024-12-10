@@ -1,6 +1,5 @@
 module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, organWidth, view, width)
 
-import Color
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Lazy
@@ -17,7 +16,7 @@ import Svg.Attributes
 import Svg.Events
 import Theme
 import Types exposing (Action(..), Appendage, Organ, Persona)
-import Ui exposing (Color)
+import Ui.WithContext as Ui exposing (Color)
 
 
 type alias OrganKey =
@@ -308,7 +307,7 @@ viewOrgan persona color pos organ appendage =
             , Svg.Attributes.height (String.fromFloat organHeight)
             , Svg.Attributes.stroke "black"
             , Svg.Attributes.fill
-                (Color.toCssString
+                (Ui.colorToCss
                     (if appendage == Nothing then
                         color
 

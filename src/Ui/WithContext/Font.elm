@@ -1,5 +1,6 @@
 module Ui.WithContext.Font exposing (Font, alignLeft, alignRight, bold, center, color, family, italic, monospace, size, strike, underline)
 
+import Html.Attributes
 import Ui.Font
 import Ui.WithContext as Ui exposing (Attribute, Color)
 
@@ -35,7 +36,7 @@ center =
 
 color : Color -> Attribute context msg
 color value =
-    Ui.liftAttribute (Ui.Font.color value)
+    Ui.htmlAttribute (Html.Attributes.style "color" (Ui.colorToCss value))
 
 
 alignLeft : Attribute context msg

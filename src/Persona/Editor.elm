@@ -118,7 +118,7 @@ view config { flipped, persona } =
 
 nameRow : Config msg -> Persona -> Element msg
 nameRow config persona =
-    Theme.row
+    Theme.column
         [ Ui.paddingWith
             { top = 0
             , bottom = Theme.rhythm
@@ -132,18 +132,38 @@ nameRow config persona =
             , bottom = 1
             }
         ]
-        [ el
-            [ Theme.fontColorAccent
-            , width shrink
+        [ Theme.row []
+            [ el
+                [ Theme.fontColorAccent
+                , width shrink
+                ]
+                (Data.gendertropeIconElement persona.gendertrope)
+            , Theme.input []
+                { label = Input.labelHidden "Name"
+                , text = persona.name
+                , onChange = \newValue -> config.update { persona | name = newValue }
+                , placeholder = Just "Name"
+                }
+            , topButtons config
             ]
-            (Data.gendertropeIconElement persona.gendertrope)
-        , Theme.input []
-            { label = Input.labelHidden "Name"
-            , text = persona.name
-            , onChange = \newValue -> config.update { persona | name = newValue }
-            , placeholder = Just "Name"
-            }
-        , topButtons config
+        , let
+            { id, element } =
+                Input.label "hue-slider" [] (text "Hue")
+          in
+          Theme.row []
+            [ element
+            , Input.sliderHorizontal []
+                { label = id
+                , min = 0
+                , max = 360
+                , step = Nothing
+                , thumb = Nothing
+                , onChange = \newHue -> config.update { persona | hue = Just newHue }
+                , value =
+                    persona.hue
+                        |> Maybe.withDefault Persona.defaultHue
+                }
+            ]
         ]
 
 

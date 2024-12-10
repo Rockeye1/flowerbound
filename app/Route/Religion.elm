@@ -1,6 +1,7 @@
 module Route.Religion exposing (ActionData, Data, Model, Msg, Religion, RouteParams, data, image, route)
 
 import BackendTask exposing (BackendTask)
+import Color.Oklch as Oklch
 import Effect exposing (Effect)
 import FatalError exposing (FatalError)
 import Head
@@ -421,10 +422,10 @@ children religions =
       , circle
             [ r baseWidth
             , fill PaintNone
-            , stroke (Paint Theme.purple)
+            , stroke (Paint (Theme.purple |> Oklch.toColor))
             ]
             []
-      , g [ stroke (Paint Theme.purple) ] lines
+      , g [ stroke (Paint (Theme.purple |> Oklch.toColor)) ] lines
       , g
             [ fontSize (baseWidth / 14) ]
             (List.indexedMap viewReligion religions)
@@ -450,15 +451,15 @@ viewReligion i religion =
         ]
         [ circle
             [ r (religionRadius * 1.2)
-            , fill (Paint Theme.lightPurple)
-            , stroke (Paint Theme.purple)
+            , fill (Paint (Theme.lightPurple |> Oklch.toColor))
+            , stroke (Paint (Theme.purple |> Oklch.toColor))
             , class [ "fast-hidable" ]
             ]
             []
         , circle
             [ r religionRadius
-            , fill (Paint Theme.lightPurple)
-            , stroke (Paint Theme.purple)
+            , fill (Paint (Theme.lightPurple |> Oklch.toColor))
+            , stroke (Paint (Theme.purple |> Oklch.toColor))
             , class [ "movable" ]
             ]
             []

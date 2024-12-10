@@ -1,10 +1,10 @@
-module Persona exposing (Colors, default, fromPartial, levelBonus, maxArousal, maxCraving, maxSatiation, maxSensitivity, maxStamina, organColorFromReducedHue, partialGendertropeName, toColors, toPartial, usedEuphoriaPoints, usedIchorPoints, usedNuminousPoints)
+module Persona exposing (Colors, default, defaultHue, fromPartial, levelBonus, maxArousal, maxCraving, maxSatiation, maxSensitivity, maxStamina, organColorFromReducedHue, partialGendertropeName, toColors, toPartial, usedEuphoriaPoints, usedIchorPoints, usedNuminousPoints)
 
-import Color exposing (Color)
 import Color.Oklch as Oklch
 import Dict
 import Persona.Data
 import Types exposing (Gendertrope(..), GendertropeRecord, PartialGendertrope(..), PartialPersona, Persona)
+import Ui.WithContext exposing (Color)
 
 
 default : Persona
@@ -287,7 +287,7 @@ toColors persona =
         hue : Float
         hue =
             persona.hue
-                |> Maybe.withDefault 328.36341792345144
+                |> Maybe.withDefault defaultHue
 
         reducedHue : Float
         reducedHue =
@@ -295,10 +295,8 @@ toColors persona =
     in
     { accent =
         Oklch.oklch 0.42 0.19 reducedHue
-            |> Oklch.toColor
     , background =
         Oklch.oklch 0.98 0.04 reducedHue
-            |> Oklch.toColor
     , organ =
         Maybe.map
             (\_ ->
@@ -308,7 +306,11 @@ toColors persona =
     }
 
 
+defaultHue : Float
+defaultHue =
+    328.36341792345144
+
+
 organColorFromReducedHue : Float -> Color
 organColorFromReducedHue reducedHue =
     Oklch.oklch 0.9 0.04 reducedHue
-        |> Oklch.toColor
