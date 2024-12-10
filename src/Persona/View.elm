@@ -75,7 +75,7 @@ persona attrs config =
             ]
         , Theme.row [ centerX ]
             [ viewAbilities input
-            , viewStatus input
+            , viewStatus input colors
             ]
         , Theme.row
             [ centerX
@@ -86,8 +86,8 @@ persona attrs config =
             , Data.gendertropeIconElement input.gendertrope
             ]
         , paragraph [ Font.italic ] [ text gendertropeRecord.description ]
-        , viewOrgans gendertropeRecord.organs
-        , viewStandardFeatures input.features gendertropeRecord
+        , viewOrgans gendertropeRecord.organs colors
+        , viewStandardFeatures input.features gendertropeRecord colors
         ]
 
 
@@ -109,8 +109,8 @@ viewAbilities input =
         |> Layout.rowWithConstraints [ Layout.fill, Layout.byContent ] [ Theme.spacing ]
 
 
-viewStatus : Persona -> Element msg
-viewStatus input =
+viewStatus : Persona -> Persona.Colors -> Element msg
+viewStatus input colors =
     let
         statusRow : String -> Int -> ( String, Int )
         statusRow label bonusToCap =
@@ -144,7 +144,7 @@ viewStatus input =
                 , bottom = 0
                 , right = 0
                 }
-            , Ui.borderColor Theme.purple
+            , Ui.borderColor colors.accent
             , Theme.spacing
             ]
 
@@ -191,8 +191,8 @@ tallyMark =
         Ui.none
 
 
-viewStandardFeatures : List Int -> GendertropeRecord -> Element msg
-viewStandardFeatures features gendertropeRecord =
+viewStandardFeatures : List Int -> GendertropeRecord -> Persona.Colors -> Element msg
+viewStandardFeatures features gendertropeRecord colors =
     let
         viewStandardFeature : ( Int, Feature ) -> Element msg
         viewStandardFeature ( level, feature ) =
@@ -201,7 +201,7 @@ viewStandardFeatures features gendertropeRecord =
                 , Theme.padding
                 ]
                 (paragraph
-                    [ Font.color Theme.purple
+                    [ Font.color colors.accent
                     , Font.underline
                     ]
                     [ text ("Level " ++ String.fromInt level ++ " Feature: ")
@@ -239,8 +239,8 @@ topButtons config colors =
     ]
 
 
-viewOrgans : List Organ -> Element msg
-viewOrgans input =
+viewOrgans : List Organ -> Persona.Colors -> Element msg
+viewOrgans input colors =
     let
         wrap : Int -> List (Attribute msg) -> Element msg -> Element msg
         wrap index attrs child =
@@ -260,7 +260,7 @@ viewOrgans input =
         intColumn : (Organ -> Int) -> Organ -> Element msg
         intColumn prop organ =
             -- (el
-            --     [ Font.color Theme.purple
+            --     [ Font.color colors.accent
             --     , Font.size 24
             --     , centerX
             --     ]
@@ -271,7 +271,7 @@ viewOrgans input =
         boolColumn : IconVariant -> (c -> Bool) -> c -> Element msg
         boolColumn img prop organ =
             if prop organ then
-                el [ centerX, Font.color Theme.purple ] (Icons.toElement img)
+                el [ centerX, Font.color colors.accent ] (Icons.toElement img)
 
             else
                 Ui.none
@@ -309,7 +309,7 @@ viewOrgans input =
         |> List.indexedMap
             (\index element ->
                 [ text element.name
-                , el [ centerX, Font.color Theme.purple ] (Icons.toElement (Data.organTypeToIcon element.type_))
+                , el [ centerX, Font.color colors.accent ] (Icons.toElement (Data.organTypeToIcon element.type_))
                 , intColumn .contour element
                 , intColumn .erogeny element
                 , canColumn Squishes .canSquish element

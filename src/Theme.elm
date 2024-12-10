@@ -148,11 +148,6 @@ purple =
     Color.rgb255 0x80 0 0x80
 
 
-barelyLightPurple : Color
-barelyLightPurple =
-    Color.rgb255 0xAE 0x3F 0xAC
-
-
 lightPurple : Color
 lightPurple =
     Color.rgb255 0xE6 0xCC 0xE6
@@ -508,6 +503,7 @@ slider :
         , onChange : Int -> msg
         , label : String
         , value : Int
+        , accentColor : Color
         }
     -> Element msg
 slider attrs config =
@@ -519,7 +515,7 @@ slider attrs config =
                         [ Ui.width Ui.fill
                         , Ui.height (Ui.px 1)
                         , Ui.centerY
-                        , Ui.background purple
+                        , Ui.background config.accentColor
                         , Ui.rounded 2
                         ]
                         Ui.none
@@ -564,8 +560,8 @@ slider attrs config =
                     , Ui.height (Ui.px 16)
                     , Ui.rounded 8
                     , Ui.border 1
-                    , Ui.borderColor purple
-                    , Ui.background lightPurple
+                    , Ui.borderColor config.accentColor
+                    , Ui.background (lighten config.accentColor)
                     ]
                     |> Just
             }

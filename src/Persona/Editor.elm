@@ -137,7 +137,7 @@ nameRow config persona colors =
             }
         ]
         [ el
-            [ Font.color Theme.purple
+            [ Font.color colors.accent
             , width shrink
             ]
             (Data.gendertropeIconElement persona.gendertrope)
@@ -367,14 +367,14 @@ viewGendertrope ({ gendertrope } as persona) colors =
                     (\option ->
                         Theme.el
                             (if option == gendertrope then
-                                Ui.background Theme.purple
+                                Ui.background colors.accent
                                     :: Font.color Theme.white
                                     :: Ui.borderColor Theme.black
                                     :: common option
 
                              else
                                 Ui.background Theme.gray
-                                    :: Ui.borderColor Theme.purple
+                                    :: Ui.borderColor colors.accent
                                     :: common option
                             )
                             (Theme.row [ centerX ]
@@ -437,7 +437,7 @@ viewGendertrope ({ gendertrope } as persona) colors =
                         |> UpdateGendertrope
                 )
                 (viewOrgans gendertropeRecord.organs colors)
-            , viewFeatures persona gendertropeRecord
+            , viewFeatures persona gendertropeRecord colors
             ]
 
         Doll ->
@@ -464,7 +464,7 @@ viewGendertrope ({ gendertrope } as persona) colors =
             , paragraph [ Font.italic ]
                 [ text gendertropeRecord.description
                 ]
-            , Persona.View.viewOrgans gendertropeRecord.organs
+            , Persona.View.viewOrgans gendertropeRecord.organs colors
             , Ui.map SelectFeatures (viewStandardFeatures persona gendertropeRecord colors)
             ]
 
@@ -712,7 +712,7 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord colors =
                         , Theme.padding
                         , Ui.background
                             (if selected then
-                                Theme.purple
+                                colors.accent
 
                              else if canSelect then
                                 Theme.white
@@ -743,8 +743,8 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord colors =
         |> Theme.column []
 
 
-viewFeatures : Persona -> GendertropeRecord -> Element GendertropeMsg
-viewFeatures ({ features } as persona) gendertropeRecord =
+viewFeatures : Persona -> GendertropeRecord -> Persona.Colors -> Element GendertropeMsg
+viewFeatures ({ features } as persona) gendertropeRecord colors =
     let
         viewFeature : ( Int, Feature ) -> Element GendertropeMsg
         viewFeature ( level, feature ) =
@@ -793,7 +793,7 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                     , Theme.padding
                     , Ui.background
                         (if selected then
-                            Theme.purple
+                            colors.accent
 
                          else if canSelect then
                             Theme.white
