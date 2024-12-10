@@ -959,8 +959,7 @@ view _ shared model =
                     ]
 
             Playing playingModel ->
-                (Theme.row [ Ui.wrap, centerX ]
-                    (viewPersonas playingModel)
+                (viewPersonas playingModel
                     :: viewPlaying shared playingModel
                 )
                     |> Theme.column [ Theme.padding ]
@@ -970,7 +969,7 @@ view _ shared model =
     }
 
 
-viewPersonas : PlayingModel -> List (Element PlayingMsg)
+viewPersonas : PlayingModel -> Element PlayingMsg
 viewPersonas playingModel =
     List.indexedMap
         (\i { persona } ->
@@ -1009,6 +1008,7 @@ viewPersonas playingModel =
                     }
                 ]
            ]
+        |> Theme.row [ Ui.wrap, centerX ]
 
 
 loadPersona :
