@@ -1113,8 +1113,7 @@ viewRoll : PlayerModel -> Element PlayerMsg
 viewRoll player =
     case player.stimulationRoll of
         Nothing ->
-            el [ Font.color Theme.gray ]
-                (text "No roll yet.")
+            Ui.none
 
         Just results ->
             let
@@ -1391,7 +1390,6 @@ viewStatusChecks player =
                     ]
     in
     [ el [ Font.bold ] (text "Status checks")
-    , paragraph [] [ text "You can use these buttons to roll status checks:" ]
     , Layout.rowWithConstraints
         [ Layout.byContent
         , Layout.byContent
@@ -1416,8 +1414,7 @@ viewStatusChecks player =
 
 viewTemperaments : PlayerModel -> List (Element PlayerMsg)
 viewTemperaments model =
-    [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments")
-    , text "(Optionally) choose a Temperament"
+    [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments (optional)")
     , [ ( Innocent, "You are living in the moment and not worrying about the past or future. You feel safe, happy, and unquestioning.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Sensitivity** to your **Craving**." )
       , ( Thoughtful, "You are dwelling on the emotions and emotional implications and the shape of your future.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Craving** value, you may transfer points from your **Satiation** to your **Craving**." )
       , ( Perverse, "You are excited on a conceptual, kinky level, captivated and compelled.", "Upon declaration, roll a **Moxie Check**. While the result remains greater than your **Arousal** value, you may transfer points from your **Craving** to your **Arousal**." )
@@ -1479,7 +1476,6 @@ temperamentToString temperament =
 viewMoves : PlayerModel -> List (Element PlayerMsg)
 viewMoves player =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Moves")
-    , text "Choose a move."
     , Theme.row [ Ui.wrap ]
         (List.map
             (viewMove player)
@@ -1557,11 +1553,9 @@ featureMoves _ =
 viewStimulationTable : PlayerModel -> List (Element PlayerMsg)
 viewStimulationTable player =
     [ el [ Font.bold ] (text "Stimulation")
-    , text "Choose a stamina cost."
     , staminaTable player
     , Theme.row []
-        [ text "Then"
-        , Theme.iconAndTextButton [ alignRight ]
+        [ Theme.iconAndTextButton [ alignRight ]
             { onPress =
                 if player.stimulationCost == 1 then
                     Nothing
