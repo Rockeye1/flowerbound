@@ -9,6 +9,7 @@ import Bytes exposing (Bytes)
 import Dict
 import Flate
 import List.Extra
+import Maybe.Extra
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Workaround
 import Persona
@@ -670,7 +671,7 @@ organParser =
         appendageParser : Parser (OrganOrAppendage a -> Appendage)
         appendageParser =
             Parser.succeed
-                (\name maybeCan maybeIs partialOrgan ->
+                (\name maybeCan maybeIs maybeCan2 partialOrgan ->
                     { name = name
                     , canSquish = partialOrgan.canSquish
                     , canGrip = partialOrgan.canGrip
@@ -681,7 +682,7 @@ organParser =
                     , isPenetrable = partialOrgan.isPenetrable
                     , isEnsheatheable = partialOrgan.isEnsheatheable
                     }
-                        |> withCan maybeCan
+                        |> withCan (maybeCan |> Maybe.Extra.orElse maybeCan2)
                         |> withIs maybeIs
                 )
                 |. Parser.backtrackable (Parser.symbol "-")
@@ -705,9 +706,15 @@ organParser =
                     , "Penetrable"
                     , "Ensheatheable"
                     ]
+                |= groupParser "Can"
+                    [ "Squish"
+                    , "Grip"
+                    , "Penetrate"
+                    , "Ensheathe"
+                    ]
     in
     Parser.succeed
-        (\type_ name contour erogeny maybeCan maybeIs appendages ->
+        (\type_ name contour erogeny maybeCan maybeIs maybeCan2 appendages ->
             let
                 withNumbersAndAppendages : Organ -> Organ
                 withNumbersAndAppendages partial =
@@ -729,7 +736,7 @@ organParser =
             in
             organTypeToReference type_ name
                 |> withNumbersAndAppendages
-                |> withCan maybeCan
+                |> withCan (maybeCan |> Maybe.Extra.orElse maybeCan2)
                 |> withIs maybeIs
                 |> withAppendages
         )
@@ -780,6 +787,12 @@ organParser =
             , "Grippable"
             , "Penetrable"
             , "Ensheatheable"
+            ]
+        |= groupParser "Can"
+            [ "Squish"
+            , "Grip"
+            , "Penetrate"
+            , "Ensheathe"
             ]
         |= (Parser.sequence
                 { start = ""
