@@ -8,6 +8,7 @@ import Types exposing (Gendertrope(..), GendertropeRecord, PartialGendertrope(..
 default : Persona
 default =
     { name = "Cinderella Sheen"
+    , hue = Nothing
 
     --
     , fitness = 2
@@ -135,6 +136,7 @@ fromPartial name partialPersona maybeGendertrope =
             partialGendertropeToGendertrope defaulted.gendertrope maybeGendertrope
     in
     { name = name
+    , hue = defaulted.hue
 
     --
     , fitness = defaulted.fitness
@@ -190,7 +192,10 @@ partialGendertropeToGendertrope gendertrope maybeGendertrope =
 
 toPartial : Persona -> PartialPersona
 toPartial persona =
-    { fitness = persona.fitness
+    { hue = persona.hue
+
+    --
+    , fitness = persona.fitness
     , grace = persona.grace
     , ardor = persona.ardor
     , sanity = persona.sanity

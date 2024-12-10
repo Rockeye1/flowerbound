@@ -25,6 +25,7 @@ personaFuzzer : Fuzzer Persona
 personaFuzzer =
     Fuzz.constant Persona
         |> Fuzz.andMap tameString
+        |> Fuzz.andMap (Fuzz.maybe (Fuzz.floatRange 0 360))
         |> Fuzz.andMap (Fuzz.intAtLeast 2)
         |> Fuzz.andMap (Fuzz.intAtLeast 2)
         |> Fuzz.andMap (Fuzz.intAtLeast 2)

@@ -27,6 +27,7 @@ simple =
                     , numinousPoints = 0
                     , prowess = 2
                     , sanity = 2
+                    , hue = Nothing
                     }
         , test "Negative points" <|
             \_ ->
@@ -43,6 +44,7 @@ simple =
                     , numinousPoints = 0
                     , prowess = 2
                     , sanity = 2
+                    , hue = Nothing
                     }
         , test "Multiple features" <|
             \_ ->
@@ -59,6 +61,7 @@ simple =
                     , numinousPoints = 0
                     , prowess = 2
                     , sanity = 2
+                    , hue = Just 3.14
                     }
         , test "?" <|
             \_ ->

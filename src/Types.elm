@@ -6,7 +6,10 @@ import Phosphor exposing (IconVariant)
 
 
 type alias PartialPersona =
-    { fitness : Int
+    { hue : Maybe Float
+
+    --
+    , fitness : Int
     , grace : Int
     , ardor : Int
     , sanity : Int
@@ -26,6 +29,7 @@ type alias PartialPersona =
 
 type alias Persona =
     { name : String
+    , hue : Maybe Float
 
     --
     , fitness : Int

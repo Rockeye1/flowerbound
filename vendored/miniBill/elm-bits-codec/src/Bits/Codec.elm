@@ -1,4 +1,4 @@
-module Bits.Codec exposing (Codec, CustomCodec, ObjectCodec, array, bool, buildCustom, buildObject, custom, dict, field, int, intWithMinimum, list, map, maybe, nonNegativeInt, object, positiveInt, string, succeed, tuple, variant0, variant1)
+module Bits.Codec exposing (Codec, CustomCodec, ObjectCodec, array, bool, buildCustom, buildObject, custom, dict, field, float, int, intWithMinimum, list, map, maybe, nonNegativeInt, object, positiveInt, string, succeed, tuple, variant0, variant1)
 
 import Array exposing (Array)
 import Bit exposing (Bit)
@@ -25,6 +25,13 @@ int : Codec e Int
 int =
     { encoder = Bits.Encode.int
     , decoder = Bits.Decode.int
+    }
+
+
+float : Codec e Float
+float =
+    { encoder = Bits.Encode.float
+    , decoder = Bits.Decode.float
     }
 
 

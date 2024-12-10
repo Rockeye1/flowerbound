@@ -1,4 +1,4 @@
-module Bits.Decode exposing (Decoder, Error(..), Step(..), andMap, andThen, array, bit, bits, bool, bytes, fail, int, list, loop, map, map2, map3, map4, map5, maybe, nonNegativeInt, positiveInt, problem, run, string, succeed)
+module Bits.Decode exposing (Decoder, Error(..), Step(..), andMap, andThen, array, bit, bits, bool, bytes, fail, float, int, list, loop, map, map2, map3, map4, map5, maybe, nonNegativeInt, positiveInt, problem, run, string, succeed)
 
 import Array exposing (Array)
 import Bit exposing (Bit)
@@ -185,6 +185,23 @@ int =
                 -n // 2 - 1
         )
         nonNegativeInt
+
+
+float : Decoder e Float
+float =
+    bytes 8
+        |> andThen
+            (\bs ->
+                Decoder
+                    (\left ->
+                        case Bytes.Decode.decode (Bytes.Decode.float64 Bytes.LE) bs of
+                            Just s ->
+                                Ok ( s, left )
+
+                            Nothing ->
+                                Err StringParsingError
+                    )
+            )
 
 
 nonNegativeInt : Decoder e Int

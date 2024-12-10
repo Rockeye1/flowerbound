@@ -7,6 +7,7 @@ import Html exposing (Html)
 import Html.Lazy
 import Json.Decode
 import List.Extra
+import List.NonEmpty exposing (NonEmpty)
 import Persona.Data
 import Phosphor exposing (IconVariant)
 import Pixels exposing (Pixels)
@@ -26,13 +27,14 @@ type alias OrganPosition =
     ( Point2d Pixels (), Int )
 
 
-organColors : List Color
+organColors : NonEmpty Color
 organColors =
-    [ Oklch.oklch 0.9 0.04 0
-    , Oklch.oklch 0.9 0.04 (1 / 3)
-    , Oklch.oklch 0.9 0.04 (2 / 3)
-    ]
-        |> List.map Oklch.toColor
+    ( Oklch.oklch 0.9 0.04 0
+    , [ Oklch.oklch 0.9 0.04 (1 / 3)
+      , Oklch.oklch 0.9 0.04 (2 / 3)
+      ]
+    )
+        |> List.NonEmpty.map Oklch.toColor
 
 
 width : number
@@ -151,12 +153,35 @@ outerViewOrgan model ( ( i, organName ), ( pos, _ ) ) =
                     let
                         color : Color
                         color =
-                            organColors
-                                |> List.drop (modBy (List.length organColors) i)
-                                |> List.head
-                                |> Maybe.withDefault Color.white
+                            case persona.hue of
+                                Nothing ->
+                                    organColors
+                                        |> cyclicGetAt i
+
+                                Just hue ->
+                                    let
+                                        reducedHue : Float
+                                        reducedHue =
+                                            hue - 360 * toFloat (floor (hue / 360))
+                                    in
+                                    Oklch.oklch 0.9 0.04 (reducedHue / 360)
+                                        |> Oklch.toColor
                     in
                     [ Html.Lazy.lazy5 viewOrgan persona color pos organ appendage ]
+
+
+cyclicGetAt : Int -> NonEmpty a -> a
+cyclicGetAt index list =
+    let
+        go : Int -> NonEmpty a -> a
+        go i ( head, tail ) =
+            if i <= 0 then
+                head
+
+            else
+                go (i - 1) (Maybe.withDefault list (List.NonEmpty.fromList tail))
+    in
+    go (modBy (List.NonEmpty.length list) index) list
 
 
 type TextAnchor

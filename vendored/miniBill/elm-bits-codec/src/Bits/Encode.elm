@@ -1,8 +1,9 @@
-module Bits.Encode exposing (array, bool, int, list, maybe, nonNegativeInt, positiveInt, string)
+module Bits.Encode exposing (array, bool, float, int, list, maybe, nonNegativeInt, positiveInt, string)
 
 import Array exposing (Array)
 import Bit exposing (Bit)
 import Bits
+import Bytes
 import Bytes.Encode
 import Rope exposing (Rope)
 
@@ -16,6 +17,14 @@ int n =
          else
             -2 * n - 1
         )
+
+
+float : Float -> Rope Bit
+float input =
+    Bytes.Encode.float64 Bytes.LE input
+        |> Bytes.Encode.encode
+        |> Bits.fromBytes
+        |> Rope.fromList
 
 
 nonNegativeInt : Int -> Rope Bit

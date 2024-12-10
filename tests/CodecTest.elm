@@ -7,7 +7,7 @@ import Dict
 import Expect
 import Fuzz exposing (Fuzzer)
 import Rope
-import Test exposing (Test, describe, fuzz2, test)
+import Test exposing (Test, describe, fuzz, fuzz2, test)
 
 
 suite : Test
@@ -60,27 +60,29 @@ roundtrips fuzzer codec =
                 ()
 
 
+roundtripsWithin : Fuzzer Float -> Codec e Float -> Test
+roundtripsWithin fuzzer codec =
+    fuzz fuzzer "is a roundtrip" <|
+        \value ->
+            case
+                codec.encoder value
+                    |> Rope.toList
+                    |> Bits.Decode.run codec.decoder
+            of
+                Err _ ->
+                    Expect.fail "Decoding failed"
 
--- roundtripsWithin : Fuzzer Float -> Codec e Float -> Test
--- roundtripsWithin fuzzer codec =
---     fuzz fuzzer "is a roundtrip" <|
---         \value ->
---             case
---                 codec.encoder value
---                     |> Rope.toList
---                     |> Bits.Decode.run codec.decoder
---             of
---                 Err _ ->
---                     Expect.fail "Decoding failed"
---                 Ok v ->
---                     if isNaN value then
---                         if isNaN v then
---                             Expect.pass
---                         else
---                             Expect.fail "NaN decoded to non-NaN"
---                     else
---                         v
---                             |> Expect.within (Expect.Relative 0.000001) value
+                Ok v ->
+                    if isNaN value then
+                        if isNaN v then
+                            Expect.pass
+
+                        else
+                            Expect.fail "NaN decoded to non-NaN"
+
+                    else
+                        v
+                            |> Expect.within (Expect.Relative 0.000001) value
 
 
 basicTests : List Test
@@ -91,20 +93,19 @@ basicTests =
     , describe "Codec.int"
         [ roundtrips Fuzz.int Codec.int
         ]
-
-    -- , describe "Codec.float"
-    --     [ roundtrips
-    --         (Fuzz.oneOf
-    --             [ Fuzz.niceFloat
-    --             , Fuzz.constant (1 / 0)
-    --             , Fuzz.constant (-1 / 0)
-    --             ]
-    --         )
-    --         Codec.float
-    --     , describe "Works for NaN"
-    --         [ roundtripsWithin Fuzz.float Codec.float
-    --         ]
-    --     ]
+    , describe "Codec.float"
+        [ roundtrips
+            (Fuzz.oneOf
+                [ Fuzz.niceFloat
+                , Fuzz.constant (1 / 0)
+                , Fuzz.constant (-1 / 0)
+                ]
+            )
+            Codec.float
+        , describe "Works for NaN"
+            [ roundtripsWithin Fuzz.float Codec.float
+            ]
+        ]
     , describe "Codec.bool"
         [ roundtrips Fuzz.bool Codec.bool
         ]

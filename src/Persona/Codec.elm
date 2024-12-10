@@ -211,17 +211,22 @@ personaParser : Parser Persona
 personaParser =
     Parser.succeed Persona
         |= headerParser 1 (Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n"))
+        |= Parser.oneOf
+            [ Parser.succeed Just
+                |= ulParserThen "Hue" Parser.float
+            , Parser.succeed Nothing
+            ]
         |. headerParser 2 (Parser.keyword "Ability Scores")
-        |= ulParser "Fitness" Parser.int
-        |= ulParser "Grace" Parser.int
-        |= ulParser "Ardor" Parser.int
-        |= ulParser "Sanity" Parser.int
-        |= ulParser "Prowess" Parser.int
-        |= ulParser "Moxie" Parser.int
+        |= ulParserThen "Fitness" Parser.int
+        |= ulParserThen "Grace" Parser.int
+        |= ulParserThen "Ardor" Parser.int
+        |= ulParserThen "Sanity" Parser.int
+        |= ulParserThen "Prowess" Parser.int
+        |= ulParserThen "Moxie" Parser.int
         |. headerParser 2 (Parser.keyword "Progression Tally")
-        |= ulParser "Euphoria Points" integer
-        |= ulParser "Ichor Points" integer
-        |= ulParser "Numinous Points" integer
+        |= ulParserThen "Euphoria Points" integer
+        |= ulParserThen "Ichor Points" integer
+        |= ulParserThen "Numinous Points" integer
         |. headerParser 2 (Parser.keyword "Unlocked features")
         |= (Parser.sequence
                 { start = ""
@@ -268,6 +273,13 @@ fixupPersona persona =
 toString : Persona -> String
 toString persona =
     ([ block 1 persona.name []
+        ++ (case persona.hue of
+                Nothing ->
+                    ""
+
+                Just hue ->
+                    "\n- Hue: " ++ String.fromFloat hue
+           )
      , block 2
         "Ability Scores"
         (numericUl
@@ -595,9 +607,12 @@ gendertropeRecordParser name =
                 (\pieces ->
                     let
                         ( opaque, semitransparent ) =
-                            Result.Extra.partition pieces
+                            List.partition .opaque pieces
                     in
-                    Just { semitransparent = semitransparent, opaque = opaque }
+                    { semitransparent = List.map .path semitransparent
+                    , opaque = List.map .path opaque
+                    }
+                        |> Just
                 )
                 |. headerParser 3 (Parser.keyword "Icon")
                 |= Parser.sequence
@@ -606,18 +621,11 @@ gendertropeRecordParser name =
                     , separator = ""
                     , spaces = Parser.spaces
                     , item =
-                        Parser.succeed identity
-                            |. Parser.symbol "-"
-                            |. Parser.spaces
+                        Parser.succeed (\opaque path -> { opaque = opaque, path = path })
                             |= Parser.oneOf
-                                [ Parser.succeed Err
-                                    |. Parser.symbol "Semitransparent"
-                                , Parser.succeed Ok
-                                    |. Parser.symbol "Opaque"
+                                [ ulParser "Semitransparent" False
+                                , ulParser "Opaque" True
                                 ]
-                            |. Parser.spaces
-                            |. Parser.symbol ":"
-                            |. Parser.spaces
                             |= Parser.getChompedString (Parser.Workaround.chompUntilEndOrBefore "\n")
                     , trailing = Parser.Optional
                     }
@@ -628,26 +636,11 @@ gendertropeRecordParser name =
 organParser : Parser Organ
 organParser =
     let
-        item : Parser keep -> Parser keep
-        item inner =
-            Parser.succeed identity
-                |. Parser.backtrackable (Parser.symbol "-")
-                |. Parser.backtrackable Parser.spaces
-                |= inner
-                |. Parser.commit ()
-                |. Parser.spaces
-
         groupParser : String -> List String -> Parser (Maybe (List String))
         groupParser label options =
             Parser.oneOf
                 [ Parser.succeed Just
-                    |. Parser.backtrackable (Parser.symbol "-")
-                    |. Parser.backtrackable Parser.spaces
-                    |. Parser.keyword label
-                    |. Parser.commit ()
-                    |. Parser.spaces
-                    |. Parser.symbol ":"
-                    |. Parser.spaces
+                    |. ulParser label ()
                     |= Parser.sequence
                         { start = ""
                         , end = ""
@@ -685,15 +678,10 @@ organParser =
                         |> withCan (maybeCan |> Maybe.Extra.orElse maybeCan2)
                         |> withIs maybeIs
                 )
-                |. Parser.backtrackable (Parser.symbol "-")
-                |. Parser.backtrackable Parser.spaces
-                |. Parser.symbol "Appendage"
-                |. Parser.commit ()
-                |. Parser.spaces
-                |. Parser.symbol ":"
-                |. Parser.spaces
-                |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
-                |. Parser.spaces
+                |= ulParserThen "Appendage"
+                    (Parser.Workaround.chompUntilBefore "\n"
+                        |> Parser.getChompedString
+                    )
                 |= groupParser "Can"
                     [ "Squish"
                     , "Grip"
@@ -740,40 +728,27 @@ organParser =
                 |> withIs maybeIs
                 |> withAppendages
         )
-        |. Parser.symbol "-"
-        |. Parser.spaces
         |= Parser.oneOf
-            [ Parser.succeed Other |. Parser.keyword "Custom"
-            , Parser.succeed Mouth |. Parser.keyword "Mouth"
-            , Parser.succeed Hands |. Parser.keyword "Hands"
-            , Parser.succeed Breasts |. Parser.keyword "Breasts"
-            , Parser.succeed Hips |. Parser.keyword "Hips"
-            , Parser.succeed Legs |. Parser.keyword "Legs"
-            , Parser.succeed Phallic |. Parser.keyword "Phallic"
-            , Parser.succeed Yonic |. Parser.keyword "Yonic"
-            , Parser.succeed Prehensile |. Parser.keyword "Prehensile"
+            [ ulParser "Custom" Other
+            , ulParser "Mouth" Mouth
+            , ulParser "Hands" Hands
+            , ulParser "Breasts" Breasts
+            , ulParser "Hips" Hips
+            , ulParser "Legs" Legs
+            , ulParser "Phallic" Phallic
+            , ulParser "Yonic" Yonic
+            , ulParser "Prehensile" Prehensile
             ]
-        |. Parser.spaces
-        |. Parser.symbol ":"
-        |. Parser.spaces
         |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
         |. Parser.spaces
         |= Parser.oneOf
             [ Parser.succeed Just
-                |. item (Parser.keyword "Contour")
-                |. Parser.symbol ":"
-                |. Parser.spaces
-                |= Parser.int
-                |. Parser.spaces
+                |= ulParserThen "Contour" Parser.int
             , Parser.succeed Nothing
             ]
         |= Parser.oneOf
             [ Parser.succeed Just
-                |. item (Parser.keyword "Erogeny")
-                |. Parser.symbol ":"
-                |. Parser.spaces
-                |= Parser.int
-                |. Parser.spaces
+                |= ulParserThen "Erogeny" Parser.int
             , Parser.succeed Nothing
             ]
         |= groupParser "Can"
@@ -867,15 +842,22 @@ headerParser level inner =
         |. Parser.spaces
 
 
-ulParser : String -> Parser a -> Parser a
-ulParser name inner =
-    Parser.succeed identity
-        |. Parser.symbol "-"
-        |. Parser.spaces
+ulParser : String -> a -> Parser a
+ulParser name result =
+    Parser.succeed result
+        |. Parser.backtrackable (Parser.symbol "-")
+        |. Parser.backtrackable Parser.spaces
         |. Parser.keyword name
+        |. Parser.commit ()
         |. Parser.spaces
         |. Parser.symbol ":"
         |. Parser.spaces
+
+
+ulParserThen : String -> Parser a -> Parser a
+ulParserThen name inner =
+    Parser.succeed identity
+        |. ulParser name ()
         |= inner
         |. Parser.spaces
 
@@ -883,6 +865,7 @@ ulParser name inner =
 partialPersona : Codec e PartialPersona
 partialPersona =
     Codec.object PartialPersona
+        |> Codec.field .hue (Codec.maybe Codec.float)
         |> Codec.field .fitness (Codec.intWithMinimum 2)
         |> Codec.field .grace (Codec.intWithMinimum 2)
         |> Codec.field .ardor (Codec.intWithMinimum 2)
