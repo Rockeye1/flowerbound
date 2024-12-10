@@ -684,12 +684,14 @@ organParser =
                         |> withCan maybeCan
                         |> withIs maybeIs
                 )
+                |. Parser.backtrackable (Parser.symbol "-")
+                |. Parser.backtrackable Parser.spaces
                 |. Parser.symbol "Appendage"
+                |. Parser.commit ()
                 |. Parser.spaces
                 |. Parser.symbol ":"
                 |. Parser.spaces
                 |= Parser.getChompedString (Parser.Workaround.chompUntilBefore "\n")
-                |. Parser.spaces
                 |. Parser.spaces
                 |= groupParser "Can"
                     [ "Squish"
