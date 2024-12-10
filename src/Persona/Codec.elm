@@ -14,7 +14,6 @@ import Parser exposing ((|.), (|=), Parser)
 import Parser.Workaround
 import Persona
 import Persona.Data as Data
-import Result.Extra
 import Rope
 import Route exposing (Route)
 import Types exposing (Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganOrAppendage, OrganType(..), PartialGendertrope(..), PartialPersona, Persona)

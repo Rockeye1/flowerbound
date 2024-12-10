@@ -11,7 +11,7 @@ import Head.Seo as Seo
 import Html.Attributes
 import Icons
 import List.Extra
-import OrgansSurface
+import OrgansSurface exposing (OrganPosition)
 import PagesMsg exposing (PagesMsg)
 import Persona
 import Persona.Codec
@@ -57,6 +57,8 @@ type PlayingMsg
     | MouseMove (Point2d Pixels ())
     | MouseUp
     | Rearrange
+    | ShowAppendages Int String
+    | HideOrganOrAppendage Int String
 
 
 type PlayerMsg
@@ -139,10 +141,6 @@ type Temperament
 
 type alias OrganKey =
     ( Int, String )
-
-
-type alias OrganPosition =
-    ( Point2d Pixels (), Int )
 
 
 type alias Meters =
@@ -272,20 +270,25 @@ checkOrgans model =
     { model
         | organsPositions =
             Set.foldl
-                (\( i, organ ) ( acc, pos, z ) ->
+                (\( i, organ ) ( acc, pos, zIndex ) ->
                     case Dict.get ( i, organ ) acc of
                         Nothing ->
-                            ( Dict.insert ( i, organ ) ( Point2d.pixels (pos * 16 + 8) (pos * 32 + 8), z ) acc
+                            ( Dict.insert ( i, organ )
+                                { position = Point2d.pixels (pos * 16 + 8) (pos * 32 + 8)
+                                , zIndex = zIndex
+                                , show = not (String.contains "-" organ)
+                                }
+                                acc
                             , pos + 1
-                            , z + 1
+                            , zIndex + 1
                             )
 
                         Just _ ->
-                            ( acc, pos, z )
+                            ( acc, pos, zIndex )
                 )
                 ( filtered
                 , 0
-                , getNewZOrder filtered
+                , getNewZIndex filtered
                 )
                 expected
                 |> Triple.first
@@ -380,16 +383,22 @@ innerUpdate msg model =
 
                 Just ( key, delta ) ->
                     let
-                        zOrder : Int
-                        zOrder =
-                            getNewZOrder model.organsPositions
+                        zIndex : Int
+                        zIndex =
+                            getNewZIndex model.organsPositions
                     in
                     ( { model
                         | organsPositions =
-                            Dict.insert key
-                                ( Point2d.translateBy delta position
-                                    |> clipOrganPosition model
-                                , zOrder
+                            Dict.update key
+                                (Maybe.map
+                                    (\organ ->
+                                        { organ
+                                            | position =
+                                                Point2d.translateBy delta position
+                                                    |> clipOrganPosition model
+                                            , zIndex = zIndex
+                                        }
+                                    )
                                 )
                                 model.organsPositions
                       }
@@ -403,6 +412,34 @@ innerUpdate msg model =
 
         Rearrange ->
             ( Just { model | organsPositions = rearrange model.organsPositions }, Effect.none )
+
+        ShowAppendages i organName ->
+            ( Just
+                { model
+                    | organsPositions =
+                        Dict.map
+                            (\( candidateI, candidateOrganName ) position ->
+                                if i == candidateI && String.startsWith (organName ++ "-") candidateOrganName then
+                                    { position | show = True }
+
+                                else
+                                    position
+                            )
+                            model.organsPositions
+                }
+            , Effect.none
+            )
+
+        HideOrganOrAppendage i organName ->
+            ( Just
+                { model
+                    | organsPositions =
+                        Dict.update ( i, organName )
+                            (Maybe.map (\position -> { position | show = False }))
+                            model.organsPositions
+                }
+            , Effect.none
+            )
 
 
 playerUpdate : PlayerMsg -> PlayerModel -> ( Maybe PlayerModel, Effect PlayerMsg )
@@ -628,33 +665,39 @@ rearrange organsPositions =
                 |> List.partition (isPaired organsPositions)
     in
     unpaired
-        |> List.Extra.gatherEqualsBy
-            (\( ( i, _ ), _ ) -> i)
+        |> Dict.Extra.groupBy
+            (\( ( i, _ ), { show } ) ->
+                ( i
+                , if show then
+                    0
+
+                  else
+                    1
+                )
+            )
+        |> Dict.toList
         |> List.foldl
-            (\( h, t ) ( fromY, acc ) ->
-                let
-                    group : List ( OrganKey, OrganPosition )
-                    group =
-                        h :: t
-                in
-                ( fromY + OrgansSurface.organHeight + 32 * toFloat (List.length t) + 8
+            (\( _, group ) ( fromY, acc ) ->
+                ( fromY + OrgansSurface.organHeight + 32 * toFloat (List.length group - 1) + 8
                 , (group
                     |> List.sortBy
-                        (\( _, ( pos, _ ) ) ->
+                        (\( _, { position } ) ->
                             let
                                 { x, y } =
-                                    Point2d.toPixels pos
+                                    Point2d.toPixels position
                             in
                             x + 8 * y
                         )
                     |> List.indexedMap
-                        (\j ( key, _ ) ->
+                        (\j ( key, { show } ) ->
                             ( key
-                            , ( Point2d.pixels
-                                    (16 * toFloat j + 8)
-                                    (fromY + (32 * toFloat j))
-                              , 0
-                              )
+                            , { position =
+                                    Point2d.pixels
+                                        (16 * toFloat j + 8)
+                                        (fromY + (32 * toFloat j))
+                              , zIndex = 0
+                              , show = show
+                              }
                             )
                         )
                   )
@@ -685,14 +728,14 @@ reStack organsPositions =
     organsPositions
         |> Dict.toList
         |> List.sortBy
-            (\( _, ( pos, _ ) ) ->
+            (\( _, { position } ) ->
                 let
                     { x, y } =
-                        Point2d.toPixels pos
+                        Point2d.toPixels position
                 in
                 x + 8 * y
             )
-        |> List.indexedMap (\i ( key, ( pos, _ ) ) -> ( key, ( pos, i ) ))
+        |> List.indexedMap (\i ( key, position ) -> ( key, { position | zIndex = i } ))
         |> Dict.fromList
 
 
@@ -703,7 +746,7 @@ trySnap model =
         sorted =
             model.organsPositions
                 |> Dict.toList
-                |> List.sortBy (\( _, ( _, zOrder ) ) -> -zOrder)
+                |> List.sortBy (\( _, { zIndex } ) -> -zIndex)
 
         pair : List a -> List ( a, List a ) -> List ( a, List a )
         pair queue acc =
@@ -758,33 +801,42 @@ trySnapTo :
     ( OrganKey, OrganPosition )
     -> ( OrganKey, OrganPosition )
     -> Maybe ( OrganKey, OrganPosition )
-trySnapTo ( _, ( targetPos, _ ) ) ( key, ( organPos, zOrder ) ) =
-    let
-        leftSnap : Point2d Pixels ()
-        leftSnap =
-            targetPos
-                |> Point2d.translateBy (Vector2d.pixels (-4 - OrgansSurface.organWidth) 0)
+trySnapTo ( _, target ) ( key, { position, zIndex, show } ) =
+    if not show || not target.show then
+        Nothing
 
-        tryPos : Maybe (Point2d Pixels ())
-        tryPos =
-            case trySnapHorizontallyToPoint leftSnap organPos of
-                Just newPos ->
-                    Just newPos
+    else
+        let
+            leftSnap : Point2d Pixels ()
+            leftSnap =
+                target.position
+                    |> Point2d.translateBy (Vector2d.pixels (-4 - OrgansSurface.organWidth) 0)
 
-                Nothing ->
-                    let
-                        rightSnap : Point2d Pixels ()
-                        rightSnap =
-                            targetPos
-                                |> Point2d.translateBy (Vector2d.pixels (4 + OrgansSurface.organWidth) 0)
-                    in
-                    trySnapHorizontallyToPoint rightSnap organPos
-    in
-    tryPos
-        |> Maybe.map
-            (\newPos ->
-                ( key, ( newPos, zOrder ) )
-            )
+            tryPos : Maybe (Point2d Pixels ())
+            tryPos =
+                case trySnapHorizontallyToPoint leftSnap position of
+                    Just newPos ->
+                        Just newPos
+
+                    Nothing ->
+                        let
+                            rightSnap : Point2d Pixels ()
+                            rightSnap =
+                                target.position
+                                    |> Point2d.translateBy (Vector2d.pixels (4 + OrgansSurface.organWidth) 0)
+                        in
+                        trySnapHorizontallyToPoint rightSnap position
+        in
+        tryPos
+            |> Maybe.map
+                (\newPos ->
+                    ( key
+                    , { position = newPos
+                      , zIndex = zIndex
+                      , show = show
+                      }
+                    )
+                )
 
 
 trySnapHorizontallyToPoint : Point2d Pixels () -> Point2d Pixels () -> Maybe (Point2d Pixels ())
@@ -860,10 +912,10 @@ clipOrganPosition model position =
         (clamp 0 (OrgansSurface.height model - OrgansSurface.organHeight) y)
 
 
-getNewZOrder : Dict OrganKey OrganPosition -> Int
-getNewZOrder organsPositions =
+getNewZIndex : Dict OrganKey OrganPosition -> Int
+getNewZIndex organsPositions =
     Dict.foldl
-        (\_ ( _, z ) acc -> max (z + 1) acc)
+        (\_ { zIndex } acc -> max (zIndex + 1) acc)
         0
         organsPositions
 
@@ -872,13 +924,13 @@ raycast : PlayingModel -> Point2d Pixels () -> Maybe ( OrganKey, Vector2d Pixels
 raycast model position =
     model.organsPositions
         |> Dict.toList
-        |> List.sortBy (\( _, ( _, zOrder ) ) -> -zOrder)
+        |> List.sortBy (\( _, { zIndex } ) -> -zIndex)
         |> List.Extra.findMap
-            (\( key, ( organPosition, _ ) ) ->
+            (\( key, organPosition ) ->
                 let
                     vec : Vector2d Pixels ()
                     vec =
-                        Vector2d.from position organPosition
+                        Vector2d.from position organPosition.position
 
                     { x, y } =
                         Vector2d.toPixels vec
@@ -1173,6 +1225,8 @@ viewOrgans shared model =
         { mouseDown = MouseDown
         , mouseUp = MouseUp
         , mouseMove = MouseMove
+        , showAppendages = ShowAppendages
+        , hideOrganOrAppendage = HideOrganOrAppendage
         }
         model
         |> Ui.html

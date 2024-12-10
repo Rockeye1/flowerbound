@@ -1,4 +1,4 @@
-module Theme exposing (Attribute, Context, Element, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (Attribute, Context, Element, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
 import Color
 import Color.Oklch as Oklch
@@ -756,3 +756,8 @@ desaturate color =
 lighten : Color -> Color
 lighten color =
     { color | lightness = 0.98 }
+
+
+toAccent : Color -> Color
+toAccent color =
+    { color | lightness = 0.42, chroma = 0.19 }

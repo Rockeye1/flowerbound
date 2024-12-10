@@ -2,7 +2,6 @@ module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, org
 
 import Dict exposing (Dict)
 import Html exposing (Html)
-import Html.Lazy
 import Json.Decode
 import List.Extra
 import List.NonEmpty exposing (NonEmpty)
@@ -24,7 +23,10 @@ type alias OrganKey =
 
 
 type alias OrganPosition =
-    ( Point2d Pixels (), Int )
+    { position : Point2d Pixels ()
+    , zIndex : Int
+    , show : Bool
+    }
 
 
 organColors : NonEmpty Color
@@ -52,6 +54,8 @@ view :
     { mouseUp : msg
     , mouseDown : Point2d Pixels () -> msg
     , mouseMove : Point2d Pixels () -> msg
+    , showAppendages : Int -> String -> msg
+    , hideOrganOrAppendage : Int -> String -> msg
     }
     ->
         { a
@@ -64,8 +68,16 @@ view :
 view config model =
     model.organsPositions
         |> Dict.toList
-        |> List.sortBy (\( _, ( _, zOrder ) ) -> zOrder)
-        |> List.concatMap (outerViewOrgan model)
+        |> List.sortBy (\( _, { zIndex } ) -> zIndex)
+        |> List.filterMap
+            (\(( ( i, organName ), _ ) as arg) ->
+                outerViewOrgan
+                    { showAppendages = config.showAppendages i organName
+                    , hideOrganOrAppendage = config.hideOrganOrAppendage i organName
+                    }
+                    model
+                    arg
+            )
         |> (::) (Svg.style [] [ Svg.text """svg text { cursor: default; }""" ])
         |> Svg.svg
             [ Svg.Attributes.width "100%"
@@ -94,65 +106,70 @@ height :
     }
     -> Float
 height model =
-    44 * toFloat (Dict.size model.organsPositions)
+    50 * toFloat (Dict.size model.organsPositions)
 
 
 outerViewOrgan :
-    { a
-        | organsPositions : Dict ( Int, String ) ( Point2d Pixels (), comparable )
-        , player : { p | persona : Persona }
-        , others : List { p | persona : Persona }
-        , dragging : Maybe b
+    { showAppendages : msg
+    , hideOrganOrAppendage : msg
     }
-    -> (( ( Int, String ), ( Point2d Pixels (), comparable ) ) -> List (Html.Html c))
-outerViewOrgan model ( ( i, organName ), ( pos, _ ) ) =
-    let
-        maybePersona : Maybe { p | persona : Persona }
-        maybePersona =
-            if i < 0 then
-                Just model.player
+    ->
+        { a
+            | organsPositions : Dict OrganKey OrganPosition
+            , player : { p | persona : Persona }
+            , others : List { p | persona : Persona }
+            , dragging : Maybe b
+        }
+    -> ( OrganKey, OrganPosition )
+    -> Maybe (Html.Html msg)
+outerViewOrgan config model ( ( i, organName ), { position, show } ) =
+    if not show then
+        Nothing
 
-            else
-                List.Extra.getAt i model.others
-    in
-    case maybePersona of
-        Nothing ->
-            []
+    else
+        let
+            maybePersona : Maybe { p | persona : Persona }
+            maybePersona =
+                if i < 0 then
+                    Just model.player
 
-        Just { persona } ->
-            case
-                persona.gendertrope
-                    |> Persona.Data.gendertropeToRecord
-                    |> .organs
-                    |> List.Extra.findMap
-                        (\organ ->
-                            if organ.name == organName then
-                                Just ( organ, Nothing )
+                else
+                    List.Extra.getAt i model.others
+        in
+        maybePersona
+            |> Maybe.andThen
+                (\{ persona } ->
+                    persona.gendertrope
+                        |> Persona.Data.gendertropeToRecord
+                        |> .organs
+                        |> List.Extra.findMap
+                            (\organ ->
+                                if organ.name == organName then
+                                    Just ( organ, Nothing )
 
-                            else
-                                List.Extra.findMap
-                                    (\appendage ->
-                                        if organ.name ++ "-" ++ appendage.name == organName then
-                                            -- TODO: this breaks lazy
-                                            Just ( organ, Just appendage )
+                                else
+                                    List.Extra.findMap
+                                        (\appendage ->
+                                            if organ.name ++ "-" ++ appendage.name == organName then
+                                                -- TODO: this breaks lazy
+                                                Just ( organ, Just appendage )
 
-                                        else
-                                            Nothing
-                                    )
-                                    organ.appendages
-                        )
-            of
-                Nothing ->
-                    []
-
-                Just ( organ, appendage ) ->
-                    let
-                        color : Color
-                        color =
-                            (Persona.toColors persona).organ
-                                |> Maybe.withDefault (cyclicGetAt i organColors)
-                    in
-                    [ Html.Lazy.lazy5 viewOrgan persona color pos organ appendage ]
+                                            else
+                                                Nothing
+                                        )
+                                        organ.appendages
+                            )
+                        |> Maybe.map
+                            (\( organ, appendage ) ->
+                                let
+                                    color : Color
+                                    color =
+                                        (Persona.toColors persona).organ
+                                            |> Maybe.withDefault (cyclicGetAt i organColors)
+                                in
+                                viewOrgan config persona color position organ appendage
+                            )
+                )
 
 
 cyclicGetAt : Int -> NonEmpty a -> a
@@ -174,8 +191,17 @@ type TextAnchor
     | AnchorEnd
 
 
-viewOrgan : Persona -> Color -> Point2d Pixels () -> Organ -> Maybe Appendage -> Svg.Svg msg
-viewOrgan persona color pos organ appendage =
+viewOrgan :
+    { showAppendages : msg
+    , hideOrganOrAppendage : msg
+    }
+    -> Persona
+    -> Color
+    -> Point2d Pixels ()
+    -> Organ
+    -> Maybe Appendage
+    -> Svg.Svg msg
+viewOrgan config persona color pos organ appendage =
     let
         { x, y } =
             Point2d.toPixels pos
@@ -189,21 +215,21 @@ viewOrgan persona color pos organ appendage =
                 , anchor : TextAnchor
                 }
             -> Svg.Svg msg
-        textAt attrs config =
+        textAt attrs textConfig =
             Svg.text_
                 (Svg.Attributes.x
                     (String.fromFloat
-                        (case config.anchor of
+                        (case textConfig.anchor of
                             AnchorStart ->
-                                8 + config.x
+                                8 + textConfig.x
 
                             AnchorEnd ->
-                                organWidth - 8 - config.x
+                                organWidth - 8 - textConfig.x
                         )
                     )
-                    :: Svg.Attributes.y (String.fromFloat (8 + 24 * config.y + 4))
+                    :: Svg.Attributes.y (String.fromFloat (8 + 24 * textConfig.y + 4))
                     :: Svg.Attributes.textAnchor
-                        (case config.anchor of
+                        (case textConfig.anchor of
                             AnchorStart ->
                                 "start"
 
@@ -213,7 +239,7 @@ viewOrgan persona color pos organ appendage =
                     :: Svg.Attributes.dominantBaseline "hanging"
                     :: attrs
                 )
-                [ Svg.text config.label ]
+                [ Svg.text textConfig.label ]
 
         iconAt : Float -> Float -> IconVariant -> Html msg
         iconAt dx dy icon =
@@ -297,6 +323,34 @@ viewOrgan persona color pos organ appendage =
                     }
                 , Svg.title [] [ Svg.text (Types.actionToCan attribute) ]
                 ]
+
+        chevron : Svg.Svg msg
+        chevron =
+            if appendage == Nothing && not (List.isEmpty organ.appendages) then
+                Svg.g [ Svg.Events.onClick config.showAppendages ]
+                    [ Svg.rect
+                        [ Svg.Attributes.x (String.fromFloat (organWidth / 2 - 16))
+                        , Svg.Attributes.y "28"
+                        , Svg.Attributes.width "32"
+                        , Svg.Attributes.height (String.fromFloat (organHeight - 32))
+                        , Svg.Attributes.fill
+                            (Ui.colorToCss (Theme.toAccent color))
+                        , Svg.Attributes.stroke "black"
+                        ]
+                        []
+                    , Svg.text_
+                        [ Svg.Attributes.x "29"
+                        , Svg.Attributes.y (String.fromFloat (-organWidth / 2))
+                        , Svg.Attributes.textAnchor "start"
+                        , Svg.Attributes.dominantBaseline "middle"
+                        , Svg.Attributes.transform "rotate(90)"
+                        , Svg.Attributes.fill "white"
+                        ]
+                        [ Svg.text "Appendages >" ]
+                    ]
+
+            else
+                Svg.g [] []
     in
     Svg.g
         [ Svg.Attributes.transform
@@ -357,6 +411,7 @@ viewOrgan persona color pos organ appendage =
         , iifLeft .isGrippable .isGrippable Grips 3
         , iifLeft .isPenetrable .isPenetrable Penetrates 4
         , iifLeft .isEnsheatheable .isEnsheatheable Ensheathes 5
+        , chevron
         ]
 
 
