@@ -95,6 +95,7 @@ type PlayerMsg
     | UpdatePersonaPicked File
     | UpdatePersonaRead (Result String Persona)
     | Remove
+    | Notes String
 
 
 type Model
@@ -111,7 +112,8 @@ type alias PlayingModel =
 
 
 type alias PlayerModel =
-    { stimulationCost : Int
+    { notes : String
+    , stimulationCost : Int
     , meters : Meters
     , selectedMove : Maybe String
     , selectedTemperament : Maybe Temperament
@@ -585,6 +587,9 @@ playerUpdate msg ({ persona } as player) =
         Remove ->
             ( Nothing, Effect.none )
 
+        Notes notes ->
+            ( Just { player | notes = notes }, Effect.none )
+
 
 addPlayer : PlayingModel -> Persona -> ( Maybe PlayingModel, Effect PlayingMsg )
 addPlayer model persona =
@@ -888,7 +893,8 @@ initPlayingModel persona =
 
 initPlayerModel : Persona -> PlayerModel
 initPlayerModel persona =
-    { stimulationCost = 1
+    { notes = ""
+    , stimulationCost = 1
     , meters =
         { sensitivity = 0
         , arousal = 0
@@ -1083,18 +1089,6 @@ restParagraph =
         ]
 
 
-viewTurn : Shared.Model -> PlayerModel -> Element PlayerMsg
-viewTurn shared player =
-    [ viewOrgasm player
-    , viewTemperaments player
-    , viewStatusChecks player
-    , viewMoves player
-    , viewStimulationTable player
-    ]
-        |> List.concat
-        |> Theme.column []
-
-
 viewMeters : PlayerModel -> Element PlayerMsg
 viewMeters { persona, meters } =
     [ statusMeter "Stamina" meters.stamina (Persona.maxStamina persona) <| \newValue -> { meters | stamina = newValue }
@@ -1109,106 +1103,34 @@ viewMeters { persona, meters } =
         |> Ui.map UpdateMeters
 
 
-viewRoll : PlayerModel -> Element PlayerMsg
-viewRoll player =
-    case player.stimulationRoll of
-        Nothing ->
-            Ui.none
+viewTurn : Shared.Model -> PlayerModel -> Element PlayerMsg
+viewTurn shared player =
+    [ viewNotes player
+    , viewOrgasm player
+    , viewTemperaments player
+    , viewStatusChecks player
+    , viewMoves player
+    , viewStimulationTable player
+    ]
+        |> List.concat
+        |> Theme.column []
 
-        Just results ->
-            let
-                ( ardents, timids ) =
-                    List.unzip results
 
-                raw : Int
-                raw =
-                    List.sum ardents - List.sum timids
-
-                corrected : Int
-                corrected =
-                    if raw < 0 then
-                        min 0 (raw + player.persona.prowess)
-
-                    else if raw == 0 then
-                        0
-
-                    else
-                        max 0 (raw - player.persona.prowess)
-
-                otherColumns : List (List (Element msg))
-                otherColumns =
-                    List.map
-                        (\( ardent, timid ) ->
-                            [ text (String.fromInt ardent)
-                            , text (String.fromInt timid)
-                            ]
-                        )
-                        results
-            in
-            ([ text "+", text "-" ]
-                :: otherColumns
-                ++ [ [ text (String.fromInt raw) ]
-                   , if raw == corrected then
-                        []
-
-                     else
-                        [ text ("PRW " ++ String.fromInt player.persona.prowess)
-                        , el [ centerX ] (text "⇒")
-                        ]
-                   , if raw == corrected then
-                        []
-
-                     else
-                        [ text (String.fromInt corrected) ]
-                   ]
-            )
-                |> List.indexedMap
-                    (\c children ->
-                        if List.isEmpty children then
-                            Ui.none
-
-                        else
-                            children
-                                |> List.indexedMap
-                                    (\r child ->
-                                        el
-                                            [ Ui.borderWith
-                                                { top =
-                                                    if r == 0 then
-                                                        0
-
-                                                    else
-                                                        1
-                                                , left = 0
-                                                , right = 0
-                                                , bottom = 0
-                                                }
-                                            , Ui.borderColor Theme.purple
-                                            , Theme.padding
-                                            , Font.center
-                                            , centerY
-                                            ]
-                                            child
-                                    )
-                                |> Theme.column
-                                    [ Ui.background Theme.lightPurple
-                                    , Ui.borderWith
-                                        { left =
-                                            if c == 0 then
-                                                1
-
-                                            else
-                                                0
-                                        , top = 1
-                                        , bottom = 1
-                                        , right = 1
-                                        }
-                                    , Ui.borderColor Theme.purple
-                                    , height fill
-                                    , width shrink
-                                    ]
-                    )
-                |> row []
+viewNotes : PlayerModel -> List (Element PlayerMsg)
+viewNotes player =
+    let
+        { element, id } =
+            Input.label "notes-id" [ Font.bold ] (text "Notes")
+    in
+    [ element
+    , Theme.multiline []
+        { label = id
+        , onChange = Notes
+        , placeholder = Just "Write your personal notes here"
+        , text = player.notes
+        , spellcheck = True
+        }
+    ]
 
 
 viewOrgans : Shared.Model -> PlayingModel -> Element PlayingMsg
@@ -1544,6 +1466,29 @@ viewMove model move =
         }
 
 
+defaultMoves : List Move
+defaultMoves =
+    [ { name = "Caress"
+      , stimulationType = Tease
+      , actionCompatibility = [ Squishes, Grips ]
+      , cravingThreshold = 0
+      , description = "A light touch with no other effects."
+      }
+    , { name = "Rub"
+      , stimulationType = Grind
+      , actionCompatibility = [ Squishes, Grips, Penetrates, Ensheathes ]
+      , cravingThreshold = 0
+      , description = "A massaging motion with no other effects."
+      }
+    , { name = "Stroke"
+      , stimulationType = Thrust
+      , actionCompatibility = [ Grips, Penetrates, Ensheathes ]
+      , cravingThreshold = 0
+      , description = "A back-and-forth movement with no other effects."
+      }
+    ]
+
+
 featureMoves : Persona -> List Move
 featureMoves _ =
     -- TODO: implement this
@@ -1588,27 +1533,106 @@ viewStimulationTable player =
     ]
 
 
-defaultMoves : List Move
-defaultMoves =
-    [ { name = "Caress"
-      , stimulationType = Tease
-      , actionCompatibility = [ Squishes, Grips ]
-      , cravingThreshold = 0
-      , description = "A light touch with no other effects."
-      }
-    , { name = "Rub"
-      , stimulationType = Grind
-      , actionCompatibility = [ Squishes, Grips, Penetrates, Ensheathes ]
-      , cravingThreshold = 0
-      , description = "A massaging motion with no other effects."
-      }
-    , { name = "Stroke"
-      , stimulationType = Thrust
-      , actionCompatibility = [ Grips, Penetrates, Ensheathes ]
-      , cravingThreshold = 0
-      , description = "A back-and-forth movement with no other effects."
-      }
-    ]
+viewRoll : PlayerModel -> Element PlayerMsg
+viewRoll player =
+    case player.stimulationRoll of
+        Nothing ->
+            Ui.none
+
+        Just results ->
+            let
+                ( ardents, timids ) =
+                    List.unzip results
+
+                raw : Int
+                raw =
+                    List.sum ardents - List.sum timids
+
+                corrected : Int
+                corrected =
+                    if raw < 0 then
+                        min 0 (raw + player.persona.prowess)
+
+                    else if raw == 0 then
+                        0
+
+                    else
+                        max 0 (raw - player.persona.prowess)
+
+                otherColumns : List (List (Element msg))
+                otherColumns =
+                    List.map
+                        (\( ardent, timid ) ->
+                            [ text (String.fromInt ardent)
+                            , text (String.fromInt timid)
+                            ]
+                        )
+                        results
+            in
+            ([ text "+", text "-" ]
+                :: otherColumns
+                ++ [ [ text (String.fromInt raw) ]
+                   , if raw == corrected then
+                        []
+
+                     else
+                        [ text ("PRW " ++ String.fromInt player.persona.prowess)
+                        , el [ centerX ] (text "⇒")
+                        ]
+                   , if raw == corrected then
+                        []
+
+                     else
+                        [ text (String.fromInt corrected) ]
+                   ]
+            )
+                |> List.indexedMap
+                    (\c children ->
+                        if List.isEmpty children then
+                            Ui.none
+
+                        else
+                            children
+                                |> List.indexedMap
+                                    (\r child ->
+                                        el
+                                            [ Ui.borderWith
+                                                { top =
+                                                    if r == 0 then
+                                                        0
+
+                                                    else
+                                                        1
+                                                , left = 0
+                                                , right = 0
+                                                , bottom = 0
+                                                }
+                                            , Ui.borderColor Theme.purple
+                                            , Theme.padding
+                                            , Font.center
+                                            , centerY
+                                            ]
+                                            child
+                                    )
+                                |> Theme.column
+                                    [ Ui.background Theme.lightPurple
+                                    , Ui.borderWith
+                                        { left =
+                                            if c == 0 then
+                                                1
+
+                                            else
+                                                0
+                                        , top = 1
+                                        , bottom = 1
+                                        , right = 1
+                                        }
+                                    , Ui.borderColor Theme.purple
+                                    , height fill
+                                    , width shrink
+                                    ]
+                    )
+                |> row []
 
 
 statusMeter : String -> Int -> Int -> (Int -> msg) -> List (Element msg)
