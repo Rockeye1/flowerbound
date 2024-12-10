@@ -1,13 +1,13 @@
 module OrgansSurface exposing (OrganKey, OrganPosition, height, organHeight, organWidth, view, width)
 
 import Color
-import Color.Oklch as Oklch exposing (Oklch)
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Lazy
 import Json.Decode
 import List.Extra
 import List.NonEmpty exposing (NonEmpty)
+import Persona
 import Persona.Data
 import Phosphor exposing (IconVariant)
 import Pixels exposing (Pixels)
@@ -15,6 +15,7 @@ import Point2d exposing (Point2d)
 import Svg
 import Svg.Attributes
 import Svg.Events
+import Theme
 import Types exposing (Action(..), Appendage, Organ, Persona)
 import Ui exposing (Color)
 
@@ -29,12 +30,8 @@ type alias OrganPosition =
 
 organColors : NonEmpty Color
 organColors =
-    ( Oklch.oklch 0.9 0.04 0
-    , [ Oklch.oklch 0.9 0.04 (1 / 3)
-      , Oklch.oklch 0.9 0.04 (2 / 3)
-      ]
-    )
-        |> List.NonEmpty.map Oklch.toColor
+    ( 0, [ 1 / 3, 2 / 3 ] )
+        |> List.NonEmpty.map Persona.organColorFromReducedHue
 
 
 width : number
@@ -153,19 +150,8 @@ outerViewOrgan model ( ( i, organName ), ( pos, _ ) ) =
                     let
                         color : Color
                         color =
-                            case persona.hue of
-                                Nothing ->
-                                    organColors
-                                        |> cyclicGetAt i
-
-                                Just hue ->
-                                    let
-                                        reducedHue : Float
-                                        reducedHue =
-                                            hue - 360 * toFloat (floor (hue / 360))
-                                    in
-                                    Oklch.oklch 0.9 0.04 (reducedHue / 360)
-                                        |> Oklch.toColor
+                            (Persona.toColors persona).organ
+                                |> Maybe.withDefault (cyclicGetAt i organColors)
                     in
                     [ Html.Lazy.lazy5 viewOrgan persona color pos organ appendage ]
 
@@ -327,14 +313,7 @@ viewOrgan persona color pos organ appendage =
                         color
 
                      else
-                        let
-                            oklch : Oklch
-                            oklch =
-                                color
-                                    |> Oklch.fromColor
-                        in
-                        { oklch | chroma = 0.5 * oklch.chroma }
-                            |> Oklch.toColor
+                        Theme.desaturate color
                     )
                 )
             ]

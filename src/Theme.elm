@@ -1,6 +1,7 @@
-module Theme exposing (barelyLightPurpleHex, black, button, checkbox, column, el, gray, iconAndTextButton, iconButton, input, lightGray, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (barelyLightPurpleHex, black, button, checkbox, column, desaturate, el, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
 import Color exposing (Color)
+import Color.Oklch as Oklch exposing (Oklch)
 import Html
 import Html.Attributes
 import Icons
@@ -59,6 +60,7 @@ button :
     ->
         { onPress : Maybe msg
         , label : Element msg
+        , accentColor : Color
         }
     -> Element msg
 button attrs config =
@@ -66,6 +68,7 @@ button attrs config =
         { onPress = config.onPress
         , label = config.label
         , selected = False
+        , accentColor = config.accentColor
         }
 
 
@@ -75,6 +78,7 @@ selectableButton :
         { onPress : Maybe msg
         , label : Element msg
         , selected : Bool
+        , accentColor : Color
         }
     -> Element msg
 selectableButton attrs config =
@@ -83,13 +87,13 @@ selectableButton attrs config =
             case config.onPress of
                 Just _ ->
                     if config.selected then
-                        ( white, purple, black )
+                        ( white, config.accentColor, black )
 
                     else
-                        ( black, lightPurple, purple )
+                        ( black, lighten config.accentColor, config.accentColor )
 
                 Nothing ->
-                    ( black, gray, purple )
+                    ( black, gray, config.accentColor )
 
         common : List (Attribute msg)
         common =
@@ -111,7 +115,7 @@ selectableButton attrs config =
             Just msg ->
                 Input.button msg
                     :: Ui.Anim.hovered (Ui.Anim.ms 100)
-                        [ Ui.Anim.backgroundColor barelyLightPurple
+                        [ Ui.Anim.backgroundColor (desaturate config.accentColor)
                         , Ui.Anim.fontColor white
                         ]
                     :: common
@@ -119,9 +123,9 @@ selectableButton attrs config =
         config.label
 
 
-lightGray : Color
-lightGray =
-    Color.rgb 0.85 0.85 0.85
+transparentLightGray : Color
+transparentLightGray =
+    Color.rgba 0.85 0.85 0.85 0.4
 
 
 gray : Color
@@ -177,15 +181,12 @@ link :
         }
     -> Element msg
 link attrs { label, route } =
-    Route.toLink
-        (\linkAttrs ->
-            el
-                (List.map Ui.htmlAttribute linkAttrs
-                    ++ attrs
-                )
-                label
+    el
+        (Ui.linkNewTab (Route.toString route)
+            :: Font.underline
+            :: attrs
         )
-        route
+        label
 
 
 input :
@@ -588,12 +589,14 @@ iconButton :
         { onPress : Maybe msg
         , icon : Phosphor.IconVariant
         , title : String
+        , accentColor : Color
         }
     -> Element msg
 iconButton attrs config =
     button (title config.title :: attrs)
         { onPress = config.onPress
         , label = Icons.toElement config.icon
+        , accentColor = config.accentColor
         }
 
 
@@ -603,6 +606,7 @@ iconAndTextButton :
         { onPress : Maybe msg
         , icon : Phosphor.IconVariant
         , label : String
+        , accentColor : Color
         }
     -> Element msg
 iconAndTextButton attrs config =
@@ -613,6 +617,7 @@ iconAndTextButton attrs config =
                 [ Icons.toElement config.icon
                 , Ui.text config.label
                 ]
+        , accentColor = config.accentColor
         }
 
 
@@ -631,3 +636,27 @@ checkbox attrs config =
         , icon = Just purpleCheckbox
         , label = config.label
         }
+
+
+desaturate : Color -> Color
+desaturate color =
+    let
+        oklch : Oklch
+        oklch =
+            color
+                |> Oklch.fromColor
+    in
+    { oklch | chroma = 0.5 * oklch.chroma }
+        |> Oklch.toColor
+
+
+lighten : Color -> Color
+lighten color =
+    let
+        oklch : Oklch
+        oklch =
+            color
+                |> Oklch.fromColor
+    in
+    { oklch | lightness = 0.98 }
+        |> Oklch.toColor

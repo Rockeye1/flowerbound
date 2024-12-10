@@ -34,10 +34,15 @@ persona attrs config =
         gendertropeRecord : GendertropeRecord
         gendertropeRecord =
             Data.gendertropeToRecord input.gendertrope
+
+        colors : Persona.Colors
+        colors =
+            Persona.toColors input
     in
     Theme.column
         (Ui.border 1
             :: Ui.width (px 640)
+            :: Ui.background colors.background
             :: Theme.padding
             :: attrs
         )
@@ -48,7 +53,7 @@ persona attrs config =
           in
           Theme.row []
             (label.element
-                :: Theme.input []
+                :: Theme.input [ Font.color colors.accent ]
                     { text = Site.config.canonicalUrl ++ Persona.Codec.toUrl input
                     , onChange =
                         \newUrl ->
@@ -58,11 +63,11 @@ persona attrs config =
                     , placeholder = Nothing
                     , label = label.id
                     }
-                :: topButtons config
+                :: topButtons config colors
             )
         , Theme.row
             [ centerX
-            , Font.color Theme.purple
+            , Font.color colors.accent
             ]
             [ Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text input.name)
@@ -74,7 +79,7 @@ persona attrs config =
             ]
         , Theme.row
             [ centerX
-            , Font.color Theme.purple
+            , Font.color colors.accent
             ]
             [ Data.gendertropeIconElement input.gendertrope
             , el [ Font.bold ] (text gendertropeRecord.name)
@@ -212,12 +217,13 @@ viewStandardFeatures features gendertropeRecord =
         |> Theme.column []
 
 
-topButtons : Config msg -> List (Element msg)
-topButtons config =
+topButtons : Config msg -> Persona.Colors -> List (Element msg)
+topButtons config colors =
     [ Theme.iconButton [ alignRight ]
         { onPress = Just config.upload
         , icon = Icons.upload
         , title = "Upload"
+        , accentColor = colors.accent
         }
     , case config.remove of
         Nothing ->
@@ -228,6 +234,7 @@ topButtons config =
                 { onPress = Just remove
                 , icon = Icons.remove
                 , title = "Remove"
+                , accentColor = colors.accent
                 }
     ]
 
@@ -240,13 +247,12 @@ viewOrgans input =
             el
                 (height fill
                     :: Theme.padding
-                    :: Ui.background
-                        (if modBy 2 index == 0 then
-                            Theme.lightGray
+                    :: (if modBy 2 index == 0 then
+                            Ui.background Theme.transparentLightGray
 
-                         else
-                            Theme.white
-                        )
+                        else
+                            Ui.noAttr
+                       )
                     :: attrs
                 )
                 (paragraph [ centerY ] [ child ])
