@@ -1,5 +1,7 @@
-- Turn tracker
+- UI for show/hide appendages
+- Legs and Bosom appendages
 - UI for appendages customization
+- Turn tracker
 - Collapsible sections
 - Use IP to up organ stats
 - Log of actions
