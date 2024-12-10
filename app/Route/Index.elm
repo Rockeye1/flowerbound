@@ -1085,13 +1085,14 @@ restParagraph =
 
 viewTurn : Shared.Model -> PlayerModel -> Element PlayerMsg
 viewTurn shared player =
-    Theme.column []
-        [ Theme.column [] (viewOrgasm player)
-        , Theme.column [] (viewTemperaments player)
-        , Theme.column [] (viewStatusChecks player)
-        , Theme.column [] (viewMoves player)
-        , Theme.column [] (viewStimulationTable player)
-        ]
+    [ viewOrgasm player
+    , viewTemperaments player
+    , viewStatusChecks player
+    , viewMoves player
+    , viewStimulationTable player
+    ]
+        |> List.concat
+        |> Theme.column []
 
 
 viewMeters : PlayerModel -> Element PlayerMsg
