@@ -1069,7 +1069,7 @@ viewPersonas playingModel =
                 , persona = persona
                 }
                 |> Ui.map (PlayerMsg maybeIndex)
-                |> Ui.replaceContext { colors = Persona.toColors persona }
+                |> Ui.updateContext (\context -> { context | colors = Persona.toColors persona })
         )
         (playingModel.player :: playingModel.others)
         ++ [ Theme.column [ centerX, centerY ]
@@ -1149,7 +1149,7 @@ viewPlaying shared model =
     ]
         |> List.concat
         |> List.map
-            (Ui.replaceContext { colors = Persona.toColors model.player.persona })
+            (Ui.updateContext (\context -> { context | colors = Persona.toColors model.player.persona }))
 
 
 viewTurn : PlayerModel -> List (Element PlayerMsg)
@@ -1299,7 +1299,7 @@ viewOrgasm player =
         paragraph
             [ Theme.padding
             , Ui.border 1
-            , Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
+            , Theme.backgroundColorAccent
             , Font.color Theme.white
             ]
             (if player.selectedTemperament == Just Valiant then

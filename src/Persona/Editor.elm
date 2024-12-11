@@ -379,7 +379,7 @@ viewGendertrope ({ gendertrope } as persona) =
                     (\option ->
                         Theme.el
                             (if option == gendertrope then
-                                Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
+                                Theme.backgroundColorAccent
                                     :: Font.color Theme.white
                                     :: Ui.borderColor Theme.black
                                     :: common option

@@ -247,7 +247,7 @@ view app shared model =
             { persona = model
             , flipped = shared.flipped
             }
-            |> Ui.replaceContext { colors = Persona.toColors model }
+            |> Ui.updateContext (\context -> { context | colors = Persona.toColors model })
             |> Theme.el [ Theme.padding ]
             |> Ui.map PagesMsg.fromMsg
     }

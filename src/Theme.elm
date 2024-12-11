@@ -1,4 +1,4 @@
-module Theme exposing (Attribute, Context, Element, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (Attribute, Context, Element, backgroundColorAccent, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
 import Color
 import Color.Oklch as Oklch
@@ -23,6 +23,7 @@ import Ui.WithContext.Shadow as Shadow
 
 type alias Context =
     { colors : Persona.Colors
+    , darkMode : Bool
     }
 
 
@@ -74,6 +75,11 @@ fontColorAccent =
 backgroundColorBackground : Attribute msg
 backgroundColorBackground =
     Ui.fromContextAttribute (\{ colors } -> Ui.background colors.background)
+
+
+backgroundColorAccent : Attribute msg
+backgroundColorAccent =
+    Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
 
 
 spacing : Attribute msg
@@ -629,7 +635,7 @@ slider attrs config =
                         [ Ui.width Ui.fill
                         , Ui.height (Ui.px 1)
                         , Ui.centerY
-                        , Ui.fromContextAttribute (\{ colors } -> Ui.background colors.accent)
+                        , backgroundColorAccent
                         , Ui.rounded 2
                         ]
                         Ui.none

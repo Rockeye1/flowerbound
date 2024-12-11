@@ -1,4 +1,4 @@
-module Ui.WithContext exposing (Angle, Attribute, Color, Edges, Element, Length, Position, alignBottom, alignRight, alignTop, background, behindContent, below, border, borderColor, borderWith, centerX, centerY, colorToCss, column, down, el, fill, fromContext, fromContextAttribute, height, html, htmlAttribute, image, inFront, left, liftAttribute, liftElement, linkNewTab, map, move, noAttr, none, opacity, padding, paddingWith, paddingXY, px, radians, replaceContext, right, rotate, rounded, row, scrollableX, shrink, spacing, text, turns, up, width, widthMax, widthMin, withAttrs, withChild, withChildren, withContext, withContextAttribute, wrap)
+module Ui.WithContext exposing (Angle, Attribute, Color, Edges, Element, Length, Position, alignBottom, alignRight, alignTop, background, behindContent, below, border, borderColor, borderWith, centerX, centerY, colorToCss, column, down, el, fill, fromContext, fromContextAttribute, height, html, htmlAttribute, image, inFront, left, liftAttribute, liftElement, linkNewTab, map, move, noAttr, none, opacity, padding, paddingWith, paddingXY, px, radians, replaceContext, right, rotate, rounded, row, scrollableX, shrink, spacing, text, turns, up, updateContext, width, widthMax, widthMin, withAttrs, withChild, withChildren, withContext, withContextAttribute, wrap)
 
 import Color.Oklch as Oklch
 import Html
@@ -47,6 +47,11 @@ liftAttribute attr =
 withContext : context -> Element context msg -> Ui.Element msg
 withContext context (Element toElem) =
     toElem context
+
+
+updateContext : (context -> context) -> Element context msg -> Element context msg
+updateContext f (Element toElem) =
+    Element (\context -> toElem (f context))
 
 
 replaceContext : context -> Element context msg -> Element c msg

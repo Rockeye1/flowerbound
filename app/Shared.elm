@@ -171,7 +171,12 @@ div.popover button:hover {
                 ]
             , Font.size 20
             ]
-            (Ui.WithContext.withContext { colors = Persona.toColors { hue = Nothing } } pageView.body)
+            (Ui.WithContext.withContext
+                { colors = Persona.toColors { hue = Nothing }
+                , darkMode = True
+                }
+                pageView.body
+            )
         ]
     , title = pageView.title
     }
