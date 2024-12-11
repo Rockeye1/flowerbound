@@ -1135,7 +1135,7 @@ loadPersona config =
             ]
         , el [ centerX, Theme.fontColorAccent ]
             (text "or")
-        , Theme.link []
+        , Theme.link [ centerX ]
             { label = text "Go to the editor"
             , route = Route.Persona
             }
