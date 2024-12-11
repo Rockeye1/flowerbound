@@ -1015,12 +1015,14 @@ view : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Model -> 
 view _ shared model =
     { title = Site.manifest.name
     , body =
-        (case model of
+        case model of
             WaitingForPersona ->
                 Theme.column
                     [ Theme.padding
                     , centerX
                     , centerY
+                    , Ui.border 1
+                    , Theme.shadow
                     ]
                     [ Theme.row
                         [ Theme.fontColorAccent
@@ -1036,15 +1038,24 @@ view _ shared model =
                         , loadFromUrl = LoadFromUrl
                         }
                     ]
+                    |> Ui.el
+                        [ height fill
+                        , Theme.backgroundColorBackground
+                        ]
+                    |> Ui.map PagesMsg.fromMsg
 
             Playing playingModel ->
                 (viewPersonas playingModel
                     :: viewPlaying shared playingModel
                 )
-                    |> Theme.column [ Theme.padding ]
+                    |> Theme.column
+                        [ Theme.padding
+                        , height fill
+                        , Theme.backgroundColorBackground
+                        ]
                     |> Ui.map PlayingMsg
-        )
-            |> Ui.map PagesMsg.fromMsg
+                    |> Ui.updateContext (\context -> { context | colors = Persona.toColors playingModel.player.persona })
+                    |> Ui.map PagesMsg.fromMsg
     }
 
 
@@ -1148,8 +1159,6 @@ viewPlaying shared model =
     , List.map (Ui.map (PlayerMsg Nothing)) (viewTurn model.player)
     ]
         |> List.concat
-        |> List.map
-            (Ui.updateContext (\context -> { context | colors = Persona.toColors model.player.persona }))
 
 
 viewTurn : PlayerModel -> List (Element PlayerMsg)

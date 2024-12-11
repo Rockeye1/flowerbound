@@ -1,4 +1,4 @@
-module Theme exposing (Attribute, Context, Element, backgroundColorAccent, backgroundColorBackground, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lighten, link, multiline, padding, pageTitle, purple, rhythm, row, selectableButton, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (Attribute, Context, Element, backgroundColorAccent, backgroundColorBackground, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lighten, link, multiline, padding, pageTitle, purple, rhythm, row, selectableButton, shadow, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
 import Color
 import Color.Oklch as Oklch
@@ -751,3 +751,15 @@ lighten color =
 toAccent : Color -> Color
 toAccent color =
     { color | lightness = 0.42, chroma = 0.19 }
+
+
+shadow : Attribute msg
+shadow =
+    Shadow.shadows
+        [ { x = 0
+          , y = 0
+          , blur = 10
+          , color = Oklch.oklcha 0 0 0 0.2
+          , size = 2
+          }
+        ]

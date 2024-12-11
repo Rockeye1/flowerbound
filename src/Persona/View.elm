@@ -40,6 +40,7 @@ persona attrs config =
             :: Ui.width (px 640)
             :: Theme.backgroundColorBackground
             :: Theme.padding
+            :: Theme.shadow
             :: attrs
         )
         [ let
