@@ -1,4 +1,4 @@
-module Theme exposing (Attribute, Context, Element, backgroundColorAccent, backgroundColorBackground, barelyLightPurpleHex, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lightPurple, lighten, link, multiline, padding, pageTitle, purple, purpleHex, rhythm, row, selectableButton, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
+module Theme exposing (Attribute, Context, Element, backgroundColorAccent, backgroundColorBackground, black, borderColorAccent, button, checkbox, column, desaturate, el, fontColorAccent, gray, iconAndTextButton, iconButton, input, lighten, link, multiline, padding, pageTitle, purple, rhythm, row, selectableButton, slider, spacing, style, title, toAccent, transparentLightGray, viewMarkdown, white, withHint, wrappedRow)
 
 import Color
 import Color.Oklch as Oklch
@@ -189,22 +189,6 @@ purple : Color
 purple =
     Color.rgb255 0x80 0 0x80
         |> Oklch.fromColor
-
-
-lightPurple : Color
-lightPurple =
-    Color.rgb255 0xE6 0xCC 0xE6
-        |> Oklch.fromColor
-
-
-purpleHex : number
-purpleHex =
-    0x00800080
-
-
-barelyLightPurpleHex : number
-barelyLightPurpleHex =
-    0x00AE3FAC
 
 
 style : String -> String -> Attribute msg

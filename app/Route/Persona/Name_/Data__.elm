@@ -2,6 +2,8 @@ module Route.Persona.Name_.Data__ exposing (ActionData, Data, Model, Msg, RouteP
 
 import Array
 import BackendTask exposing (BackendTask)
+import Color
+import Color.Oklch as Oklch
 import Drawing
 import Effect exposing (Effect)
 import ErrorPage exposing (ErrorPage)
@@ -270,7 +272,18 @@ toCard name partialPersona =
                 let
                     image : Drawing.Image
                     image =
-                        (Theme.purpleHex * 256 + 0xFF)
+                        let
+                            color : { red : Float, green : Float, blue : Float, alpha : Float }
+                            color =
+                                Theme.purple
+                                    |> Oklch.toColor
+                                    |> Color.toRgba
+
+                            f : Float -> Int -> Int
+                            f val scale =
+                                floor (val * 255) * 2 ^ scale
+                        in
+                        (f color.red 24 + f color.green 16 + f color.blue 8 + f 1 0)
                             |> Array.repeat cardImageSize.width
                             |> Array.repeat cardImageSize.height
 

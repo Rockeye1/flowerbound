@@ -22,7 +22,7 @@ import TypedSvg.Attributes exposing (class, dominantBaseline, fill, id, stroke, 
 import TypedSvg.Attributes.InPx exposing (fontSize, height, r, strokeWidth, width, x, x1, x2, y, y1, y2)
 import TypedSvg.Core exposing (Svg, foreignObject, text)
 import TypedSvg.Types exposing (AnchorAlignment(..), DominantBaseline(..), Paint(..))
-import Ui.WithContext as Ui exposing (background)
+import Ui.WithContext as Ui
 import Ui.WithContext.Font as Font
 import Ui.WithContext.Prose exposing (paragraph)
 import UrlPath
@@ -239,8 +239,8 @@ view app _ _ =
     { title = title
     , body =
         Theme.column
-            [ Ui.width Ui.fill
-            , background Theme.lightPurple
+            [ Ui.height Ui.fill
+            , Theme.backgroundColorBackground
             , Theme.padding
             ]
             (Theme.pageTitle "World Guide: Religion"
@@ -451,14 +451,14 @@ viewReligion i religion =
         ]
         [ circle
             [ r (religionRadius * 1.2)
-            , fill (Paint (Theme.lightPurple |> Oklch.toColor))
+            , fill (Paint (Theme.purple |> Theme.lighten |> Oklch.toColor))
             , stroke (Paint (Theme.purple |> Oklch.toColor))
             , class [ "fast-hidable" ]
             ]
             []
         , circle
             [ r religionRadius
-            , fill (Paint (Theme.lightPurple |> Oklch.toColor))
+            , fill (Paint (Theme.purple |> Theme.lighten |> Oklch.toColor))
             , stroke (Paint (Theme.purple |> Oklch.toColor))
             , class [ "movable" ]
             ]

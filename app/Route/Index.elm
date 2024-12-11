@@ -1253,7 +1253,7 @@ viewOrgans shared model =
             [ width <| px OrgansSurface.width
             , height <| px (ceiling (OrgansSurface.height model))
             , Ui.border 1
-            , Ui.background Theme.lightPurple
+            , Theme.backgroundColorBackground
             ]
         |> Theme.el
             [ centerX
