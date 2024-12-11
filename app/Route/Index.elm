@@ -417,15 +417,59 @@ innerUpdate msg model =
         ShowAppendages i organName ->
             ( { model
                 | organsPositions =
-                    Dict.map
-                        (\( candidateI, candidateOrganName ) position ->
-                            if i == candidateI && String.startsWith (organName ++ "-") candidateOrganName then
-                                { position | show = True }
+                    let
+                        pos : Maybe (Point2d Pixels ())
+                        pos =
+                            Dict.get ( i, organName ) model.organsPositions
+                                |> Maybe.map .position
+
+                        total : Float
+                        total =
+                            Dict.foldl
+                                (\key _ acc ->
+                                    if isMatch key then
+                                        acc + 1
+
+                                    else
+                                        acc
+                                )
+                                0
+                                model.organsPositions
+
+                        isMatch : OrganKey -> Bool
+                        isMatch ( candidateI, candidateOrganName ) =
+                            (i == candidateI)
+                                && String.startsWith (organName ++ "-") candidateOrganName
+                    in
+                    Dict.foldl
+                        (\key position (( dict, count ) as acc) ->
+                            if isMatch key then
+                                ( Dict.insert key
+                                    { position
+                                        | show = True
+                                        , position =
+                                            case pos of
+                                                Nothing ->
+                                                    position.position
+
+                                                Just organPosition ->
+                                                    organPosition
+                                                        |> Point2d.translateBy
+                                                            (Vector2d.pixels
+                                                                ((count - (total - 1) / 2) * (OrgansSurface.organWidth + snapDistance))
+                                                                (OrgansSurface.organHeight + snapDistance)
+                                                            )
+                                    }
+                                    dict
+                                , count + 1
+                                )
 
                             else
-                                position
+                                acc
                         )
+                        ( model.organsPositions, 0 )
                         model.organsPositions
+                        |> Tuple.first
               }
                 |> Just
             , Effect.none
@@ -679,12 +723,12 @@ rearrange organsPositions =
     unpaired
         |> Dict.Extra.groupBy
             (\( ( i, _ ), { show } ) ->
-                ( i
-                , if show then
+                ( if show then
                     0
 
                   else
                     1
+                , i
                 )
             )
         |> Dict.toList
@@ -809,6 +853,11 @@ snapLimit =
     Pixels.pixels 24
 
 
+snapDistance : number
+snapDistance =
+    4
+
+
 trySnapTo :
     ( OrganKey, OrganPosition )
     -> ( OrganKey, OrganPosition )
@@ -822,7 +871,7 @@ trySnapTo ( _, target ) ( key, { position, zIndex, show } ) =
             leftSnap : Point2d Pixels ()
             leftSnap =
                 target.position
-                    |> Point2d.translateBy (Vector2d.pixels (-4 - OrgansSurface.organWidth) 0)
+                    |> Point2d.translateBy (Vector2d.pixels (-snapDistance - OrgansSurface.organWidth) 0)
 
             tryPos : Maybe (Point2d Pixels ())
             tryPos =
@@ -835,7 +884,7 @@ trySnapTo ( _, target ) ( key, { position, zIndex, show } ) =
                             rightSnap : Point2d Pixels ()
                             rightSnap =
                                 target.position
-                                    |> Point2d.translateBy (Vector2d.pixels (4 + OrgansSurface.organWidth) 0)
+                                    |> Point2d.translateBy (Vector2d.pixels (snapDistance + OrgansSurface.organWidth) 0)
                         in
                         trySnapHorizontallyToPoint rightSnap position
         in
@@ -864,7 +913,7 @@ trySnapHorizontallyToPoint snapPoint organPos =
                     |> Point2d.translateBy
                         (Vector2d.xy
                             Quantity.zero
-                            (Pixels.pixels (OrgansSurface.organHeight / 2 + 2))
+                            (Pixels.pixels (OrgansSurface.organHeight / 2 + snapDistance / 2))
                         )
         in
         if Point2d.equalWithin snapLimit lower organPos then
@@ -878,7 +927,7 @@ trySnapHorizontallyToPoint snapPoint organPos =
                         |> Point2d.translateBy
                             (Vector2d.xy
                                 Quantity.zero
-                                (Pixels.pixels (-OrgansSurface.organHeight / 2 - 2))
+                                (Pixels.pixels (-OrgansSurface.organHeight / 2 - snapDistance / 2))
                             )
             in
             if Point2d.equalWithin snapLimit upper organPos then
