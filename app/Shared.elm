@@ -4,14 +4,12 @@ import BackendTask exposing (BackendTask)
 import Browser.Events
 import Effect exposing (Effect)
 import FatalError exposing (FatalError)
-import Hex
 import Html exposing (Html)
 import Pages.Flags
 import Pages.PageUrl exposing (PageUrl)
 import Persona
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
-import Theme
 import Ui
 import Ui.Anim
 import Ui.Font as Font
@@ -116,7 +114,7 @@ view :
     -> { body : List (Html msg), title : String }
 view _ _ shared toMsg pageView =
     { body =
-        [ Html.node "style" [] [ Html.text ("""::backdrop {
+        [ Html.node "style" [] [ Html.text """::backdrop {
   backdrop-filter: blur(3px);
 }
 
@@ -138,15 +136,17 @@ div.popover button {
   gap: 8px;
   align-items: center;
   padding: 8px;
-  color: white;
+  color: black;
   font-size: 20px;
   border: 1px solid black;
-  background: #""" ++ Hex.toString Theme.purpleHex ++ """;
+  background-color: var(--accent-color);
+  cursor: pointer;
 }
 
 div.popover button:hover {
-  background: #""" ++ Hex.toString Theme.barelyLightPurpleHex ++ """;
-}""") ]
+  color: white;
+  background-color: var(--hover-color);
+}""" ]
         , Ui.Anim.layout
             { options = []
             , toMsg = \msg -> toMsg (Anim msg)

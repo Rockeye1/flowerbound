@@ -12,7 +12,7 @@ import Persona.View
 import Phosphor
 import Theme exposing (Attribute, Context, Element)
 import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), Persona)
-import Ui.WithContext as Ui exposing (alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
+import Ui.WithContext as Ui exposing (Color, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
 import Ui.WithContext.Font as Font
 import Ui.WithContext.Input as Input
 import Ui.WithContext.Layout as Layout
@@ -613,10 +613,17 @@ viewOrgans organs =
                             popoverId =
                                 "organ-popover-" ++ String.fromInt index
 
-                            organTypeButton : OrganType -> Html.Html Organ
-                            organTypeButton type_ =
+                            organTypeButton : Color -> OrganType -> Html.Html Organ
+                            organTypeButton color type_ =
                                 Html.button
-                                    [ Html.Events.onClick { organ | type_ = type_ }
+                                    [ Html.Attributes.attribute "style"
+                                        ("--accent-color: "
+                                            ++ Ui.colorToCss (Theme.lighten color)
+                                            ++ ";"
+                                            ++ "--hover-color: "
+                                            ++ Ui.colorToCss (Theme.desaturate color)
+                                        )
+                                    , Html.Events.onClick { organ | type_ = type_ }
                                     , Html.Attributes.attribute "popovertarget" popoverId
                                     , Html.Attributes.attribute "popovertargetaction" "hide"
                                     ]
@@ -638,13 +645,16 @@ viewOrgans organs =
                                     { onPress = Just organ
                                     , label = Icons.toElement (Data.organTypeToIcon organ.type_)
                                     }
-                                , Html.div
-                                    [ Html.Attributes.id popoverId
-                                    , Html.Attributes.class "popover"
-                                    , Html.Attributes.attribute "popover" ""
-                                    ]
-                                    (List.map organTypeButton Data.organTypes)
-                                    |> Ui.html
+                                , Ui.fromContext
+                                    (\{ colors } ->
+                                        Html.div
+                                            [ Html.Attributes.id popoverId
+                                            , Html.Attributes.class "popover"
+                                            , Html.Attributes.attribute "popover" ""
+                                            ]
+                                            (List.map (organTypeButton colors.accent) Data.organTypes)
+                                            |> Ui.html
+                                    )
                                 ]
                             )
                 }
