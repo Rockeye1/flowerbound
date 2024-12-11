@@ -249,8 +249,12 @@ view app shared model =
             { persona = model
             , flipped = shared.flipped
             }
+            |> Theme.el
+                [ Theme.padding
+                , Theme.backgroundColorBackground
+                , Ui.height Ui.fill
+                ]
             |> Ui.updateContext (\context -> { context | colors = Persona.toColors model })
-            |> Theme.el [ Theme.padding ]
             |> Ui.map PagesMsg.fromMsg
     }
 

@@ -1,5 +1,6 @@
 module Persona.Editor exposing (Config, GendertropeMsg(..), view)
 
+import Color.Oklch as Oklch
 import Dict
 import Html
 import Html.Attributes
@@ -17,6 +18,7 @@ import Ui.WithContext.Font as Font
 import Ui.WithContext.Input as Input
 import Ui.WithContext.Layout as Layout
 import Ui.WithContext.Prose exposing (paragraph)
+import Ui.WithContext.Shadow as Shadow exposing (shadows)
 import Ui.WithContext.Table as Table
 
 
@@ -57,6 +59,14 @@ view config { flipped, persona } =
             , Theme.style "backface-visibility" "hidden"
             , Theme.style "transition" "all .5s ease-in-out"
             , Theme.style "position" "absolute"
+            , Shadow.shadows
+                [ { x = 0
+                  , y = 0
+                  , blur = 10
+                  , color = Oklch.oklcha 0 0 0 0.2
+                  , size = 2
+                  }
+                ]
             , Theme.style "transform"
                 ("rotateY("
                     ++ String.fromInt rotate
@@ -67,7 +77,6 @@ view config { flipped, persona } =
     Theme.row
         [ width <| px fullWidth
         , centerX
-        , height <| px 600
         , Theme.style "perspective" "2000px"
         ]
         [ Theme.column
