@@ -351,7 +351,7 @@ viewOrgan config persona color pos organ appendage =
                     , Svg.Attributes.y (String.fromFloat buttonY)
                     , Svg.Attributes.width "32"
                     , Svg.Attributes.height "32"
-                    , Svg.Attributes.fill (Ui.colorToCss (Theme.toAccent color))
+                    , Svg.Attributes.fill (Ui.colorToCss (Theme.lighten (Theme.toAccent color)))
                     , Svg.Attributes.stroke "black"
                     ]
                     []
@@ -366,7 +366,6 @@ viewOrgan config persona color pos organ appendage =
                                 ++ String.fromFloat (buttonY + 4)
                                 ++ ")"
                             )
-                        , Svg.Attributes.fill "white"
                         ]
                 , Svg.title [] [ Svg.text label ]
                 ]
