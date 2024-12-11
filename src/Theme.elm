@@ -269,15 +269,11 @@ checkboxIcon checked =
                         Color.rgb (238 / 255) (238 / 255) (238 / 255) |> Oklch.fromColor
               }
             ]
-        , Ui.fromContextAttribute
-            (\{ colors } ->
-                Ui.background <|
-                    if checked then
-                        colors.accent
+        , if checked then
+            backgroundColorAccent
 
-                    else
-                        white
-            )
+          else
+            Ui.background white
         , Ui.border <|
             if checked then
                 0
@@ -628,11 +624,10 @@ slider attrs config =
                     (List.range config.min config.max
                         |> List.map
                             (\v ->
-                                Ui.el
+                                el
                                     [ Ui.width (Ui.px 1)
                                     , Ui.height (Ui.px 8)
                                     , Ui.borderWith { left = 1, right = 0, top = 0, bottom = 0 }
-                                    , borderColorAccent
                                     , Ui.behindContent
                                         (Ui.el
                                             [ Ui.centerX

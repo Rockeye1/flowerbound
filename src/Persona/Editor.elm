@@ -730,19 +730,14 @@ viewStandardFeatures ({ features } as persona) gendertropeRecord =
                     Theme.column
                         [ Ui.border 1
                         , Theme.padding
-                        , Ui.fromContextAttribute
-                            (\{ colors } ->
-                                Ui.background
-                                    (if selected then
-                                        colors.accent
+                        , if selected then
+                            Theme.backgroundColorAccent
 
-                                     else if canSelect then
-                                        Theme.white
+                          else if canSelect then
+                            Ui.background Theme.white
 
-                                     else
-                                        Theme.gray
-                                    )
-                            )
+                          else
+                            Ui.background Theme.gray
                         , Font.color
                             (if selected then
                                 Theme.white
@@ -813,19 +808,14 @@ viewFeatures ({ features } as persona) gendertropeRecord =
                 , Theme.column
                     [ Ui.border 1
                     , Theme.padding
-                    , Ui.fromContextAttribute
-                        (\{ colors } ->
-                            Ui.background
-                                (if selected then
-                                    colors.accent
+                    , if selected then
+                        Theme.backgroundColorAccent
 
-                                 else if canSelect then
-                                    Theme.white
+                      else if canSelect then
+                        Ui.background Theme.white
 
-                                 else
-                                    Theme.gray
-                                )
-                        )
+                      else
+                        Ui.background Theme.gray
                     , Font.color
                         (if selected then
                             Theme.white

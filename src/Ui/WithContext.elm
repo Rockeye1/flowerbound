@@ -1,4 +1,4 @@
-module Ui.WithContext exposing (Angle, Attribute, Color, Edges, Element, Length, Position, alignBottom, alignRight, alignTop, background, behindContent, below, border, borderColor, borderWith, centerX, centerY, colorToCss, column, down, el, fill, fromContext, fromContextAttribute, height, html, htmlAttribute, image, inFront, left, liftAttribute, liftElement, linkNewTab, map, move, noAttr, none, opacity, padding, paddingWith, paddingXY, px, radians, replaceContext, right, rotate, rounded, row, scrollableX, shrink, spacing, text, turns, up, updateContext, width, widthMax, widthMin, withAttrs, withChild, withChildren, withContext, withContextAttribute, wrap)
+module Ui.WithContext exposing (Angle, Attribute, Color, Edges, Element, Length, Position, alignBottom, alignRight, alignTop, background, behindContent, below, border, borderColor, borderWith, centerX, centerY, colorToCss, column, degrees, down, el, fill, fromContext, fromContextAttribute, height, html, htmlAttribute, image, inFront, left, liftAttribute, liftElement, linkNewTab, map, move, noAttr, none, opacity, padding, paddingWith, paddingXY, px, radians, replaceContext, right, rotate, rounded, row, scrollableX, shrink, spacing, text, turns, up, updateContext, width, widthMax, widthMin, withAttrs, withChild, withChildren, withContext, withContextAttribute, wrap)
 
 import Color.Oklch as Oklch
 import Html
@@ -370,6 +370,11 @@ image attrs config =
 rotate : Angle -> Attribute context msg
 rotate value =
     liftAttribute (Ui.rotate value)
+
+
+degrees : Float -> Angle
+degrees value =
+    radians (Basics.degrees value)
 
 
 radians : Float -> Angle

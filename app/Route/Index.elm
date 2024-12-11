@@ -27,7 +27,7 @@ import Set exposing (Set)
 import Shared
 import Site
 import Theme exposing (Element)
-import Triple
+import Triple.Extra
 import Types exposing (Action(..), Move, Persona, StimulationType(..))
 import Ui.WithContext as Ui exposing (alignRight, alignTop, centerX, centerY, el, fill, height, px, row, shrink, text, width)
 import Ui.WithContext.Font as Font
@@ -292,7 +292,7 @@ checkOrgans model =
                 , getNewZIndex filtered
                 )
                 expected
-                |> Triple.first
+                |> Triple.Extra.first
     }
 
 
@@ -1700,7 +1700,7 @@ viewRoll player =
                             children
                                 |> List.indexedMap
                                     (\r child ->
-                                        el
+                                        Theme.el
                                             [ Ui.borderWith
                                                 { top =
                                                     if r == 0 then
@@ -1712,7 +1712,6 @@ viewRoll player =
                                                 , right = 0
                                                 , bottom = 0
                                                 }
-                                            , Theme.borderColorAccent
                                             , Theme.padding
                                             , Font.center
                                             , centerY
@@ -1732,7 +1731,6 @@ viewRoll player =
                                         , bottom = 1
                                         , right = 1
                                         }
-                                    , Theme.borderColorAccent
                                     , height fill
                                     , width shrink
                                     ]
