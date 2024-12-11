@@ -49,7 +49,7 @@ withContext context (Element toElem) =
     toElem context
 
 
-replaceContext : context -> Element context msg -> Element context msg
+replaceContext : context -> Element context msg -> Element c msg
 replaceContext context (Element toElem) =
     Element (\_ -> toElem context)
 
