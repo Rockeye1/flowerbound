@@ -1201,7 +1201,11 @@ loadPersona config =
             (text "or")
         , Theme.link [ centerX ]
             { label = text "Go to the editor"
-            , route = Route.Persona
+            , route =
+                Route.Persona__Name___Data__
+                    { name = Persona.default.name
+                    , data = Nothing
+                    }
             }
         ]
 
