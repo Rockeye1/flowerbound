@@ -190,11 +190,11 @@ update _ _ msg model =
     case msg of
         LoadFromUrl url ->
             case Persona.Codec.fromUrl url of
-                Err e ->
-                    let
-                        _ =
-                            Debug.log ("LoadFromUrl error\n" ++ e ++ "\n") ()
-                    in
+                Err _ ->
+                    -- let
+                    --     _ =
+                    --         Debug.log ("LoadFromUrl error\n" ++ e ++ "\n") ()
+                    -- in
                     ( model, Effect.none )
 
                 Ok persona ->
@@ -203,11 +203,11 @@ update _ _ msg model =
         LoadedFromFile (Ok persona) ->
             ( Playing (initPlayingModel persona), Effect.none )
 
-        LoadedFromFile (Err e) ->
-            let
-                _ =
-                    Debug.log ("LoadedFromFile error\n" ++ e ++ "\n") ()
-            in
+        LoadedFromFile (Err _) ->
+            -- let
+            --     _ =
+            --         Debug.log ("LoadedFromFile error\n" ++ e ++ "\n") ()
+            -- in
             ( model, Effect.none )
 
         LoadFromFile ->
