@@ -406,9 +406,9 @@ organToString value =
                     "\n  - No appendages"
 
                 else
-                value.appendages
-                    |> List.map appendageString
-                    |> String.join "\n"
+                    value.appendages
+                        |> List.map appendageString
+                        |> String.join "\n"
 
             else
                 ""
@@ -493,7 +493,7 @@ organTypeToReference type_ name =
             Data.hands name
 
         Breasts ->
-            Data.breasts name
+            Data.breasts name "Valley"
 
         Hips ->
             Data.hips name

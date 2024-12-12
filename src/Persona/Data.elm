@@ -182,8 +182,8 @@ bilateral organ =
     }
 
 
-breasts : String -> Organ
-breasts name =
+breasts : String -> String -> Organ
+breasts name cleavage =
     { emptyOrgan
         | name = name
         , type_ = Breasts
@@ -194,6 +194,18 @@ breasts name =
         , isGrippable = True
     }
         |> bilateral
+        |> addAppendage
+            { emptyAppendage
+                | name = "Cleavage " ++ cleavage
+                , canSquish = True
+                , canEnsheathe = True
+                , isPenetrable = True
+            }
+
+
+addAppendage : Appendage -> Organ -> Organ
+addAppendage appendage organ =
+    { organ | appendages = organ.appendages ++ [ appendage ] }
 
 
 hips : String -> Organ
@@ -299,7 +311,7 @@ butterfly =
     , organs =
         [ prehensile "Sinuous Tentacle Tongue"
         , hands "Slender Elegant Hands"
-        , breasts "Perky Marshmallow Tits"
+        , breasts "Perky Marshmallow Tits" "Cleft"
         , hips "Tight Supple Ass"
         , phallic "Veiny Futa Phallus"
         , legs "Long Shapely Legs"
@@ -409,7 +421,7 @@ flower =
     , organs =
         [ mouth "Soft Rosen Lips"
         , hands "Delicate Girly Hands"
-        , breasts "Soft Succulent Boobies"
+        , breasts "Soft Succulent Boobies" "Valley"
         , hips "Plush Bubble Butt"
         , yonic "Yielding Silken Quim"
         , legs "Cute Limber Legs"
@@ -518,7 +530,13 @@ vixen =
     , organs =
         [ mouth "Hot Hungry Maw"
         , hands "Deft Nimble Hands"
-        , breasts "Mamerous Milk Melons"
+        , breasts "Mamerous Milk Melons" "Valley"
+            |> addAppendage
+                { emptyAppendage
+                    | name = "Two Nipples At Once"
+                    , isSquishable = True
+                    , isGrippable = True
+                }
         , hips "Bouncy Runner Rump"
         , yonic "Juicy Nether Cleft"
         , legs "Beastly Hunter Legs"
