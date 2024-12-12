@@ -1010,13 +1010,17 @@ initPlayingModel persona =
         player : PlayerModel
         player =
             initPlayerModel persona
+
+        model : PlayingModel
+        model =
+            { player = player
+            , others = []
+            , organsPositions = Dict.empty
+            , dragging = Nothing
+            }
+                |> checkOrgans
     in
-    { player = player
-    , others = []
-    , organsPositions = Dict.empty
-    , dragging = Nothing
-    }
-        |> checkOrgans
+    { model | organsPositions = rearrange model.organsPositions }
 
 
 initPlayerModel : Persona -> PlayerModel
