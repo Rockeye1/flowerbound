@@ -402,6 +402,10 @@ organToString value =
         appendagesString : String
         appendagesString =
             if value.appendages /= reference.appendages then
+                if List.isEmpty value.appendages then
+                    "\n  - No appendages"
+
+                else
                 value.appendages
                     |> List.map appendageString
                     |> String.join "\n"
@@ -768,7 +772,16 @@ organParser =
             , "Penetrate"
             , "Ensheathe"
             ]
-        |= (Parser.sequence
+        |= Parser.oneOf
+            [ Parser.succeed (\_ -> [])
+                |. Parser.backtrackable (Parser.symbol "-")
+                |. Parser.backtrackable Parser.spaces
+                |. Parser.keyword "No"
+                |. Parser.spaces
+                |. Parser.keyword "appendages"
+                |. Parser.commit ()
+                |. Parser.spaces
+            , Parser.sequence
                 { start = ""
                 , end = ""
                 , separator = ""
@@ -782,7 +795,7 @@ organParser =
                             (\a -> a partial)
                             list
                     )
-           )
+            ]
         |. Parser.spaces
 
 

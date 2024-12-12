@@ -99,61 +99,7 @@ featureFuzzer =
 
 organFuzzer : Fuzzer Persona.Organ
 organFuzzer =
-    Fuzz.constant
-        (\name type_ contour erogeny appendages canSquish canGrip canPenetrate canEnsheathe isSquishable isGrippable isPenetrable isEnsheatheable ->
-            { name = name
-            , type_ = type_
-            , contour = contour
-            , erogeny = erogeny
-            , appendages =
-                case type_ of
-                    Persona.Hands ->
-                        if List.isEmpty appendages then
-                            [ emptyAppendage "Left"
-                            , emptyAppendage "Right"
-                            ]
-
-                        else
-                            appendages
-
-                    Persona.Breasts ->
-                        if List.isEmpty appendages then
-                            [ emptyAppendage "Left"
-                            , emptyAppendage "Right"
-                            ]
-
-                        else
-                            appendages
-
-                    Persona.Hips ->
-                        if List.isEmpty appendages then
-                            [ emptyAppendage "Fianchetto"
-                            ]
-
-                        else
-                            appendages
-
-                    Persona.Legs ->
-                        if List.isEmpty appendages then
-                            [ emptyAppendage "Left"
-                            , emptyAppendage "Right"
-                            ]
-
-                        else
-                            appendages
-
-                    _ ->
-                        appendages
-            , canSquish = canSquish
-            , canGrip = canGrip
-            , canPenetrate = canPenetrate
-            , canEnsheathe = canEnsheathe
-            , isSquishable = isSquishable
-            , isGrippable = isGrippable
-            , isPenetrable = isPenetrable
-            , isEnsheatheable = isEnsheatheable
-            }
-        )
+    Fuzz.constant Persona.Organ
         |> Fuzz.andMap tameString
         |> Fuzz.andMap organTypeFuzzer
         |> Fuzz.andMap (Fuzz.intAtLeast 0)
@@ -167,20 +113,6 @@ organFuzzer =
         |> Fuzz.andMap Fuzz.bool
         |> Fuzz.andMap Fuzz.bool
         |> Fuzz.andMap Fuzz.bool
-
-
-emptyAppendage : String -> Persona.Appendage
-emptyAppendage name =
-    { name = name
-    , canSquish = False
-    , canGrip = False
-    , canPenetrate = False
-    , canEnsheathe = False
-    , isSquishable = False
-    , isGrippable = False
-    , isPenetrable = False
-    , isEnsheatheable = False
-    }
 
 
 appendageFuzzer : Fuzzer Persona.Appendage
