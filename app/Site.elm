@@ -17,9 +17,7 @@ import Theme
 
 config : SiteConfig
 config =
-    { canonicalUrl =
-        -- "http://localhost:1234"
-        "https://uriel.tail1b193.ts.net"
+    { canonicalUrl = "https://flowerbound.netlify.app"
     , head = head
     }
 
