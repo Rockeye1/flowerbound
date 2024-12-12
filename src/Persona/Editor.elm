@@ -760,7 +760,7 @@ viewOrgans organs =
                                 , appendage = Just ( appendageIndex, appendage )
                                 }
                             )
-                            organ.appendages
+                            (organ.appendages ++ [ Data.emptyAppendage ])
                 )
                 organs
                 |> List.concat
