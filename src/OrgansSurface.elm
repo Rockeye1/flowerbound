@@ -11,7 +11,6 @@ import Persona.Data
 import Phosphor exposing (IconVariant)
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
-import Set
 import Svg
 import Svg.Attributes
 import Svg.Events
@@ -104,7 +103,7 @@ width =
 
 height : number
 height =
-    (32 * 8 + organHeight) * 3 + 8
+    (32 * 8 + organHeight) * 2 + 8
 
 
 outerViewOrgan :
