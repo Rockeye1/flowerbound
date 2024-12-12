@@ -32,7 +32,7 @@ template =
 type Msg
     = Flip
     | Resized Int Int
-    | Anim Ui.Anim.Msg
+    | Anim Ui.Msg
 
 
 type alias Data =
@@ -43,7 +43,7 @@ type alias Model =
     { flipped : Bool
     , width : Int
     , height : Int
-    , anim : Ui.Anim.State
+    , anim : Ui.State
     }
 
 
@@ -147,12 +147,13 @@ div.popover button:hover {
   color: white;
   background-color: var(--hover-color);
 }""" ]
-        , Ui.Anim.layout
-            { options = []
-            , toMsg = \msg -> toMsg (Anim msg)
-            , breakpoints = Nothing
-            }
-            shared.anim
+        , Ui.layout
+            (Ui.default
+                |> Ui.withAnimation
+                    { toMsg = \msg -> toMsg (Anim msg)
+                    , state = shared.anim
+                    }
+            )
             [ -- Ui.focusStyle
               -- { backgroundColor = Nothing
               -- , borderColor = Nothing
