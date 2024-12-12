@@ -237,7 +237,7 @@ hips name =
 
 
 legs : String -> String -> Organ
-legs name tighgap =
+legs name thighgap =
     { emptyOrgan
         | name = name
         , type_ = Legs
@@ -249,7 +249,7 @@ legs name tighgap =
         |> bilateral
         |> withAppendage
             { emptyAppendage
-                | name = tighgap ++ " Tighgap"
+                | name = thighgap ++ " Thighgap"
                 , canEnsheathe = True
                 , canGrip = True
                 , isPenetrable = True
