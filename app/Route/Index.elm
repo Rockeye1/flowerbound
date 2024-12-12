@@ -1831,7 +1831,7 @@ staminaTable model =
                             , label =
                                 text
                                     (if cost == 1 then
-                                        "0"
+                                        "2"
 
                                      else
                                         String.fromInt (cost * 2)
