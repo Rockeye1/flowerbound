@@ -1,5 +1,5 @@
 module Icons exposing
-    ( flip, download, upload, minus, plus, remove, reset, delete, hide, show
+    ( flip, download, upload, minus, plus, remove, reset, delete, hide, show, rearrange
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
@@ -12,7 +12,7 @@ module Icons exposing
 
 ## Actions
 
-@docs flip, download, upload, minus, plus, remove, reset, delete, hide, show
+@docs flip, download, upload, minus, plus, remove, reset, delete, hide, show, rearrange
 
 
 ## Encounter Actions
@@ -189,6 +189,11 @@ download =
 reset : IconVariant
 reset =
     Phosphor.arrowCounterClockwise Phosphor.Regular
+
+
+rearrange : IconVariant
+rearrange =
+    Phosphor.stack Phosphor.Duotone
 
 
 remove : IconVariant

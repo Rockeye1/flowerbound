@@ -57,6 +57,7 @@ type PlayingMsg
     | MouseMove (Point2d Pixels ())
     | MouseUp
     | Rearrange
+    | RearrangeUnpaired
     | ShowAppendages Int String
     | HideOrganOrAppendage Int String
     | ShowHiddenOrgans
@@ -411,6 +412,9 @@ innerUpdate msg model =
         MouseUp ->
             ( Just { model | dragging = Nothing, organsPositions = reStack model.organsPositions }, Effect.none )
 
+        RearrangeUnpaired ->
+            ( Just { model | organsPositions = rearrangeUnpaired model.organsPositions }, Effect.none )
+
         Rearrange ->
             ( Just { model | organsPositions = rearrange model.organsPositions }, Effect.none )
 
@@ -712,8 +716,8 @@ addPlayer model persona =
     )
 
 
-rearrange : Dict OrganKey OrganPosition -> Dict OrganKey OrganPosition
-rearrange organsPositions =
+rearrangeUnpaired : Dict OrganKey OrganPosition -> Dict OrganKey OrganPosition
+rearrangeUnpaired organsPositions =
     let
         ( paired, unpaired ) =
             organsPositions
@@ -764,6 +768,55 @@ rearrange organsPositions =
         |> Tuple.second
         |> Dict.fromList
         |> Dict.union (Dict.fromList paired)
+        |> reStack
+
+
+rearrange : Dict OrganKey OrganPosition -> Dict OrganKey OrganPosition
+rearrange organsPositions =
+    organsPositions
+        |> Dict.toList
+        |> Dict.Extra.groupBy
+            (\( ( i, _ ), { show } ) ->
+                ( if show then
+                    0
+
+                  else
+                    1
+                , i
+                )
+            )
+        |> Dict.toList
+        |> List.foldl
+            (\( _, group ) ( fromY, acc ) ->
+                ( fromY + OrgansSurface.organHeight + 32 * toFloat (List.length group - 1) + 8
+                , (group
+                    |> List.sortBy
+                        (\( _, { position } ) ->
+                            let
+                                { x, y } =
+                                    Point2d.toPixels position
+                            in
+                            x + 8 * y
+                        )
+                    |> List.indexedMap
+                        (\j ( key, { show } ) ->
+                            ( key
+                            , { position =
+                                    Point2d.pixels
+                                        (16 * toFloat j + 8)
+                                        (fromY + (32 * toFloat j))
+                              , zIndex = 0
+                              , show = show
+                              }
+                            )
+                        )
+                  )
+                    ++ acc
+                )
+            )
+            ( 8, [] )
+        |> Tuple.second
+        |> Dict.fromList
         |> reStack
 
 
@@ -1301,8 +1354,15 @@ viewOrgans shared model =
         , Theme.iconButton
             [ alignRight
             ]
-            { icon = Icons.reset
+            { icon = Icons.rearrange
             , title = "Rearrange unpaired organs"
+            , onPress = Just RearrangeUnpaired
+            }
+        , Theme.iconButton
+            [ alignRight
+            ]
+            { icon = Icons.reset
+            , title = "Rearrange all organs"
             , onPress = Just Rearrange
             }
         ]
