@@ -304,7 +304,7 @@ viewOrgans input =
         |> List.indexedMap
             (\index element ->
                 [ text element.name
-                , el [ centerX, Theme.fontColorAccent ] (Icons.toElement (Data.organTypeToIcon element.type_))
+                , el [ centerX, Theme.fontColorAccent ] (Icons.toElementFlippable (Data.organTypeToIcon element.type_ Nothing))
                 , intColumn .contour element
                 , intColumn .erogeny element
                 , canColumn Squishes .canSquish element

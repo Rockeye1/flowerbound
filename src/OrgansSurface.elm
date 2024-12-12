@@ -389,12 +389,21 @@ viewOrgan config persona color pos organ appendage =
                 )
             ]
             []
-        , Persona.Data.organTypeToIcon organ.type_
+        , let
+            ( variant, flipped ) =
+                Persona.Data.organTypeToIcon organ.type_ appendage
+          in
+          variant
             |> Phosphor.withSize 24
             |> Phosphor.withSizeUnit "px"
             |> Phosphor.toHtml
                 [ Svg.Attributes.transform
-                    ("translate(" ++ String.fromFloat 8 ++ " " ++ String.fromFloat 4 ++ ")")
+                    (if flipped then
+                        "translate(32 4) scale(-1 1)"
+
+                     else
+                        "translate(8 4)"
+                    )
                 ]
         , textAt []
             { x = 28
@@ -407,7 +416,7 @@ viewOrgan config persona color pos organ appendage =
             |> Phosphor.withSizeUnit "px"
             |> Phosphor.toHtml
                 [ Svg.Attributes.transform
-                    ("translate(" ++ String.fromFloat (organWidth - 8 - 24) ++ " " ++ String.fromFloat 4 ++ ")")
+                    ("translate(" ++ String.fromFloat (organWidth - 8 - 24) ++ " 4)")
                 ]
         , textAt []
             { x = 0

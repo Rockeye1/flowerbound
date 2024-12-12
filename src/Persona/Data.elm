@@ -969,9 +969,9 @@ gendertropeFromName name =
             Nothing
 
 
-organTypeToIcon : OrganType -> IconVariant
-organTypeToIcon type_ =
-    case type_ of
+organTypeToIcon : OrganType -> Maybe Appendage -> ( IconVariant, Bool )
+organTypeToIcon type_ appendage =
+    ( case type_ of
         Mouth ->
             Icons.mouth
 
@@ -998,6 +998,13 @@ organTypeToIcon type_ =
 
         Other ->
             Icons.other
+    , case appendage of
+        Just { name } ->
+            name == "Left"
+
+        Nothing ->
+            False
+    )
 
 
 organTypeToString : OrganType -> String

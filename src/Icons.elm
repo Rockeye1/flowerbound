@@ -1,11 +1,10 @@
 module Icons exposing
-    ( flip, download, upload, minus, plus, remove, reset, delete
+    ( flip, download, upload, minus, plus, remove, reset, delete, hide, show
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
     , buck, butterfly, custom, doll, fiend, flower, vixen
     , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
-    , toElement
-    , hide, show
+    , toElement, toElementFlippable
     )
 
 {-|
@@ -13,7 +12,7 @@ module Icons exposing
 
 ## Actions
 
-@docs flip, download, upload, minus, plus, remove, reset, delete
+@docs flip, download, upload, minus, plus, remove, reset, delete, hide, show
 
 
 ## Encounter Actions
@@ -38,10 +37,11 @@ module Icons exposing
 
 ## Utils
 
-@docs toElement
+@docs toElement, toElementFlippable
 
 -}
 
+import Html.Attributes
 import Phosphor exposing (IconVariant)
 import Svg
 import Svg.Attributes
@@ -54,6 +54,20 @@ toElement variant =
         |> Phosphor.toHtml []
         |> Ui.html
         |> el []
+
+
+toElementFlippable : ( IconVariant, Bool ) -> Element context msg
+toElementFlippable ( variant, flipped ) =
+    variant
+        |> Phosphor.toHtml []
+        |> Ui.html
+        |> el
+            (if flipped then
+                [ Ui.htmlAttribute (Html.Attributes.style "transform" "scale(-1, 1)") ]
+
+             else
+                []
+            )
 
 
 plus : IconVariant

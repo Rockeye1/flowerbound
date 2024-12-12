@@ -11,7 +11,7 @@ import Persona.Data as Data
 import Persona.View
 import Phosphor
 import Theme exposing (Attribute, Context, Element)
-import Types exposing (Action(..), Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganOrAppendage, OrganType(..), Persona)
+import Types exposing (Action(..), Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), Persona)
 import Ui.WithContext as Ui exposing (Color, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
 import Ui.WithContext.Font as Font
 import Ui.WithContext.Input as Input
@@ -657,40 +657,40 @@ viewOrgans organs =
                             (text "Type")
                 , view =
                     \index _ ({ organ } as rowData) ->
-                        let
-                            popoverId : String
-                            popoverId =
-                                "organ-popover-" ++ String.fromInt index
-
-                            organTypeButton : Color -> OrganType -> Html.Html Organ
-                            organTypeButton color type_ =
-                                Html.button
-                                    [ Html.Attributes.attribute "style"
-                                        ("--accent-color: "
-                                            ++ Ui.colorToCss (Theme.lighten color)
-                                            ++ ";"
-                                            ++ "--hover-color: "
-                                            ++ Ui.colorToCss (Theme.desaturate color)
-                                        )
-                                    , Html.Events.onClick { organ | type_ = type_ }
-                                    , Html.Attributes.attribute "popovertarget" popoverId
-                                    , Html.Attributes.attribute "popovertargetaction" "hide"
-                                    ]
-                                    [ Phosphor.toHtml [] (Data.organTypeToIcon type_)
-                                    , Html.text (" " ++ Data.organTypeToString type_)
-                                    ]
-                        in
                         wrap index
                             rowData.index
                             (case rowData.appendage of
-                                Just _ ->
+                                Just ( _, appendage ) ->
                                     el
                                         [ centerX
                                         , centerY
                                         ]
-                                        (Icons.toElement (Data.organTypeToIcon organ.type_))
+                                        (Icons.toElementFlippable (Data.organTypeToIcon organ.type_ (Just appendage)))
 
                                 Nothing ->
+                                    let
+                                        popoverId : String
+                                        popoverId =
+                                            "organ-popover-" ++ String.fromInt index
+
+                                        organTypeButton : Color -> OrganType -> Html.Html Organ
+                                        organTypeButton color type_ =
+                                            Html.button
+                                                [ Html.Attributes.attribute "style"
+                                                    ("--accent-color: "
+                                                        ++ Ui.colorToCss (Theme.lighten color)
+                                                        ++ ";"
+                                                        ++ "--hover-color: "
+                                                        ++ Ui.colorToCss (Theme.desaturate color)
+                                                    )
+                                                , Html.Events.onClick { organ | type_ = type_ }
+                                                , Html.Attributes.attribute "popovertarget" popoverId
+                                                , Html.Attributes.attribute "popovertargetaction" "hide"
+                                                ]
+                                                [ Phosphor.toHtml [] (Tuple.first (Data.organTypeToIcon type_ Nothing))
+                                                , Html.text (" " ++ Data.organTypeToString type_)
+                                                ]
+                                    in
                                     Theme.row
                                         [ centerX
                                         , centerY
@@ -702,7 +702,7 @@ viewOrgans organs =
                                             , Theme.title (Data.organTypeToString organ.type_)
                                             ]
                                             { onPress = Just organ
-                                            , label = Icons.toElement (Data.organTypeToIcon organ.type_)
+                                            , label = Icons.toElementFlippable (Data.organTypeToIcon organ.type_ Nothing)
                                             }
                                         , Ui.fromContext
                                             (\{ colors } ->
