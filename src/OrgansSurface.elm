@@ -109,13 +109,12 @@ height :
     -> number
 height model =
     Dict.foldl
-        (\( i, _ ) { show } ( acc, seen ) ->
-            if Set.member i seen then
-                if show then
-                    ( acc + 32, seen )
+        (\( i, name ) _ ( acc, seen ) ->
+            if String.contains "-" name then
+                ( acc, seen )
 
-                else
-                    ( acc, seen )
+            else if Set.member i seen then
+                ( acc + 32, seen )
 
             else
                 ( acc + organHeight + 8, Set.insert i seen )
