@@ -396,7 +396,7 @@ innerUpdate msg model =
                                         { organ
                                             | position =
                                                 Point2d.translateBy delta position
-                                                    |> clipOrganPosition model
+                                                    |> clipOrganPosition
                                             , zIndex = zIndex
                                         }
                                     )
@@ -962,15 +962,15 @@ trySnapHorizontallyToPoint snapPoint organPos =
                     Nothing
 
 
-clipOrganPosition : PlayingModel -> Point2d Pixels () -> Point2d Pixels ()
-clipOrganPosition model position =
+clipOrganPosition : Point2d Pixels () -> Point2d Pixels ()
+clipOrganPosition position =
     let
         { x, y } =
             Point2d.toPixels position
     in
     Point2d.pixels
         (clamp 0 (OrgansSurface.width - OrgansSurface.organWidth) x)
-        (clamp 0 (OrgansSurface.height model - OrgansSurface.organHeight) y)
+        (clamp 0 (OrgansSurface.height - OrgansSurface.organHeight) y)
 
 
 getNewZIndex : Dict OrganKey OrganPosition -> Int
@@ -1312,18 +1312,19 @@ viewOrgans shared model =
         model
         |> Ui.html
         |> Theme.el
-            [ width <| px OrgansSurface.width
-            , height <| px (ceiling (OrgansSurface.height model))
+            [ width <| px (floor OrgansSurface.width)
+            , height <| px OrgansSurface.height
             , Ui.border 1
             , Theme.backgroundColorBackground
             ]
         |> Theme.el
             [ centerX
-            , (floor <| OrgansSurface.width + 8)
+            , (OrgansSurface.width + 8)
+                |> floor
                 |> min (shared.width - 2 * Theme.rhythm)
                 |> px
                 |> width
-            , height <| px <| floor (OrgansSurface.height model + 8)
+            , height <| px (OrgansSurface.height + 8)
             , Ui.scrollableX
             ]
     ]

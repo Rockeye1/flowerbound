@@ -1,7 +1,6 @@
+- Toys
 - Dark mode
 - Save/restore play area
-- Legs and Bosom appendages
-- UI for appendages customization
 - Turn tracker
 - Collapsible sections
 - Use IP to up organ stats

@@ -37,11 +37,6 @@ organColors =
         |> List.NonEmpty.map Persona.organColorFromReducedHue
 
 
-width : number
-width =
-    1400
-
-
 organWidth : number
 organWidth =
     280
@@ -86,7 +81,7 @@ view config model =
             , [ 0
               , 0
               , width
-              , height model
+              , height
               ]
                 |> List.map String.fromFloat
                 |> String.join " "
@@ -102,26 +97,14 @@ view config model =
             ]
 
 
-height :
-    { a
-        | organsPositions : Dict OrganKey OrganPosition
-    }
-    -> number
-height model =
-    Dict.foldl
-        (\( i, name ) _ ( acc, seen ) ->
-            if String.contains "-" name then
-                ( acc, seen )
+width : Float
+width =
+    16 / 9 * height
 
-            else if Set.member i seen then
-                ( acc + 32, seen )
 
-            else
-                ( acc + organHeight + 8, Set.insert i seen )
-        )
-        ( 8, Set.empty )
-        model.organsPositions
-        |> Tuple.first
+height : number
+height =
+    (32 * 8 + organHeight) * 3 + 8
 
 
 outerViewOrgan :
