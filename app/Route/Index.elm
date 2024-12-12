@@ -104,7 +104,7 @@ type PlayerMsg
 
 
 type Model
-    = WaitingForPersona
+    = WaitingForPersona String
     | Playing PlayingModel
 
 
@@ -113,6 +113,7 @@ type alias PlayingModel =
     , others : List PlayerModel
     , organsPositions : Dict OrganKey OrganPosition
     , dragging : Maybe ( OrganKey, Vector2d Pixels () )
+    , loadPersonaText : String
     }
 
 
@@ -183,7 +184,7 @@ route =
 
 init : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> ( Model, Effect msg )
 init _ _ =
-    ( WaitingForPersona, Effect.none )
+    ( WaitingForPersona "", Effect.none )
 
 
 update : RouteBuilder.App Data ActionData RouteParams -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -192,11 +193,7 @@ update _ _ msg model =
         LoadFromUrl url ->
             case Persona.Codec.fromUrl url of
                 Err _ ->
-                    -- let
-                    --     _ =
-                    --         Debug.log ("LoadFromUrl error\n" ++ e ++ "\n") ()
-                    -- in
-                    ( model, Effect.none )
+                    ( WaitingForPersona url, Effect.none )
 
                 Ok persona ->
                     ( Playing (initPlayingModel persona), Effect.none )
@@ -216,7 +213,7 @@ update _ _ msg model =
 
         PlayingMsg playingMsg ->
             case model of
-                WaitingForPersona ->
+                WaitingForPersona _ ->
                     ( model, Effect.none )
 
                 Playing playingModel ->
@@ -231,7 +228,7 @@ update _ _ msg model =
                                 |> Playing
 
                         Nothing ->
-                            WaitingForPersona
+                            WaitingForPersona ""
                     , Effect.map PlayingMsg effect
                     )
 
@@ -364,8 +361,7 @@ innerUpdate msg model =
         AddFromUrl url ->
             case Persona.Codec.fromUrl url of
                 Err _ ->
-                    -- TODO
-                    ( Just model, Effect.none )
+                    ( Just { model | loadPersonaText = url }, Effect.none )
 
                 Ok persona ->
                     addPlayer model persona
@@ -1070,6 +1066,7 @@ initPlayingModel persona =
             , others = []
             , organsPositions = Dict.empty
             , dragging = Nothing
+            , loadPersonaText = ""
             }
                 |> checkOrgans
     in
@@ -1122,7 +1119,7 @@ view _ shared model =
     { title = Site.manifest.name
     , body =
         case model of
-            WaitingForPersona ->
+            WaitingForPersona value ->
                 Theme.column
                     [ Theme.padding
                     , centerX
@@ -1142,6 +1139,7 @@ view _ shared model =
                     , loadPersona
                         { loadFromFile = LoadFromFile
                         , loadFromUrl = LoadFromUrl
+                        , text = value
                         }
                     ]
                     |> Ui.el
@@ -1202,6 +1200,7 @@ viewPersonas playingModel =
                 , loadPersona
                     { loadFromFile = AddFromFile
                     , loadFromUrl = AddFromUrl
+                    , text = playingModel.loadPersonaText
                     }
                 ]
            ]
@@ -1211,6 +1210,7 @@ viewPersonas playingModel =
 loadPersona :
     { loadFromUrl : String -> msg
     , loadFromFile : msg
+    , text : String
     }
     -> Element msg
 loadPersona config =
@@ -1227,7 +1227,7 @@ loadPersona config =
             [ label.element
             , Theme.input [ Ui.widthMin 240 ]
                 { label = label.id
-                , text = ""
+                , text = config.text
                 , onChange = config.loadFromUrl
                 , placeholder = Just "Paste the Persona URL here"
                 }
