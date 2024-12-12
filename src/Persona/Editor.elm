@@ -11,7 +11,7 @@ import Persona.Data as Data
 import Persona.View
 import Phosphor
 import Theme exposing (Attribute, Context, Element)
-import Types exposing (Action(..), Feature, Gendertrope(..), GendertropeRecord, Organ, OrganType(..), Persona)
+import Types exposing (Action(..), Appendage, Feature, Gendertrope(..), GendertropeRecord, Organ, OrganOrAppendage, OrganType(..), Persona)
 import Ui.WithContext as Ui exposing (Color, alignBottom, alignRight, alignTop, centerX, centerY, el, fill, height, padding, px, shrink, text, width)
 import Ui.WithContext.Font as Font
 import Ui.WithContext.Input as Input
@@ -484,12 +484,12 @@ viewGendertrope ({ gendertrope } as persona) =
 viewOrgans : List Organ -> Element (List Organ)
 viewOrgans organs =
     let
-        wrap : Int -> Element Organ -> Table.Cell Context (List Organ)
-        wrap index child =
+        wrap : Int -> Int -> Element Organ -> Table.Cell Context (List Organ)
+        wrap colorIndex index child =
             Table.cell
                 [ height fill
                 , padding (Theme.rhythm // 2)
-                , if modBy 2 index == 0 then
+                , if modBy 2 colorIndex == 0 then
                     Ui.background Theme.transparentLightGray
 
                   else
@@ -497,13 +497,7 @@ viewOrgans organs =
                 ]
                 (child
                     |> Ui.map
-                        (\newOrgan ->
-                            if index == List.length organs then
-                                organs ++ [ newOrgan ]
-
-                            else
-                                List.Extra.setAt index newOrgan organs
-                        )
+                        (\organ -> setAtOrAppend index organ organs)
                 )
 
         intColumn :
@@ -511,7 +505,7 @@ viewOrgans organs =
             -> String
             -> (Organ -> Int)
             -> (Int -> Organ -> Organ)
-            -> Table.Column Context globalState rowState Organ (List Organ)
+            -> Table.Column Context globalState rowState RowData (List Organ)
         intColumn label hint prop setter =
             Table.columnWithState
                 { header =
@@ -522,18 +516,24 @@ viewOrgans organs =
                             ]
                             (Theme.withHint hint (text label))
                 , view =
-                    \index _ organ ->
+                    \index _ ({ organ } as rowData) ->
                         wrap index
-                            (Input.text [ width <| px 60, Font.center ]
-                                { text = String.fromInt (prop organ)
-                                , onChange =
-                                    \newValue ->
-                                        setter
-                                            (Maybe.withDefault (prop organ) (String.toInt newValue))
-                                            organ
-                                , placeholder = Just "0"
-                                , label = Input.labelHidden label
-                                }
+                            rowData.index
+                            (case rowData.appendage of
+                                Nothing ->
+                                    Input.text [ width <| px 60, Font.center ]
+                                        { text = String.fromInt (prop organ)
+                                        , onChange =
+                                            \newValue ->
+                                                setter
+                                                    (Maybe.withDefault (prop organ) (String.toInt newValue))
+                                                    organ
+                                        , placeholder = Just "0"
+                                        , label = Input.labelHidden label
+                                        }
+
+                                Just _ ->
+                                    Ui.none
                             )
                 }
 
@@ -542,8 +542,10 @@ viewOrgans organs =
             -> String
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Table.Column Context globalState rowState Organ (List Organ)
-        boolColumn label hint getter setter =
+            -> (Appendage -> Bool)
+            -> (Bool -> Appendage -> Appendage)
+            -> Table.Column Context globalState rowState RowData (List Organ)
+        boolColumn label hint getterO setterO getterA setterA =
             Table.columnWithState
                 { header =
                     \_ ->
@@ -553,14 +555,28 @@ viewOrgans organs =
                             ]
                             (Theme.withHint hint (text label))
                 , view =
-                    \index _ organ ->
+                    \index _ ({ organ } as rowData) ->
                         wrap index
+                            rowData.index
                             (el [ centerX, centerY ] <|
-                                Theme.checkbox []
-                                    { checked = getter organ
-                                    , label = Input.labelHidden label
-                                    , onChange = \newValue -> setter newValue organ
-                                    }
+                                case rowData.appendage of
+                                    Nothing ->
+                                        Theme.checkbox []
+                                            { checked = getterO organ
+                                            , label = Input.labelHidden label
+                                            , onChange = \newValue -> setterO newValue organ
+                                            }
+
+                                    Just ( appendageIndex, appendage ) ->
+                                        Theme.checkbox []
+                                            { checked = getterA appendage
+                                            , label = Input.labelHidden label
+                                            , onChange =
+                                                \newValue ->
+                                                    { organ
+                                                        | appendages = setAtOrAppend appendageIndex (setterA newValue appendage) organ.appendages
+                                                    }
+                                            }
                             )
                 }
 
@@ -568,35 +584,68 @@ viewOrgans organs =
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Table.Column Context globalState rowState Organ (List Organ)
-        canColumn attribute getter setter =
-            boolColumn ("C" ++ Types.actionToInitial attribute) (Types.actionToCan attribute) getter setter
+            -> (Appendage -> Bool)
+            -> (Bool -> Appendage -> Appendage)
+            -> Table.Column Context globalState rowState RowData (List Organ)
+        canColumn attribute getterO setterO getterA setterA =
+            boolColumn ("C" ++ Types.actionToInitial attribute) (Types.actionToCan attribute) getterO setterO getterA setterA
 
         isColumn :
             Action
             -> (Organ -> Bool)
             -> (Bool -> Organ -> Organ)
-            -> Table.Column Context globalState rowState Organ (List Organ)
-        isColumn attribute getter setter =
-            boolColumn ("I" ++ Types.actionToInitial attribute) (Types.actionToIs attribute) getter setter
+            -> (Appendage -> Bool)
+            -> (Bool -> Appendage -> Appendage)
+            -> Table.Column Context globalState rowState RowData (List Organ)
+        isColumn attribute getterO setterO getterA setterA =
+            boolColumn ("I" ++ Types.actionToInitial attribute) (Types.actionToIs attribute) getterO setterO getterA setterA
 
-        nameColumn : Table.Column Context globalState rowState Organ (List Organ)
+        nameColumn : Table.Column Context globalState rowState RowData (List Organ)
         nameColumn =
             Table.columnWithState
                 { header = \_ -> Table.cell [] Ui.none
                 , view =
-                    \index _ organ ->
+                    \index _ ({ organ } as rowData) ->
                         wrap index
-                            (Theme.input []
-                                { text = organ.name
-                                , placeholder = Just "Name"
-                                , label = Input.labelHidden "Name"
-                                , onChange = \newName -> { organ | name = newName }
-                                }
+                            rowData.index
+                            (case rowData.appendage of
+                                Nothing ->
+                                    Theme.input []
+                                        { text = organ.name
+                                        , placeholder = Just "Name"
+                                        , label = Input.labelHidden "Name"
+                                        , onChange = \newName -> { organ | name = newName }
+                                        }
+
+                                Just ( appendageIndex, appendage ) ->
+                                    el
+                                        [ Ui.paddingWith
+                                            { left = Theme.rhythm * 4
+                                            , top = 0
+                                            , bottom = 0
+                                            , right = 0
+                                            }
+                                        ]
+                                        (Theme.input []
+                                            { text = appendage.name
+                                            , placeholder = Just "Name"
+                                            , label = Input.labelHidden "Name"
+                                            , onChange =
+                                                \newName ->
+                                                    { organ
+                                                        | appendages =
+                                                            setAtOrAppend appendageIndex
+                                                                { appendage
+                                                                    | name = newName
+                                                                }
+                                                                organ.appendages
+                                                    }
+                                            }
+                                        )
                             )
                 }
 
-        typeColumn : Table.Column Context globalState rowState Organ (List Organ)
+        typeColumn : Table.Column Context globalState rowState RowData (List Organ)
         typeColumn =
             Table.columnWithState
                 { header =
@@ -607,7 +656,7 @@ viewOrgans organs =
                             ]
                             (text "Type")
                 , view =
-                    \index _ organ ->
+                    \index _ ({ organ } as rowData) ->
                         let
                             popoverId : String
                             popoverId =
@@ -632,50 +681,89 @@ viewOrgans organs =
                                     ]
                         in
                         wrap index
-                            (Theme.row
-                                [ centerX
-                                , centerY
-                                ]
-                                [ Theme.button
-                                    [ centerY
-                                    , Html.Attributes.attribute "popovertarget" popoverId
-                                        |> Ui.htmlAttribute
-                                    , Theme.title (Data.organTypeToString organ.type_)
-                                    ]
-                                    { onPress = Just organ
-                                    , label = Icons.toElement (Data.organTypeToIcon organ.type_)
-                                    }
-                                , Ui.fromContext
-                                    (\{ colors } ->
-                                        Html.div
-                                            [ Html.Attributes.id popoverId
-                                            , Html.Attributes.class "popover"
-                                            , Html.Attributes.attribute "popover" ""
+                            rowData.index
+                            (case rowData.appendage of
+                                Just _ ->
+                                    el
+                                        [ centerX
+                                        , centerY
+                                        ]
+                                        (Icons.toElement (Data.organTypeToIcon organ.type_))
+
+                                Nothing ->
+                                    Theme.row
+                                        [ centerX
+                                        , centerY
+                                        ]
+                                        [ Theme.button
+                                            [ centerY
+                                            , Html.Attributes.attribute "popovertarget" popoverId
+                                                |> Ui.htmlAttribute
+                                            , Theme.title (Data.organTypeToString organ.type_)
                                             ]
-                                            (List.map (organTypeButton colors.accent) Data.organTypes)
-                                            |> Ui.html
-                                    )
-                                ]
+                                            { onPress = Just organ
+                                            , label = Icons.toElement (Data.organTypeToIcon organ.type_)
+                                            }
+                                        , Ui.fromContext
+                                            (\{ colors } ->
+                                                Html.div
+                                                    [ Html.Attributes.id popoverId
+                                                    , Html.Attributes.class "popover"
+                                                    , Html.Attributes.attribute "popover" ""
+                                                    ]
+                                                    (List.map (organTypeButton colors.accent) Data.organTypes)
+                                                    |> Ui.html
+                                            )
+                                        ]
                             )
                 }
 
-        deleteColumn : Table.Column Context globalState rowState Organ (List Organ)
+        deleteColumn : Table.Column Context globalState rowState RowData (List Organ)
         deleteColumn =
             Table.columnWithState
                 { header = \_ -> Table.cell [] Ui.none
                 , view =
-                    \index _ organ ->
+                    \index _ ({ organ } as rowData) ->
                         wrap index
-                            (if organ == Data.other "" then
+                            rowData.index
+                            (if rowData.organ == Data.other "" || Maybe.map Tuple.second rowData.appendage == Just Data.emptyAppendage then
                                 Ui.none
 
                              else
-                                Theme.button [ centerY ]
-                                    { label = Icons.toElement Icons.delete
-                                    , onPress = Just (Data.other "")
-                                    }
+                                case rowData.appendage of
+                                    Nothing ->
+                                        Theme.button [ centerY ]
+                                            { label = Icons.toElement Icons.delete
+                                            , onPress = Just (Data.other "")
+                                            }
+
+                                    Just ( appendageIndex, _ ) ->
+                                        Theme.button [ centerY ]
+                                            { label = Icons.toElement Icons.delete
+                                            , onPress = Just { organ | appendages = List.Extra.removeAt appendageIndex organ.appendages }
+                                            }
                             )
                 }
+
+        organsAndAppendages : List RowData
+        organsAndAppendages =
+            List.indexedMap
+                (\index organ ->
+                    { index = index
+                    , organ = organ
+                    , appendage = Nothing
+                    }
+                        :: List.indexedMap
+                            (\appendageIndex appendage ->
+                                { index = index
+                                , organ = organ
+                                , appendage = Just ( appendageIndex, appendage )
+                                }
+                            )
+                            organ.appendages
+                )
+                organs
+                |> List.concat
     in
     Table.view [ centerX ]
         (Table.columns
@@ -683,18 +771,40 @@ viewOrgans organs =
             , typeColumn
             , intColumn "Cont" "Contour - how pleasing the Organ is to the sense of touch" .contour <| \value organ -> { organ | contour = value }
             , intColumn "Erog" "Erogeny - how much of an erogenous zone that Organ is" .erogeny <| \value organ -> { organ | erogeny = value }
-            , canColumn Squishes .canSquish <| \value organ -> { organ | canSquish = value }
-            , canColumn Grips .canGrip <| \value organ -> { organ | canGrip = value }
-            , canColumn Penetrates .canPenetrate <| \value organ -> { organ | canPenetrate = value }
-            , canColumn Ensheathes .canEnsheathe <| \value organ -> { organ | canEnsheathe = value }
-            , isColumn Squishes .isSquishable <| \value organ -> { organ | isSquishable = value }
-            , isColumn Grips .isGrippable <| \value organ -> { organ | isGrippable = value }
-            , isColumn Penetrates .isPenetrable <| \value organ -> { organ | isPenetrable = value }
-            , isColumn Ensheathes .isEnsheatheable <| \value organ -> { organ | isEnsheatheable = value }
+            , canColumn Squishes .canSquish (\value organ -> { organ | canSquish = value }) .canSquish (\value appendage -> { appendage | canSquish = value })
+            , canColumn Grips .canGrip (\value organ -> { organ | canGrip = value }) .canGrip (\value appendage -> { appendage | canGrip = value })
+            , canColumn Penetrates .canPenetrate (\value organ -> { organ | canPenetrate = value }) .canPenetrate (\value appendage -> { appendage | canPenetrate = value })
+            , canColumn Ensheathes .canEnsheathe (\value organ -> { organ | canEnsheathe = value }) .canEnsheathe (\value appendage -> { appendage | canEnsheathe = value })
+            , isColumn Squishes .isSquishable (\value organ -> { organ | isSquishable = value }) .isSquishable (\value appendage -> { appendage | isSquishable = value })
+            , isColumn Grips .isGrippable (\value organ -> { organ | isGrippable = value }) .isGrippable (\value appendage -> { appendage | isGrippable = value })
+            , isColumn Penetrates .isPenetrable (\value organ -> { organ | isPenetrable = value }) .isPenetrable (\value appendage -> { appendage | isPenetrable = value })
+            , isColumn Ensheathes .isEnsheatheable (\value organ -> { organ | isEnsheatheable = value }) .isEnsheatheable (\value appendage -> { appendage | isEnsheatheable = value })
             , deleteColumn
             ]
         )
-        (organs ++ [ Data.other "" ])
+        (organsAndAppendages
+            ++ [ { index = List.length organs
+                 , organ = Data.other ""
+                 , appendage = Nothing
+                 }
+               ]
+        )
+
+
+setAtOrAppend : Int -> a -> List a -> List a
+setAtOrAppend index value list =
+    if index == List.length list then
+        list ++ [ value ]
+
+    else
+        List.Extra.setAt index value list
+
+
+type alias RowData =
+    { index : Int
+    , organ : Organ
+    , appendage : Maybe ( Int, Appendage )
+    }
 
 
 viewStandardFeatures : Persona -> GendertropeRecord -> Element (List Int)

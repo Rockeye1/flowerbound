@@ -1,4 +1,4 @@
-module Persona.Data exposing (breasts, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, organTypeToIcon, organTypeToString, organTypes, other, phallic, prehensile, yonic)
+module Persona.Data exposing (breasts, emptyAppendage, gendertropeFromName, gendertropeIcon, gendertropeIconElement, gendertropeToRecord, hands, hips, legs, mouth, organTypeToIcon, organTypeToString, organTypes, other, phallic, prehensile, yonic)
 
 import Dict
 import Icons
