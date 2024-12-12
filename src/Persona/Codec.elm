@@ -505,7 +505,7 @@ organTypeToReference type_ name =
             Data.phallic name
 
         Legs ->
-            Data.legs name
+            Data.legs name "Tight"
 
         Prehensile ->
             Data.prehensile name

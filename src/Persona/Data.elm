@@ -194,7 +194,7 @@ breasts name cleavage =
         , isGrippable = True
     }
         |> bilateral
-        |> addAppendage
+        |> withAppendage
             { emptyAppendage
                 | name = "Cleavage " ++ cleavage
                 , canSquish = True
@@ -203,8 +203,8 @@ breasts name cleavage =
             }
 
 
-addAppendage : Appendage -> Organ -> Organ
-addAppendage appendage organ =
+withAppendage : Appendage -> Organ -> Organ
+withAppendage appendage organ =
     { organ | appendages = organ.appendages ++ [ appendage ] }
 
 
@@ -236,8 +236,8 @@ hips name =
     }
 
 
-legs : String -> Organ
-legs name =
+legs : String -> String -> Organ
+legs name tighgap =
     { emptyOrgan
         | name = name
         , type_ = Legs
@@ -247,6 +247,20 @@ legs name =
         , isGrippable = True
     }
         |> bilateral
+        |> withAppendage
+            { emptyAppendage
+                | name = tighgap ++ " Tighgap"
+                , canEnsheathe = True
+                , canGrip = True
+                , isPenetrable = True
+            }
+        |> withAppendage
+            { emptyAppendage
+                | name = "Linked Feet"
+                , canSquish = True
+                , canGrip = True
+                , isGrippable = True
+            }
 
 
 phallic : String -> Organ
@@ -314,7 +328,7 @@ butterfly =
         , breasts "Perky Marshmallow Tits" "Cleft"
         , hips "Tight Supple Ass"
         , phallic "Veiny Futa Phallus"
-        , legs "Long Shapely Legs"
+        , legs "Long Shapely Legs" "Tight"
         ]
     , icon = Nothing
     }
@@ -424,7 +438,7 @@ flower =
         , breasts "Soft Succulent Boobies" "Valley"
         , hips "Plush Bubble Butt"
         , yonic "Yielding Silken Quim"
-        , legs "Cute Limber Legs"
+        , legs "Cute Limber Legs" "Thicc"
         ]
     , icon = Nothing
     }
@@ -531,7 +545,7 @@ vixen =
         [ mouth "Hot Hungry Maw"
         , hands "Deft Nimble Hands"
         , breasts "Mamerous Milk Melons" "Valley"
-            |> addAppendage
+            |> withAppendage
                 { emptyAppendage
                     | name = "Two Nipples At Once"
                     , isSquishable = True
@@ -539,7 +553,7 @@ vixen =
                 }
         , hips "Bouncy Runner Rump"
         , yonic "Juicy Nether Cleft"
-        , legs "Beastly Hunter Legs"
+        , legs "Beastly Hunter Legs" "Tight"
         ]
     , icon = Nothing
     }
@@ -650,7 +664,7 @@ buck =
         , hands "Clever Flexible Fingers"
         , hips "Bitable Boy Butt"
         , phallic "Throbbing Meat Pole"
-        , legs "Quick Springy Legs"
+        , legs "Quick Springy Legs" "Tight"
         ]
     , icon = Nothing
     }
@@ -756,7 +770,7 @@ fiend =
         , hands "Steady Dexterous Hands"
         , hips "Chiseled Stately Ass"
         , phallic "Darkly Dreaming Dick"
-        , legs "Fit Flexible Legs"
+        , legs "Fit Flexible Legs" "Tight"
         ]
     , icon = Nothing
     }

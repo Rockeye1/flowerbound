@@ -11,6 +11,7 @@ import Persona.Data
 import Phosphor exposing (IconVariant)
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
+import Set
 import Svg
 import Svg.Attributes
 import Svg.Events
@@ -105,9 +106,23 @@ height :
     { a
         | organsPositions : Dict OrganKey OrganPosition
     }
-    -> Float
+    -> number
 height model =
-    50 * toFloat (Dict.size model.organsPositions)
+    Dict.foldl
+        (\( i, _ ) { show } ( acc, seen ) ->
+            if Set.member i seen then
+                if show then
+                    ( acc + 32, seen )
+
+                else
+                    ( acc, seen )
+
+            else
+                ( acc + organHeight + 8, Set.insert i seen )
+        )
+        ( 8, Set.empty )
+        model.organsPositions
+        |> Tuple.first
 
 
 outerViewOrgan :
