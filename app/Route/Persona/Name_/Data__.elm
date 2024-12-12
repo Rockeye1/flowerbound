@@ -82,7 +82,15 @@ init app _ =
                 |> Maybe.andThen .fragment
                 |> Maybe.andThen Persona.Codec.fragmentToGendertropeRecord
     in
-    ( Persona.fromPartial name partialPersona maybeGendertrope
+    ( Persona.fromPartial
+        (if name == " " then
+            ""
+
+         else
+            name
+        )
+        partialPersona
+        maybeGendertrope
     , Effect.none
     )
 

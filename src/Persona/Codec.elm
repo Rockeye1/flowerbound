@@ -34,7 +34,12 @@ fromUrl url =
 
                             Just d ->
                                 Ok
-                                    { name = name
+                                    { name =
+                                        if name == " " then
+                                            ""
+
+                                        else
+                                            name
                                     , data = d
                                     , fragment = parsedUrl.fragment
                                     }
@@ -47,6 +52,14 @@ fromUrl url =
                 Result.map3 Persona.fromPartial
                     (Url.percentDecode name
                         |> Result.fromMaybe "Could not decode name "
+                        |> Result.map
+                            (\decoded ->
+                                if decoded == " " then
+                                    ""
+
+                                else
+                                    decoded
+                            )
                     )
                     (Result.map Just (partialPersonaFromSlug data))
                     (case fragment of
@@ -67,7 +80,12 @@ fromUrl url =
 toRoute : Persona -> Route
 toRoute input =
     Route.Persona__Name___Data__
-        { name = Url.percentEncode input.name
+        { name =
+            if String.isEmpty input.name then
+                Url.percentEncode " "
+
+            else
+                Url.percentEncode input.name
         , data = Just (partialPersonaToSlug (Persona.toPartial input))
         }
 
