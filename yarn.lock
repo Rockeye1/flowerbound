@@ -1233,10 +1233,10 @@ ee-first@1.1.1:
   resolved "https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
-elm-codegen@0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/elm-codegen/-/elm-codegen-0.5.3.tgz#28ab430fe6addd7e3938a346d4d0c3bfd8ca4917"
-  integrity sha512-LKscQHnDeNGQsvaoDXq1nxlm9XlsWaIQCUiqBgJjXk/gPU6PtcXVC0ji1ytmmSW+/N0zb+DWegSbPPYGeV4eew==
+elm-codegen@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/elm-codegen/-/elm-codegen-0.6.1.tgz#396bb401e05a0ea911ea289d688f247daa43b60a"
+  integrity sha512-mbVmK4fqW+wtYzTZhJSuT42KrQZMRTueYerCvo09sO5v7QdDGw3qeG/rL1vLH0q2GJF44lXhyBo4lv6azSBOQQ==
   dependencies:
     chalk "^4.1.1"
     chokidar "^3.5.1"
@@ -1320,7 +1320,7 @@ elm-pages@^3.0.24:
     vite "^6.2.0"
     which "^5.0.0"
 
-elm-review@^2.12.0:
+elm-review@^2.13.3:
   version "2.13.3"
   resolved "https://registry.yarnpkg.com/elm-review/-/elm-review-2.13.3.tgz#396a8a230a26fabd6d5cb3a41a77870249bc9c69"
   integrity sha512-iEUihHeqTv0Xr5CVcUf1hDPxypXNtFPVunyEpn2LKAaa/FtEfTHKOVeBYfFNnt+bIDHbGA+hkWPv1qfzxEDH8Q==
