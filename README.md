@@ -1,5 +1,8 @@
+Unofficial [Flowerbound](https://www.glowfic.com/posts/11392) playing helper.
+
 # Credits
 
+- `Ephemeral` for Flowerbound itself
 - `ilzolende` for editing many of the icons
 - [Phosphor Icons](https://phosphoricons.com) for most of the icons
 - [Hips Icon](https://commons.wikimedia.org/wiki/File:Buttocks_morphology.svg)
