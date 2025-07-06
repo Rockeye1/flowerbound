@@ -1531,18 +1531,6 @@ viewStimulationResolve player =
         meters =
             player.meters
 
-        persona : Persona
-        persona =
-            player.persona
-
-        modifiers : Int
-        modifiers =
-            persona.ardor
-
-        orgasmThreshold : Int
-        orgasmThreshold =
-            meters.sensitivity + meters.satiation + modifiers
-
         isOrgasm : Bool
         isOrgasm =
             case Maybe.withDefault No player.selectedOrgasm of
@@ -1588,6 +1576,10 @@ viewStimulationResolve player =
     , case player.ardorCheck of
         Just ardorCheckFlat ->
             let
+                persona : Persona
+                persona =
+                    player.persona
+
                 intensityAmount : Int
                 intensityAmount =
                     if meters.stimulation <= persona.ardor then
