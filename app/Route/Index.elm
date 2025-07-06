@@ -144,9 +144,8 @@ type Temperament
     | Valiant
 
 
-type Orgasm
-    = Yes
-    | No
+type alias Orgasm =
+    Bool
 
 
 type alias OrganKey =
@@ -1533,12 +1532,7 @@ viewStimulationResolve player =
 
         isOrgasm : Bool
         isOrgasm =
-            case Maybe.withDefault No player.selectedOrgasm of
-                Yes ->
-                    True
-
-                No ->
-                    False
+            Maybe.withDefault False player.selectedOrgasm
     in
     [ el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
     , (statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue })
@@ -1674,8 +1668,8 @@ viewStatusChecks player =
 viewOrgasmButtons : PlayerModel -> List (Element PlayerMsg)
 viewOrgasmButtons model =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Am I Having an Orgasm? (Update at the START of your turn)")
-    , [ ( Yes, "When receiving Stimulation: Add Stimulation to Satiation. Add 1/2 Stimulation rounded down to Sensitivity. Check for Overstimulation and increase Sensitivity if applicable. Do NOT apply Understimulation rules. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal, and +3 Sensitivity. If Craving > Satiation, -1 Satiation, +1 Arousal, +3 Sensitivity. If Craving = Satiation, +3 Sensitivity." )
-      , ( No, "When receiving Stimulation: Add Stimulation to Arousal. Check for Understimulation and increase Craving if applicable (unless it's reciprocal Stimulation). Check for Overstimulation and increase Sensitivity if applicable. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal. If Craving > Satiation, -1 Satiation, +1 Arousal. If Craving = Satiation, do nothing." )
+    , [ ( True, "When receiving Stimulation: Add Stimulation to Satiation. Add 1/2 Stimulation rounded down to Sensitivity. Check for Overstimulation and increase Sensitivity if applicable. Do NOT apply Understimulation rules. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal, and +3 Sensitivity. If Craving > Satiation, -1 Satiation, +1 Arousal, +3 Sensitivity. If Craving = Satiation, +3 Sensitivity." )
+      , ( False, "When receiving Stimulation: Add Stimulation to Arousal. Check for Understimulation and increase Craving if applicable (unless it's reciprocal Stimulation). Check for Overstimulation and increase Sensitivity if applicable. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal. If Craving > Satiation, -1 Satiation, +1 Arousal. If Craving = Satiation, do nothing." )
       ]
         |> List.map (viewOrgasmButton model)
         |> Theme.row [ Ui.wrap ]
@@ -1777,12 +1771,11 @@ temperamentToString temperament =
 
 orgasmToString : Orgasm -> String
 orgasmToString orgasm =
-    case orgasm of
-        Yes ->
-            "Having an Orgasm"
+    if orgasm then
+        "Having an Orgasm"
 
-        No ->
-            "Not Having an Orgasm"
+    else
+        "Not Having an Orgasm"
 
 
 viewMoves : PlayerModel -> List (Element PlayerMsg)
