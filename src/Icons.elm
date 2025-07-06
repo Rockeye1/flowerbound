@@ -2,10 +2,9 @@ module Icons exposing
     ( flip, download, upload, minus, plus, remove, reset, delete, hide, show, rearrange
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
-    , buck, butterfly, custom, doll, fiend, flower, vixen
+    , buck, butterfly, custom, doll, fiend, flower, vixen, seedstalker, housepet
     , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
     , toElement, toElementFlippable
-    , housepet, seedstalker
     )
 
 {-|
@@ -28,7 +27,7 @@ module Icons exposing
 
 ## Gendertropes
 
-@docs buck, butterfly, custom, doll, fiend, flower, vixen
+@docs buck, butterfly, custom, doll, fiend, flower, vixen, seedstalker, housepet
 
 
 ## Organ types
