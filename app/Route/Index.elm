@@ -1531,6 +1531,7 @@ viewStimulationResolve player =
         meters =
             player.meters
 
+        persona : Persona
         persona =
             player.persona
 
