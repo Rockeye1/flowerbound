@@ -165,8 +165,14 @@ partialGendertropeToGendertrope gendertrope maybeGendertrope =
         PartialButterfly ->
             Butterfly
 
+        PartialSeedStalker ->
+            SeedStalker
+
         PartialFlower ->
             Flower
+
+        PartialHousepet ->
+            Housepet
 
         PartialVixen ->
             Vixen
@@ -221,8 +227,14 @@ gendertropeToPartial gendertrope =
         Butterfly ->
             PartialButterfly
 
+        SeedStalker ->
+            PartialSeedStalker
+
         Flower ->
             PartialFlower
+
+        Housepet ->
+            PartialHousepet
 
         Vixen ->
             PartialVixen

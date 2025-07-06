@@ -52,7 +52,9 @@ type alias Persona =
 
 type Gendertrope
     = Butterfly
+    | SeedStalker
     | Flower
+    | Housepet
     | Vixen
     | Buck
     | Fiend
@@ -62,7 +64,9 @@ type Gendertrope
 
 type PartialGendertrope
     = PartialButterfly
+    | PartialSeedStalker
     | PartialFlower
+    | PartialHousepet
     | PartialVixen
     | PartialBuck
     | PartialFiend
@@ -73,7 +77,9 @@ type PartialGendertrope
 standardGendertropes : List Gendertrope
 standardGendertropes =
     [ Butterfly
+    , SeedStalker
     , Flower
+    , Housepet
     , Vixen
     , Buck
     , Fiend

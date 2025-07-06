@@ -21,8 +21,14 @@ gendertropeIcon gendertrope =
         Butterfly ->
             Icons.butterfly
 
+        SeedStalker ->
+            Icons.seedstalker
+
         Flower ->
             Icons.flower
+
+        Housepet ->
+            Icons.housepet
 
         Vixen ->
             Icons.vixen
@@ -73,8 +79,14 @@ gendertropeToRecord gendertrope =
         Butterfly ->
             butterfly
 
+        SeedStalker ->
+            seedstalker
+
         Flower ->
             flower
+
+        Housepet ->
+            housepet
 
         Vixen ->
             vixen
@@ -381,7 +393,7 @@ You also permanently gain access to these three **Moves**:
 
 > **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |
 >
-If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
+> If this Move deals Stimulation equal to or greater than the target's Sanity score, _and_ if the target of this Move has the **Subspace** effect, gain **1 Dominance Point**.
 
 > **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
 >
@@ -389,7 +401,8 @@ If this Move deals Stimulation equal to or greater than the target's Sanity scor
 
 During your partner's turn, you may spend **1 Dominance Point** to force them to take an action, or _not_ take an action, of your choice. You may only do this once per turn.
 
-> **Subspace** _Passive_
+> **Subspace** 
+> _Passive_
 >
 > You have disadvantage on all Grace Checks and Sanity Checks. You have advantage on all Ardor Checks and Moxie Checks.
 >
@@ -403,7 +416,8 @@ ambrosia =
     , description = """If a Pairing between your _Veiny Futa Phallus_ and __an Organ not owned by you__ that is in the "**Mouth**" category exists at any point during your turn, and that turn is one in which you are **Having An Orgasm**, then at the moment your ejaculate enters their mouth, they compulsively swallow it and acquire the **Fixation**effect.
 
 
-> **Fixation** _Passive_
+> **Fixation**
+> _Passive_
 >
 > You have disadvantage on all actions that do not target the Organ that inflicted this effect. You cannot volitionally Unpair from the Organ that inflicted this effect.
 >
@@ -444,6 +458,142 @@ fairyFlight =
 These wings count as two __Occupied Appendages__ that support your weight and stabilize you, while they exist.
 
 These wings also allow you to fly for a number of minutes equal to your **Fitness Score** multiplied by **10**. You recover flight-time at a rate of **(1 + Fitness)** minutes per minute of rest."""
+    }
+
+
+seedstalker : GendertropeRecord
+seedstalker =
+    { name = "The Seed Stalker"
+    , description =
+        "She is a creature of insidious beauty and the implacable urge to breed. Hers is the cunning instinct that lures in the unsuspecting and takes from them in the heat of passion. Her focused hunt for a full womb drives her to prowl and seduce the unwitting. But her carnal pragmatism is tempered by an unselfconscious pride, an earnest honesty toward those who are generous to her."
+    , features =
+        [ ( 1, primordialInstinct )
+        , ( 2, prowlingBreeder )
+        , ( 3, seductiveSuction )
+        , ( 4, nestingWomb )
+        , ( 5, broodmother )
+        ]
+            |> Dict.fromList
+    , organs =
+        [ mouth "Shiny Kissable Lips"
+        , hands "Slender Elegant Hands"
+        , breasts "Perky Marshmallow Tits" "Cleft"
+        , hips "Tight Supple Ass"
+        , yonic "Sultry Suckling Meatsleeve"
+        , legs "Long Shapely Legs" "Tight"
+        , { emptyOrgan
+            | name = "Serpentine Thirsting Tailthroat"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 2
+            , canGrip = True
+            , canEnsheathe = True
+            , canPenetrate = True
+          }
+        ]
+    , icon = Nothing
+    }
+
+
+primordialInstinct : Feature
+primordialInstinct =
+    { name = "Primordial Instinct"
+    , description = """When you attempt a __contested__ **Repositioning Maneuver**, add **LBd4** to the result of your **Grace Check**."""
+    }
+
+
+prowlingBreeder : Feature
+prowlingBreeder =
+    { name = "Prowling Breeder"
+    , description = """Your womb now contains a Pool of **Breeding Points** with a capacity equal to your _Sultry Suckling Meatsleeve_'s **Erogeny**.
+
+While any Organ in the "**Phallic Genital**" Category is Paired with your _Sultry Suckling Meatsleeve_ when that Organ's owner begins their turn and determines if they are Having An Orgasm, if they are Having An Orgasm, you gain **1 Breeding Point** at that time.
+
+You also permanently gain access to these three **Moves**:
+
+> **Invasive Massage** (Grind) [Grips/Penetrates] | CT **5** |
+>
+> Drain **5 Craving** from yourself. Inflict the **Eager Release** effect to the target of this Move.
+
+> **Torment The Tip** (Tease) [Grips/Ensheathes] | CT **15** |
+>
+> If your current number of **Breeding Points** is equal to or greater than the final **Stimulation** this Move delivers, expend a number of **Breeding Points** equal to that final Stimulation. Immediately reduce the **Sensitivity**, and increase the **Intensity**, of the target of this Move, by __that number__.
+> 
+> If this Move causes any **Overstimulation** to its target, the final **Sensitivity** gain from that Overstimulation is doubled.
+
+> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
+>
+> If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **(LB) Craving**.
+
+(If you did not replace your _Veiny Futa Phallus_, you may assign this Feature to your _Serpentine Thirsting Tailthroat_ instead. If you also did not replace your _Sinuous Tentacle Tongue_, the capacity for your **Breeding Points** is locked to **0**.)
+
+> **Eager Release**
+> _Passive_
+>
+> You have disadvantage on all Grace Checks and Sanity Checks. You have advantage on all Ardor Checks and Moxie Checks.
+>
+> At the beginning of your turn, if you are not Having An Orgasm, you may roll a Moxie Check. If the result of the Check is greater than your Craving value, you may remove this effect."""
+    }
+
+
+seductiveSuction : Feature
+seductiveSuction =
+    { name = "Seductive Suction"
+    , description = """If an Organ in the "**Phallic Genital**" Category attempts to **Unpair** from an Organ you own that [CanEnsheathe], and if you choose to __contest__ that Unpairing, the attempting Organ immediately receives __Thrusting Stimulation__ from your Ensheathing Organ at no extra cost to you. The amount of __Thrusting Stimulation__ they receive is equal to the total result of __their__ **Grace Check**, including any **Stamina** they spent to increase it.
+
+The owner of the attempting Organ must then immediately roll an **Orgasm Sanity Check** __even if they are not Having An Orgasm__. If they fail their Orgasm Sanity Check, __you__ get an additional bonus to the result of your Grace Check that is equal to __their number of__ **Intensity Points**."""
+    }
+
+
+nestingWomb : Feature
+nestingWomb =
+    { name = "Nesting Womb"
+    , description = """You may freely convert your **Breeding Points** into **Stamina** at any time.
+
+You also gain access to these two Moves:
+
+You also permanently gain access to these two Moves:
+
+> **Primal Thirst** (Thrust) [Ensheathes] | CT: **0** | |
+> _Reaction_
+>
+> If the target of this move has the **Eager Release** effect, gain as much **Craving** as the **Stamina** you spend on this contested Move.
+
+> **Slithering Snuggle** (Grind) [Squishes] | CT **10** |
+> _Indulgent_
+>
+> If you have at least 4 Breeding Points, drain 1d4 Sensitivity from yourself.
+> If you have at least 6 Breeding Points, drain 2d4 Sensitivity from yourself.
+> If you have at least 8 Breeding Points, drain 3d4 Sensitivity from yourself."""
+    }
+
+
+broodmother : Feature
+broodmother =
+    { name = "Broodmother"
+    , description = """Outside of an Encounter, you may expend **5 Breeding Points** to give birth to an _Autonomous Tentacle_.
+
+> __**Autonomous Tentacle**__
+> 
+> FIT: **2** | GRC: **6** | ARD: **8** | PRW: **4** | SAN: **0** | MOX: **2**
+> 
+> Suckling Tail-Pussy [CG][CP][CE] | [IG] (Prehensile)
+> 
+> Spurting Cock-Tail [CG][CP] | [IG] (Prehensile)
+> 
+> __Moves:__
+> - Stroke
+> - Squeeze
+> 
+> Somewhere between a meter and two meters of smooth tubular flesh, yonic at one end, phallic at the other end, that does its best to act as a pipe that pumps ejaculate through itself. When several of these are in physical contact with each other and only each other, they will instinctively link up and evenly distribute any collected ejaculate amongst the swarm, slowly leeching energy from the ejaculate's alchemical charge, forming braided rings of continuous flow. If uninterrupted, these braided rings can sometimes form useful structures.
+
+The Autonomous Tentacle is an unintelligent orgasmophage that will, left to its own devices, mindlessly seek to extract semen from phallic genitals and deposit that semen in yonic genitals, preferably at the same time.
+
+You may give one of your _Autonomous Tentacles_ a mental command by succeeding at a **DC 8 Moxie Check**. You must roll a **Moxie Check** for every individual action you order your tentacle-spawn to perform during an Encounter, but one Check can cover a complex order while outside of an Encounter.
+
+In an Encounter, __only the first order you give is free__. The second order costs **1 Stamina**, the third order costs **2 Stamina**, the fourth order costs **3 Stamina**, and so on. The Stamina cost is paid even if you fail the Moxie Check. After ending an Encounter, this cost resets.
+
+There is no hard limit on how many _Autonomous Tentacles_ you may have, but the emergent consequences of having a lot of _Autonomous Tentacles_ following you around are what they are."""
     }
 
 
@@ -495,7 +645,8 @@ preciousObject =
 
 _Kegel Quiver_ does not require you to target the Organ you are Fixated on, or use the Organ that is Paired to said Fixation target.
 
-> **Shiver** _Passive_
+> **Shiver** 
+> _Passive_
 >
 > You have disadvantage on Prowess Rolls (but not Prowess Checks). When using a Move, you must spend _all_ of your available Stamina on the attempted Stimulation for that Move.
 >
@@ -553,6 +704,122 @@ The limbs bound by your Roots count as Occupied.
 You may dismiss your Roots at the end of your turn, freeing yourself and allowing the Root vines to vanish.
 
 Outside an Encounter, these Roots can be summoned at any distance within line of sight, and will reach across the intervening distance to grab their petals and pull you through space to wherever they spawned from. This can be done a number of times per minute equal to your Moxie score."""
+    }
+
+
+housepet : GendertropeRecord
+housepet =
+    { name = "The Housepet"
+    , description = "She is the most domesticated and affectionate of companions, loving attention and praise. Her gentle nature and clever creativity make her crave all things cozy, but she is also fascinated by, and drawn to, the creepy and strange. She would sooner befriend, and be happier belonging to, alien monsters than her own peers."
+    , features =
+        [ ( 1, skinHunger )
+        , ( 2, snuggleSavant )
+        , ( 3, ropeBunny )
+        , ( 4, cleverKitten )
+        , ( 5, limitless )
+        ]
+            |> Dict.fromList
+    , organs =
+        [ { emptyOrgan
+            | name = "Cute Kitty Ears"
+            , type_ = Other
+            , contour = 0
+            , erogeny = 4
+            , isSquishable = True
+            , isGrippable = True
+          }
+        , mouth "Soft Rosen Lips"
+        , hands "Delicate Girly Hands"
+        , breasts "Soft Succulent Boobies" "Valley"
+        , hips "Plush Bubble Butt"
+        , phallic "Adorable Twitching Girldick"
+        , legs "Cute Limber Legs" "Thicc"
+        ]
+    , icon = Nothing
+    }
+
+
+skinHunger : Feature
+skinHunger =
+    { name = "Skin Hunger"
+    , description = """You gain a **Skinship Bonus** to the **Erogeny** of all of your **Organs**, equal to half of your **Sanity Score** (rounded down) plus the total number of existing [Squish] Pairings in which any of your Organs are involved. However, if either you or your partner(s) are wearing any __Clothing__ items, or if no such [Squish] Pairings exist, your Skinship Bonus is **0**.
+
+When a **Move** is used on you by a partner, the **Reciprocal Stimulation** caused by that Move is increased by your **Skinship Bonus**.
+
+When you use a **Move** on a partner, add your **Skinship Bonus** to any **Reciprocal Stimulation** that __you__ receive."""
+    }
+
+
+snuggleSavant : Feature
+snuggleSavant =
+    { name = "Snuggle Savant"
+    , description = """You permanently gain access to these two Moves:
+
+> **Cozy Clench** (Thrust) [Grips/Ensheathes] | CT: **5** |
+>
+> If you have the **Eager Release** effect:
+- Add **+1** to this Move's attempted Stimulation.
+- Drain **Craving** from yourself equal to the **Stamina** spent on this Move, then also drain __the amount of drained Craving__ from your **Satiation**.
+
+> **Eager Undulation** (Grind) [Penetrates/Ensheathes] | CT: **0** |
+>
+> If your **Craving** is less than the total **Erogeny** of the Organ using this Move, increase your **Craving** value to match that total **Erogeny** value."""
+    }
+
+
+ropeBunny : Feature
+ropeBunny =
+    { name = "Rope Bunny"
+    , description = """Once per Encounter, choose __one__ of:
+- **Ardor**
+- **Prowess**
+- **Sanity**
+- **Moxie**
+
+For the remaining duration of that Encounter, the **Ability Score** you chose is increased by your **Bondage Bonus**.
+
+Your **Bondage Bonus** is at any given time equal to the highest **Bondage Rating** of any Toy that has Paired and remains Paired with any of your Organs, plus an additional **+1** for each additional Organ that is Paired with a Toy that has a **Bondage Rating** higher than your base **Grace Score**.
+
+Your Bondage Bonus does not include the Bondage Rating of any Toys that you are _wielding_."""
+    }
+
+
+cleverKitten : Feature
+cleverKitten =
+    { name = "Clever Kitten"
+    , description = """You may use your **Sanity Score** instead of your **Moxie Score** when rolling **Moxie Checks**.
+
+You also gain access to these two Moves:
+
+> **Compliant Fugue** (Tease) [Penetrates/Ensheathes] | CT **20** |
+> _Reaction_
+>
+> If you already have the **Subspace** effect, you immediately gain the **Liquid Bliss (Tease)** effect.
+
+> **Humping Cling** (Grind) [Penetrates/Ensheathes] | CT **0** |
+> _Indulgent_
+>
+> Add your **Skinship Bonus** to both the Stimulation you receive from this Move _and_ to the Stimulation received by the target of this Move.
+
+> Liquid Bliss (Tease)
+> _Passive_
+> 
+> You cannot gain **Sensitivity**** from **Overstimulation** of the __Tease__ Stimulation Type.
+> 
+> At the beginning of your turn, remove this effect."""
+    }
+
+
+limitless : Feature
+limitless =
+    { name = "Limitless"
+    , description = """You now roll a **d20** instead of a **d10** when rolling **Sanity Checks**. This does not apply to using your Sanity Score for Moxie Checks.
+
+When you receive __positive__ **Stimulation**, if your **Craving** value is equal to or greater than the total **Stimulation** you receive, add any **Overstimulation** you receive to your **Arousal**.
+
+When you receive __negative__ **Stimulation**, roll a **Sanity Check**. If the result is greater than the total absolute unsigned value of the negative Stimulation, you immediately gain the **Masochism** effect. Masochism does not cause the Pain to count as positive Stimulation for the purposes of this Feature.
+
+Outside of an Encounter, once per **Full Recovery**, you may attempt a **DC 30 Sanity Check**. If you pass the check, you may instantly __teleport__ under your own power to anywhere you have ever been before or anywhere the GM deigns to send you."""
     }
 
 
@@ -627,7 +894,8 @@ savageRavisher =
 
 In addition, while you are **Having An Orgasm**, you may roll a Fitness Check instead of a Moxie Check or a Moxie Check instead of a Fitness Check, interchangeably.
 
-> **Heartburst** _Trigger_
+> **Heartburst** 
+> _Trigger_
 > If you go from not Having An Orgasm to Having An Orgasm, immediately gain an additional **1d8 Intensity Points**.
 >
 > This effect is removed after triggering **1** time."""
@@ -735,7 +1003,8 @@ recklessFool =
 
 In addition, you may add half of your **Craving** value to the result of any **Grace Check**s. If you do so, but fail the Grace Check anyway, you immediately acquire the **Shiver** effect.
 
-> **Lucid Fugue** _Trigger_
+> **Lucid Fugue**
+> _Trigger_
 >
 > If you roll a standard **Orgasm Sanity Check**, and if you fail that Check, remove a number of **Intensity Points** equal to the result of the Check and add that many points to your **Craving**. This does not alter the outcome of the Check.
 >
@@ -750,7 +1019,8 @@ whiteFountain =
 
 At the beginning of your turn, if you are **Having An Orgasm**, any Organ paired with your _Throbbing Meat Pole_ is soaked in your magically-charged semen, applying the **Epiphany** effect _both_ to the owner of that Organ as well as yourself.
 
-> **Epiphany** _Passive_
+> **Epiphany** 
+> _Passive_
 >
 > If you have this effect when you end an Encounter by **satisfying** your partner, you gain **2** Euphoria Points instead of **1**."""
     }
@@ -1030,8 +1300,14 @@ gendertropeFromName name =
         "The Butterfly" ->
             Just Butterfly
 
+        "The Seed Stalker" ->
+            Just SeedStalker
+
         "The Flower" ->
             Just Flower
+
+        "The Housepet" ->
+            Just Housepet
 
         "The Vixen" ->
             Just Vixen

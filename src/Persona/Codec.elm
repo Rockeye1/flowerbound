@@ -926,7 +926,7 @@ feature =
 partialGendertrope : Codec e PartialGendertrope
 partialGendertrope =
     Codec.custom
-        (\fCustom fButterfly fFlower fVixen fBuck fFiend fDoll value ->
+        (\fCustom fButterfly fFlower fVixen fBuck fFiend fDoll fSeedStalker fHousepet value ->
             case value of
                 PartialCustom name ->
                     fCustom name
@@ -948,6 +948,12 @@ partialGendertrope =
 
                 PartialDoll ->
                     fDoll
+
+                PartialSeedStalker ->
+                    fSeedStalker
+
+                PartialHousepet ->
+                    fHousepet
         )
         |> Codec.variant1 PartialCustom Codec.string
         |> Codec.variant0 PartialButterfly
@@ -956,6 +962,8 @@ partialGendertrope =
         |> Codec.variant0 PartialBuck
         |> Codec.variant0 PartialFiend
         |> Codec.variant0 PartialDoll
+        |> Codec.variant0 PartialSeedStalker
+        |> Codec.variant0 PartialHousepet
         |> Codec.buildCustom
 
 
