@@ -570,7 +570,7 @@ You also permanently gain access to these two Moves:
 
 broodmother : Feature
 broodmother =
-    { name = "Broodmotheer"
+    { name = "Broodmother"
     , description = """Outside of an Encounter, you may expend **5 Breeding Points** to give birth to an _Autonomous Tentacle_.
 
 > __**Autonomous Tentacle**__
