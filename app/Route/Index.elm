@@ -1558,24 +1558,6 @@ viewStimulationResolve player =
 
             else
                 True
-
-        ardorCheckFlat : Int
-        ardorCheckFlat =
-            Maybe.withDefault 0 player.ardorCheck
-
-        intensityAmount : Int
-        intensityAmount =
-            if meters.stimulation <= persona.ardor then
-                1
-
-            else if meters.stimulation <= ardorCheckFlat then
-                3
-
-            else if meters.stimulation <= (10 + persona.ardor) then
-                5
-
-            else
-                7
     in
     [ el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
     , [ statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue }
@@ -1613,6 +1595,25 @@ viewStimulationResolve player =
                 )
             ]
     , if isArdorRolled then
+        let
+            ardorCheckFlat : Int
+            ardorCheckFlat =
+                Maybe.withDefault 0 player.ardorCheck
+
+            intensityAmount : Int
+            intensityAmount =
+                if meters.stimulation <= persona.ardor then
+                    1
+
+                else if meters.stimulation <= ardorCheckFlat then
+                    3
+
+                else if meters.stimulation <= (10 + persona.ardor) then
+                    5
+
+                else
+                    7
+        in
         paragraph
             [ Theme.padding
             , Ui.border 1
