@@ -1300,6 +1300,9 @@ gendertropeFromName name =
         "The Butterfly" ->
             Just Butterfly
 
+        "The Seed Stalker" ->
+            Just SeedStalker
+
         "The Flower" ->
             Just Flower
 
