@@ -1553,16 +1553,10 @@ viewStimulationResolve player =
 
         isArdorRolled : Bool
         isArdorRolled =
-            if player.ardorCheck == Nothing then
-                False
-
-            else
-                True
+            player.ardorCheck /= Nothing
     in
     [ el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
-    , [ statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue }
-      ]
-        |> List.concat
+    , (statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue })
         |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         |> Ui.map UpdateMeters
     , if isOrgasm then
