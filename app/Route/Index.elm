@@ -1529,84 +1529,75 @@ viewStimulationResolve player =
         meters : Meters
         meters =
             player.meters
-
-        isOrgasm : Bool
-        isOrgasm =
-            Maybe.withDefault False player.selectedOrgasm
     in
     [ el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
     , (statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue })
         |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         |> Ui.map UpdateMeters
-    , if isOrgasm then
-        paragraph
-            [ Theme.padding
-            , Ui.border 1
-            ]
-            [ text
-                ("You are Having an Orgasm, so for this amount of Stimulation: "
-                    ++ String.fromInt meters.stimulation
-                    ++ ", you should adjust the following meters: (Satiation +"
-                    ++ String.fromInt meters.stimulation
-                    ++ ") (Sensitivity +"
-                    ++ String.fromInt (meters.stimulation // 2)
-                    ++ ")."
-                )
-            ]
-
-      else
-        paragraph
-            [ Theme.padding
-            , Ui.border 1
-            ]
-            [ text
-                ("You are not Having an Orgasm, so for this amount of Stimulation: "
-                    ++ String.fromInt meters.stimulation
-                    ++ ", you should adjust the following meters: (Arousal +"
-                    ++ String.fromInt meters.stimulation
-                    ++ "). Make sure to check for Overstimulation and Understimulation!"
-                )
-            ]
-    , case player.ardorCheck of
-        Just ardorCheckFlat ->
-            let
-                intensityAmount : Int
-                intensityAmount =
-                    if meters.stimulation <= player.persona.ardor then
-                        1
-
-                    else if meters.stimulation <= ardorCheckFlat then
-                        3
-
-                    else if meters.stimulation <= (10 + player.persona.ardor) then
-                        5
-
-                    else
-                        7
-            in
-            paragraph
-                [ Theme.padding
-                , Ui.border 1
-                ]
-                [ text
-                    ("Your Ardor is "
-                        ++ String.fromInt player.persona.ardor
-                        ++ " and the result of your Ardor check was "
-                        ++ String.fromInt ardorCheckFlat
-                        ++ ", compared to a Stimulation of "
+    , paragraph
+        [ Theme.padding
+        , Ui.border 1
+        ]
+        [ let
+            content : String
+            content =
+                if Maybe.withDefault False player.selectedOrgasm then
+                    "You are Having an Orgasm, so for this amount of Stimulation: "
                         ++ String.fromInt meters.stimulation
-                        ++ ", so you should adjust (Intensity) by "
-                        ++ String.fromInt intensityAmount
-                        ++ ". Make sure to re-roll the Ardor check for each new source of Stimulation!"
-                    )
-                ]
+                        ++ ", you should adjust the following meters: (Satiation +"
+                        ++ String.fromInt meters.stimulation
+                        ++ ") (Sensitivity +"
+                        ++ String.fromInt (meters.stimulation // 2)
+                        ++ ")."
 
-        Nothing ->
-            paragraph
-                [ Theme.padding
-                , Ui.border 1
-                ]
-                [ text "To calculate Intensity, roll an Ardor check with the Status Checks dice below." ]
+                else
+                    "You are not Having an Orgasm, so for this amount of Stimulation: "
+                        ++ String.fromInt meters.stimulation
+                        ++ ", you should adjust the following meters: (Arousal +"
+                        ++ String.fromInt meters.stimulation
+                        ++ "). Make sure to check for Overstimulation and Understimulation!"
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        , Ui.border 1
+        ]
+        [ let
+            content : String
+            content =
+                case player.ardorCheck of
+                    Just ardorCheckFlat ->
+                        let
+                            intensityAmount : Int
+                            intensityAmount =
+                                if meters.stimulation <= player.persona.ardor then
+                                    1
+
+                                else if meters.stimulation <= ardorCheckFlat then
+                                    3
+
+                                else if meters.stimulation <= (10 + player.persona.ardor) then
+                                    5
+
+                                else
+                                    7
+                        in
+                        "Your Ardor is "
+                            ++ String.fromInt player.persona.ardor
+                            ++ " and the result of your Ardor check was "
+                            ++ String.fromInt ardorCheckFlat
+                            ++ ", compared to a Stimulation of "
+                            ++ String.fromInt meters.stimulation
+                            ++ ", so you should adjust (Intensity) by "
+                            ++ String.fromInt intensityAmount
+                            ++ ". Make sure to re-roll the Ardor check for each new source of Stimulation!"
+
+                    Nothing ->
+                        "To calculate Intensity, roll an Ardor check with the Status Checks dice below."
+          in
+          text content
+        ]
     ]
 
 
