@@ -20,13 +20,13 @@ gendertropeIcon gendertrope =
     case gendertrope of
         Butterfly ->
             Icons.butterfly
-            
+
         SeedStalker ->
             Icons.seedstalker
 
         Flower ->
             Icons.flower
-            
+
         Housepet ->
             Icons.housepet
 
@@ -78,7 +78,7 @@ gendertropeToRecord gendertrope =
     case gendertrope of
         Butterfly ->
             butterfly
-            
+
         SeedStalker ->
             seedstalker
 
@@ -148,7 +148,7 @@ mouth name =
         , isSquishable = True
         , isPenetrable = True
     }
-    
+
 
 hands : String -> Organ
 hands name =
@@ -213,8 +213,8 @@ breasts name cleavage =
                 , canEnsheathe = True
                 , isPenetrable = True
             }
-            
-            
+
+
 chest : String -> Organ
 chest name =
     { emptyOrgan
@@ -349,19 +349,19 @@ butterfly =
             |> Dict.fromList
     , organs =
         [ { emptyOrgan
-        | name = "Shiny Thirsting Lips"
-        , type_ = Mouth
-        , contour = 1
-        , erogeny = 2
-    }
-    |> withAppendage
-            { emptyAppendage
-                | name = "Shiny Kissable Lips"
-                , canSquish = True
-                , canEnsheathe = True
-                , isPenetrable = True
-                , isSquishable = True
-            }
+            | name = "Shiny Thirsting Lips"
+            , type_ = Mouth
+            , contour = 1
+            , erogeny = 2
+          }
+            |> withAppendage
+                { emptyAppendage
+                    | name = "Shiny Kissable Lips"
+                    , canSquish = True
+                    , canEnsheathe = True
+                    , isPenetrable = True
+                    , isSquishable = True
+                }
         , prehensile "Sinuous Tentacle Tongue"
         , hands "Slender Elegant Hands"
         , breasts "Perky Marshmallow Tits" "Cleft"
@@ -459,7 +459,8 @@ These wings count as two __Occupied Appendages__ that support your weight and st
 
 These wings also allow you to fly for a number of minutes equal to your **Fitness Score** multiplied by **10**. You recover flight-time at a rate of **(1 + Fitness)** minutes per minute of rest."""
     }
-    
+
+
 seedstalker : GendertropeRecord
 seedstalker =
     { name = "The Seed Stalker"
@@ -480,15 +481,15 @@ seedstalker =
         , hips "Tight Supple Ass"
         , yonic "Sultry Suckling Meatsleeve"
         , legs "Long Shapely Legs" "Tight"
-        ,{ emptyOrgan
-        | name = "Serpentine Thirsting Tailthroat"
-        , type_ = Prehensile
-        , contour = 4
-        , erogeny = 2
-        , canGrip = True
-        , canEnsheathe = True
-        , canPenetrate = True
-    }
+        , { emptyOrgan
+            | name = "Serpentine Thirsting Tailthroat"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 2
+            , canGrip = True
+            , canEnsheathe = True
+            , canPenetrate = True
+          }
         ]
     , icon = Nothing
     }
@@ -720,13 +721,13 @@ housepet =
             |> Dict.fromList
     , organs =
         [ { emptyOrgan
-        | name = "Cute Kitty Ears"
-        , type_ = Other
-        , contour = 0
-        , erogeny = 4
-        , isSquishable = True
-        , isGrippable = True
-    }
+            | name = "Cute Kitty Ears"
+            , type_ = Other
+            , contour = 0
+            , erogeny = 4
+            , isSquishable = True
+            , isGrippable = True
+          }
         , mouth "Soft Rosen Lips"
         , hands "Delicate Girly Hands"
         , breasts "Soft Succulent Boobies" "Valley"
@@ -1301,7 +1302,7 @@ gendertropeFromName name =
 
         "The Flower" ->
             Just Flower
-            
+
         "The Housepet" ->
             Just Housepet
 

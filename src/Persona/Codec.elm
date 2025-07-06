@@ -928,13 +928,13 @@ partialGendertrope =
 
                 PartialButterfly ->
                     fButterfly
-                    
+
                 PartialSeedStalker ->
                     fSeedStalker
 
                 PartialFlower ->
                     fFlower
-                    
+
                 PartialHousepet ->
                     fHousepet
 

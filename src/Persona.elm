@@ -164,13 +164,13 @@ partialGendertropeToGendertrope gendertrope maybeGendertrope =
     case gendertrope of
         PartialButterfly ->
             Butterfly
-            
+
         PartialSeedStalker ->
             SeedStalker
 
         PartialFlower ->
             Flower
-            
+
         PartialHousepet ->
             Housepet
 
@@ -226,13 +226,13 @@ gendertropeToPartial gendertrope =
     case gendertrope of
         Butterfly ->
             PartialButterfly
-            
+
         SeedStalker ->
             PartialSeedStalker
 
         Flower ->
             PartialFlower
-            
+
         Housepet ->
             PartialHousepet
 
