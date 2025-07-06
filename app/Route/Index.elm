@@ -1550,10 +1550,6 @@ viewStimulationResolve player =
 
                 No ->
                     False
-
-        isArdorRolled : Bool
-        isArdorRolled =
-            player.ardorCheck /= Nothing
     in
     [ el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
     , (statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue })
@@ -1588,49 +1584,46 @@ viewStimulationResolve player =
                     ++ "). Make sure to check for Overstimulation and Understimulation!"
                 )
             ]
-    , if isArdorRolled then
-        let
-            ardorCheckFlat : Int
-            ardorCheckFlat =
-                Maybe.withDefault 0 player.ardorCheck
+    , case player.ardorCheck of
+        Just ardorCheckFlat ->
+            let
+                intensityAmount : Int
+                intensityAmount =
+                    if meters.stimulation <= persona.ardor then
+                        1
 
-            intensityAmount : Int
-            intensityAmount =
-                if meters.stimulation <= persona.ardor then
-                    1
+                    else if meters.stimulation <= ardorCheckFlat then
+                        3
 
-                else if meters.stimulation <= ardorCheckFlat then
-                    3
+                    else if meters.stimulation <= (10 + persona.ardor) then
+                        5
 
-                else if meters.stimulation <= (10 + persona.ardor) then
-                    5
+                    else
+                        7
+            in
+            paragraph
+                [ Theme.padding
+                , Ui.border 1
+                ]
+                [ text
+                    ("Your Ardor is "
+                        ++ String.fromInt persona.ardor
+                        ++ " and the result of your Ardor check was "
+                        ++ String.fromInt ardorCheckFlat
+                        ++ ", compared to a Stimulation of "
+                        ++ String.fromInt meters.stimulation
+                        ++ ", so you should adjust (Intensity) by "
+                        ++ String.fromInt intensityAmount
+                        ++ ". Make sure to re-roll the Ardor check for each new source of Stimulation!"
+                    )
+                ]
 
-                else
-                    7
-        in
-        paragraph
-            [ Theme.padding
-            , Ui.border 1
-            ]
-            [ text
-                ("Your Ardor is "
-                    ++ String.fromInt persona.ardor
-                    ++ " and the result of your Ardor check was "
-                    ++ String.fromInt ardorCheckFlat
-                    ++ ", compared to a Stimulation of "
-                    ++ String.fromInt meters.stimulation
-                    ++ ", so you should adjust (Intensity) by "
-                    ++ String.fromInt intensityAmount
-                    ++ ". Make sure to re-roll the Ardor check for each new source of Stimulation!"
-                )
-            ]
-
-      else
-        paragraph
-            [ Theme.padding
-            , Ui.border 1
-            ]
-            [ text "To calculate Intensity, roll an Ardor check with the Status Checks dice below." ]
+        Nothing ->
+            paragraph
+                [ Theme.padding
+                , Ui.border 1
+                ]
+                [ text "To calculate Intensity, roll an Ardor check with the Status Checks dice below." ]
     ]
 
 
