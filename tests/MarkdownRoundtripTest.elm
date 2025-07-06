@@ -1,5 +1,6 @@
 module MarkdownRoundtripTest exposing (fuzzy, simple)
 
+import Dict
 import Expect
 import Parser
 import Persona
@@ -63,7 +64,46 @@ simple =
                     , sanity = 2
                     , hue = Just 3.14
                     }
-        , test "?" <|
+        , test "Empty appendages" <|
+            \_ ->
+                roundtrips True
+                    { ardor = 2
+                    , euphoriaPoints = 0
+                    , features = []
+                    , fitness = 2
+                    , gendertrope =
+                        Custom
+                            { description = "!"
+                            , features = Dict.empty
+                            , icon = Nothing
+                            , name = "!"
+                            , organs =
+                                [ { appendages = []
+                                  , canEnsheathe = False
+                                  , canGrip = False
+                                  , canPenetrate = False
+                                  , canSquish = False
+                                  , contour = 0
+                                  , erogeny = 0
+                                  , isEnsheatheable = False
+                                  , isGrippable = False
+                                  , isPenetrable = False
+                                  , isSquishable = False
+                                  , name = "!"
+                                  , type_ = Types.Hands
+                                  }
+                                ]
+                            }
+                    , grace = 2
+                    , hue = Nothing
+                    , ichorPoints = 0
+                    , moxie = 2
+                    , name = "!"
+                    , numinousPoints = 0
+                    , prowess = 2
+                    , sanity = 2
+                    }
+        , test "Default" <|
             \_ ->
                 roundtrips True
                     Persona.default
@@ -83,17 +123,16 @@ roundtrips log persona =
         markdown : String
         markdown =
             Persona.Codec.toString persona
+
+        _ =
+            if log then
+                Debug.log "Markdown" markdown
+
+            else
+                ""
     in
     case Parser.run Persona.Codec.personaParser markdown of
         Err e ->
-            let
-                _ =
-                    if log then
-                        Debug.log "Markdown" markdown
-
-                    else
-                        ""
-            in
             Expect.fail (Debug.toString e)
 
         Ok actual ->

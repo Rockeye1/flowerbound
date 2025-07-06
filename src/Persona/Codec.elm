@@ -736,11 +736,15 @@ organParser =
                 withAppendages partial =
                     { partial
                         | appendages =
-                            if List.isEmpty (appendages partial) then
-                                partial.appendages
+                            case appendages partial of
+                                Just [] ->
+                                    partial.appendages
 
-                            else
-                                appendages partial
+                                Just list ->
+                                    list
+
+                                Nothing ->
+                                    []
                     }
             in
             organTypeToReference type_ name
@@ -791,7 +795,7 @@ organParser =
             , "Ensheathe"
             ]
         |= Parser.oneOf
-            [ Parser.succeed (\_ -> [])
+            [ Parser.succeed (\_ -> Nothing)
                 |. Parser.backtrackable (Parser.symbol "-")
                 |. Parser.backtrackable Parser.spaces
                 |. Parser.keyword "No"
@@ -812,6 +816,7 @@ organParser =
                         List.map
                             (\a -> a partial)
                             list
+                            |> Just
                     )
             ]
         |. Parser.spaces
