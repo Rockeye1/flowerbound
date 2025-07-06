@@ -203,6 +203,19 @@ breasts name cleavage =
             }
 
 
+chest : String -> Organ
+chest name =
+    { emptyOrgan
+        | name = name
+        , type_ = Breasts
+        , contour = 0
+        , erogeny = 1
+        , canSquish = True
+        , isSquishable = True
+    }
+        |> bilateral
+
+
 withAppendage : Appendage -> Organ -> Organ
 withAppendage appendage organ =
     { organ | appendages = organ.appendages ++ [ appendage ] }
@@ -323,7 +336,21 @@ butterfly =
         ]
             |> Dict.fromList
     , organs =
-        [ prehensile "Sinuous Tentacle Tongue"
+        [ { emptyOrgan
+            | name = "Shiny Thirsting Lips"
+            , type_ = Mouth
+            , contour = 1
+            , erogeny = 2
+          }
+            |> withAppendage
+                { emptyAppendage
+                    | name = "Shiny Kissable Lips"
+                    , canSquish = True
+                    , canEnsheathe = True
+                    , isPenetrable = True
+                    , isSquishable = True
+                }
+        , prehensile "Sinuous Tentacle Tongue"
         , hands "Slender Elegant Hands"
         , breasts "Perky Marshmallow Tits" "Cleft"
         , hips "Tight Supple Ass"
@@ -337,7 +364,7 @@ butterfly =
 prehensileProficiency : Feature
 prehensileProficiency =
     { name = "Prehensile Proficiency"
-    , description = "When using an Organ with both [CanGrip] and [CanPenetrate] to make a Prowess Roll, you may make the roll twice and take the superior result."
+    , description = """When using an Organ in the "**Prehensile**" Category to make a Prowess Roll, you may make the roll with __advantage__."""
     }
 
 
@@ -348,9 +375,9 @@ dominantExemplar =
 
 You also permanently gain access to these three **Moves**:
 
-> **Assertive Grope** (Tease) [Grips] | CT **6** |
+> **Assertive Grope** (Tease) [Grips] | CT **5** |
 >
-> If, and only if, the Stimulation dealt by this Move is **ideal**, causing **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
+> If, and only if, the Stimulation dealt by this Move is __ideal__, causing **0** Understimulation _and_ **0** Overstimulation, apply the **Subspace** effect to the target of this Move.
 
 > **Wrecking Rut** (Thrust) [Penetrates] | CT **20** |
 >
@@ -358,7 +385,7 @@ If this Move deals Stimulation equal to or greater than the target's Sanity scor
 
 > **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
 >
-> If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **1 Craving**.
+> If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **(LB) Craving**.
 
 During your partner's turn, you may spend **1 Dominance Point** to force them to take an action, or _not_ take an action, of your choice. You may only do this once per turn.
 
@@ -373,7 +400,7 @@ During your partner's turn, you may spend **1 Dominance Point** to force them to
 ambrosia : Feature
 ambrosia =
     { name = "Ambrosia"
-    , description = """If a Pairing between your _Veiny Futa Phallus_ and __a mouth Organ not owned by you__ exists at any point during your turn, and that turn is one in which you are **Having An Orgasm**, they may roll a **Sanity Check**. If the result of the Check is not greater than your penis' Contour, or if they choose not to make the Check, then at the moment your ejaculate enters their mouth, they compulsively swallow it and acquire the **Fixation** effect.
+    , description = """If a Pairing between your _Veiny Futa Phallus_ and __an Organ not owned by you__ that is in the "**Mouth**" category exists at any point during your turn, and that turn is one in which you are **Having An Orgasm**, then at the moment your ejaculate enters their mouth, they compulsively swallow it and acquire the **Fixation**effect.
 
 
 > **Fixation** _Passive_
@@ -391,7 +418,7 @@ If, at the beginning of _their_ turn, they fail their Sanity Check to remove the
 gardenKeeper : Feature
 gardenKeeper =
     { name = "Garden Keeper"
-    , description = """At the beginning of your turn, you may roll a **Fitness Check**. You may drain _up to_ that many points of **Craving** and add those points to your **Stamina Die**.
+    , description = """At the beginning of your turn, you may optionally **Regenerate Stamina** in an amount equal to the result of a **Fitness Check** instead of your base **Fitness Score**. If you elect to roll, drain a number of points equal to the number on the **d10** from your **Craving**.
 
 You also permanently gain access to these two Moves:
 
@@ -414,9 +441,9 @@ fairyFlight =
     { name = "Fairy Flight"
     , description = """Manifest at will ethereal butterfly wings that give you **+5** on all **Grace Check**s, both within and outside sexual encounters.
 
-These wings count as two Occupied Appendages that support your weight and stabilize you, while they exist.
+These wings count as two __Occupied Appendages__ that support your weight and stabilize you, while they exist.
 
-These wings also allow you to fly for a number of minutes equal to your Fitness score multiplied by 10. You recover flight-time at a rate of (1 + Fitness) minutes per minute of rest."""
+These wings also allow you to fly for a number of minutes equal to your **Fitness Score** multiplied by **10**. You recover flight-time at a rate of **(1 + Fitness)** minutes per minute of rest."""
     }
 
 
@@ -464,7 +491,7 @@ preciousObject =
 >
 > If you have the **Fixation** effect, add **+1** to this Move's attempted Stimulation.
 >
-> If this Move deals Stimulation equal or greater than the Erogeny of the Organ using this Move, gain **1 Craving**.
+> If this Move deals Stimulation equal or greater than the Erogeny of the Organ using this Move, gain **(LB) Craving**.
 
 _Kegel Quiver_ does not require you to target the Organ you are Fixated on, or use the Organ that is Paired to said Fixation target.
 
@@ -481,7 +508,7 @@ alchemicalWomb =
     { name = "Alchemical Womb"
     , description = """Your womb now possesses three (**3**) **Seed Cache**s.
 
-Once per Encounter, if your _Yielding Silken Quim_ is Paired with a penis or other Ensheatheable Organ, that is able to ejaculate, while the owner of that Organ is Having An Orgasm, you may fill one of your empty **Seed Caches** with their ejaculated fluid. Note the _source_ of each fluid since that will be important later.
+Once per Encounter, if your _Yielding Silken Quim_ is Paired with an Organ in the "**Phallic Genital**" Category while the owner of that Organ is **Having An Orgasm**, you may fill one of your empty **Seed Caches** with their ejaculated fluid. Note the _alchemical property_ of each fluid since that will be important later. Consult the __Womb Alchemy Crafting__ section to determine a fluid's alchemical property.
 
 > Once per Encounter, if you have at least **1 Seed Cache** filled, you may empty **1** Seed Cache, destroying the contents, to give an **Ability Score** of your choice a **+10** bonus. This bonus ends when the Encounter ends.
 
@@ -494,7 +521,7 @@ Once you have gestated an Egg, it remains in your womb until the next time you a
 honeypot : Feature
 honeypot =
     { name = "Honeypot"
-    , description = """When a partner successfully Pairs one of their Organs to one of your Organs with a **Firm Maneuver** or a **Violent Maneuver**, you gain **1 Craving**.
+    , description = """When a partner successfully Pairs one of their Organs to one of your Organs with a **Firm Maneuver** or a **Violent Maneuver**, you gain **Craving** equal to your **Level Bonus**.
 
 You permanently gain access to these Moves:
 
@@ -564,9 +591,16 @@ milkMommy =
     { name = "Milk Mommy"
     , description = """You lactate during your orgasms.
 
-If your partner's mouth is paired with either or both of your _Mamerous Milk Melons_ at the time, they imbibe the resulting milk and become more compliant.
+If an Organ in the "**Mouth**" Category is Paired with either or both of your _Mamerous Milk Melons_ at the start of a turn in which you are **Having An Orgasm**, the owner of that Organ imbibes the __ejaculate__d milk and is afflicted by the **Swoon** effect.
 
-As a consequence, your next Repositioning Maneuver succeeds automatically at 0 Stamina cost and cannot be resisted. Once used, this cannot be used again until your current orgasm ends and your next orgasm begins."""
+> **Swoon**
+> _Trigger_
+>
+> When one of your Organs is the target of a **Repositioning Maneuver**, you cannot __contest__ that Maneuver.
+>
+>This effect is removed after triggering **1** time.
+
+This feature cannot inflict __multiple stacks__ of **Swoon** on a partner. If the affected partner already has a **Swoon** effect, they do not gain an additional one."""
     }
 
 
@@ -577,7 +611,7 @@ savageRavisher =
 
 > **Suckling Slam** (Thrust) [Ensheathes] | CT: **0**  |
 >
-> If the target of this Move is **Having An Orgasm**, they gain a number of additional **Intensity Points** equal to either your **Fitness**, or the **Erogeny** of the Organ this move is targeting, whichever is less. And you gain **1 Craving**.
+> If the target of this Move is **Having An Orgasm**, they gain a number of additional **Intensity Points** equal to either your **Fitness**, or the **Erogeny** of the Organ this move is targeting, whichever is less. And you gain **(LB) Craving**.
 
 > **Nurturing Nuzzle** (Grind) [Squishes] | CT: **10** |
 >
@@ -585,11 +619,11 @@ savageRavisher =
 
 > **Fey Tickle** (Tease) [Grips] | CT: **20** |
 >
-> You may demand to know the current **Sensitivity** of the target of this Move.
+> You may drain **5 Craving** from yourself to demand to know the current **Sensitivity** of the target of this Move.
 >
 > If this Move is used to inflict pleasure (positive Stimulation), and if the attempted Stimulation is greater than or equal to the target's Sensitivity, add **+1** to the attempted Stimulation.
 >
-> If this Move is used to inflict pain (negative Stimulation), and if the (unsigned absolute value of the) attempted Stimulation is _less_ than the target's Sensitivity, apply the **Heartburst** effect to the target of this Move.
+> If this Move is used to inflict pain (negative Stimulation), and if the (unsigned absolute value of the) attempted Stimulation is _less_ than the target's Sensitivity, drain **5 Craving** from yourself to apply the **Heartburst** effect to the target of this Move.
 
 In addition, while you are **Having An Orgasm**, you may roll a Fitness Check instead of a Moxie Check or a Moxie Check instead of a Fitness Check, interchangeably.
 
@@ -614,7 +648,7 @@ If ever the owner of the chosen Organ attempts to **Unpair** that Organ from one
 wildAbandon : Feature
 wildAbandon =
     { name = "Wild Abandon"
-    , description = """At the beginning of your turn, you may roll an **Ardor Check**. You may drain _up to_ that many points of **Craving** and add those points to your **Arousal**.
+    , description = """At the beginning of your turn, you may roll an **Ardor Check**. You may drain _up to_ that many points of **Satiation** and add those points to your **Arousal** if and only if your **Arousal** is _not_ at maximum capacity..
 
 You also permanently gain access to these Moves:
 
@@ -662,6 +696,7 @@ buck =
     , organs =
         [ mouth "Pretty Princely Pout"
         , hands "Clever Flexible Fingers"
+        , chest "Slim Boyish Chest"
         , hips "Bitable Boy Butt"
         , phallic "Throbbing Meat Pole"
         , legs "Quick Springy Legs" "Tight"
@@ -673,7 +708,13 @@ buck =
 insatiable : Feature
 insatiable =
     { name = "Insatiable"
-    , description = """Your Arousal can never drop below your Ardor Score."""
+    , description = """You permanently gain the **Insatiable** effect, which cannot be removed.
+> **Insatiable**
+> _Passive_
+> 
+> Your **Arousal** cannot drain to less than your **Ardor Score**.
+
+Your erection is eternal, and you suffer no negative effects as a result of having a permanent erection."""
     }
 
 
@@ -705,7 +746,7 @@ In addition, you may add half of your **Craving** value to the result of any **G
 whiteFountain : Feature
 whiteFountain =
     { name = "White Fountain"
-    , description = """While your _Bitable Boy Butt_ is Paired with an Organ that [IsEnsheatheable], you have a **-10** Modifier to your Orgasm Threshold and a **+10** bonus to the Erogeny of your _Throbbing Meat Pole_. In addition, your semen becomes magically-charged:
+    , description = """While your _Bitable Boy Butt_ is Paired with an Organ that [CanPenetrate], you have a **-10** Modifier to your Orgasm Threshold and a **+10** bonus to the Erogeny of your _Throbbing Meat Pole_. In addition, your semen becomes magically-charged:
 
 At the beginning of your turn, if you are **Having An Orgasm**, any Organ paired with your _Throbbing Meat Pole_ is soaked in your magically-charged semen, applying the **Epiphany** effect _both_ to the owner of that Organ as well as yourself.
 
@@ -730,7 +771,7 @@ You also permanently gain access to these Moves:
 > **Needy Plunder** (Thrust) [Penetrates] | CT **15** |
 > _Indulgent_
 >
-> Roll a **Moxie Check**. If the result is greater than the Stimulation dealt by this Move, the owner of the Organ that this Move is targeting is affected by the **Fixation** effect."""
+> If you are **Having An Orgasm**, add your current **Arousal** to the result of your Orgasm Sanity Check for this Move."""
     }
 
 
@@ -768,6 +809,7 @@ fiend =
     , organs =
         [ mouth "Sensuous Knowing Lips"
         , hands "Steady Dexterous Hands"
+        , chest "Firm Slender Pectorals"
         , hips "Chiseled Stately Ass"
         , phallic "Darkly Dreaming Dick"
         , legs "Fit Flexible Legs" "Tight"
@@ -779,7 +821,9 @@ fiend =
 dildonicSemblance : Feature
 dildonicSemblance =
     { name = "Dildonic Semblance"
-    , description = """Choose one **Toy**. You are now able to summon that Toy freely, at no cost, without access to a Toybox."""
+    , description = """Choose one **Toy** that has a Summoner Rank of **10** or less, and which is not a __Fixture__. 
+
+You are now able to summon that Toy freely, at no cost, without access to a Toybox."""
     }
 
 
@@ -790,7 +834,7 @@ devilishDominator =
 
 > **Coaxing Curl** (Grind) [Grips/Penetrates] | CT: **0** |
 >
-> You may immediately view the state of all **Status Meters** on the owner, as well as all information on the **Organ Card** of the Organ this Move is targeting. You may do this _before_ deciding how much attempted Stimulation this Move will deal.
+> You may immediately view the state of all **Status Meters** on the owner, as well as all information on the **Organ Card** of, the Organ this Move is targeting. You may do this _before_ deciding how much attempted Stimulation this Move will deal.
 
 > **Pernicious Pump** (Thrust) [Penetrates] | CT : **5** |
 >
@@ -806,7 +850,8 @@ devilishDominator =
 
 In addition, once per turn, if and only if you have the Perfectionism effect, you may roll a **Prowess Check**. If the result is greater than the **Summoning Rank** of any of your **Marked Toys** from a Toybox, you may Summon that Toy at **0** cost. This _does_ trigger and consume the Perfectionism effect.
 
-> **Perfectionism** _Trigger_
+> **Perfectionism** 
+> _Trigger_
 >
 > Your next **Prowess Roll** or **Prowess Check** acts as though your **Prowess Score** is __twice__ its current value.
 >
@@ -817,11 +862,11 @@ In addition, once per turn, if and only if you have the Perfectionism effect, yo
 bondageArtisan : Feature
 bondageArtisan =
     { name = "Bondage Artisan"
-    , description = """Choose another **Toy**. You are now also able to summon that Toy freely, at no cost, without access to a Toybox.
+    , description = """Choose another **Toy** with no restrictions. You are now also able to summon that Toy freely, at no cost, without access to a Toybox.
 
 Both this Toy and the Toy granted by _Dildonic Semblance_ now have an additional effect:
 
-If the owner of the Organ(s) that are Paired with either or both Toys is **Having An Orgasm**, and that owner is _not_ you, roll a **Sanity Check**. Gain **Satiation** equal to the result."""
+At the beginning of each of your partner's turns, if any of your partner's Organs are Paired with either or both of your feature-granted Toys, and if that partner then determines that they are **Having An Orgasm** that turn, you roll a **Sanity Check**. Gain **Satiation** equal to the result."""
     }
 
 
@@ -832,9 +877,19 @@ masterCollector =
 
 You also permanently gain access to these Moves:
 
-> ((Coming Soon / TBD))
+> **Arresting Rhythm** (Thrust) [Squishes/Grips/Penetrates] | CT : **15** |
+> _Reaction_
+> 
+> You may immediately view the **Craving** of the target of this Move.
+> 
+> If your Craving is greater than the Craving of the target of this Move, you may move an amount of points up to the amount of **Stamina** you spend on this Move, from your Craving to their Craving.
 
-> ((Coming Soon / TBD))"""
+> **Implacable Focus** (Grind) [Penetrates] | CT : **10** |
+> _Indulgent_
+> 
+> You may choose any one **Status Effect** that is currently affecting you and immediately remove that Status Effect.
+> 
+> If, and only if, the Stimulation you deal to yourself with this Move is _not_ __ideal__, if it would cause any Overstimulation or any Understimulation, drain **10 Craving** from yourself."""
     }
 
 
@@ -920,7 +975,8 @@ exaltedPainslut =
     { name = "Exalted Painslut"
     , description = """You permanently gain the **Masochism** effect, which cannot be removed.
 
-> **Masochism** _Passive_
+> **Masochism** 
+> _Passive_
 >
 > Take the absolute value, instead of the signed value, for any Stimulation you receive.
 >
@@ -937,15 +993,25 @@ eternalDevotion =
 
 You also gain access to these two Moves:
 
-> ((Coming Soon / TBD))
 
-> ((Coming Soon / TBD))"""
+> **Tearful Tremble** (Tease) [Squishes/Grips/Ensheathes] | CT: **5** |
+> _Reaction_
+>
+> If you have the Subspace effect, apply the Lubed effect to the target of this Move.
+
+> **Existential Emptiness** (Tease) [Squishes/Ensheathes] | CT: **20** |
+> _Indulgent_
+>
+> This Move cannot deal reciprocal Stimulation to the target.
+> 
+> For each point of **Stamina** you spend on this Move, drain one point of **Sensitivity**, one point of **Satiation**, and one point of **Craving**.
+"""
     }
 
 
 remoteNetworking : Feature
 remoteNetworking =
-    { name = "Remote Networking"
+    { name = "Wireless Anima"
     , description = """When you detach an Organ, you retain a connection to that Organ that allows you to continue feeling and acting through it.
 
 A detached Organ:
