@@ -1570,19 +1570,15 @@ viewStimulationResolve player =
     , case player.ardorCheck of
         Just ardorCheckFlat ->
             let
-                persona : Persona
-                persona =
-                    player.persona
-
                 intensityAmount : Int
                 intensityAmount =
-                    if meters.stimulation <= persona.ardor then
+                    if meters.stimulation <= player.persona.ardor then
                         1
 
                     else if meters.stimulation <= ardorCheckFlat then
                         3
 
-                    else if meters.stimulation <= (10 + persona.ardor) then
+                    else if meters.stimulation <= (10 + player.persona.ardor) then
                         5
 
                     else
@@ -1594,7 +1590,7 @@ viewStimulationResolve player =
                 ]
                 [ text
                     ("Your Ardor is "
-                        ++ String.fromInt persona.ardor
+                        ++ String.fromInt player.persona.ardor
                         ++ " and the result of your Ardor check was "
                         ++ String.fromInt ardorCheckFlat
                         ++ ", compared to a Stimulation of "
