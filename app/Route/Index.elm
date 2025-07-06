@@ -92,6 +92,7 @@ type PlayerMsg
     | StimulationCost Int
     | SelectMove (Maybe String)
     | SelectTemperament (Maybe Temperament)
+    | SelectOrgasm (Maybe Orgasm)
     | RollStimulation
     | RolledStimulation (List ( Int, Int ))
     | DeleteStimulation
@@ -123,6 +124,7 @@ type alias PlayerModel =
     , meters : Meters
     , selectedMove : Maybe String
     , selectedTemperament : Maybe Temperament
+    , selectedOrgasm : Maybe Orgasm
     , valiantModifier : Int
     , fitnessCheck : Maybe Int
     , graceCheck : Maybe Int
@@ -140,6 +142,10 @@ type Temperament
     | Thoughtful
     | Perverse
     | Valiant
+    
+type Orgasm
+    = Yes
+    | No
 
 
 type alias OrganKey =
@@ -153,6 +159,7 @@ type alias Meters =
     , satiation : Int
     , stamina : Int
     , intensity : Int
+    , stimulation : Int
     }
 
 
@@ -530,17 +537,24 @@ playerUpdate msg ({ persona } as player) =
             , Effect.none
             )
 
+        SelectOrgasm selectedOrgasm ->
+            ( { player | selectedOrgasm = selectedOrgasm } |> Just
+            , Effect.none
+            )
+
         BeginEncounter ->
             ( alterMeters <| \meters -> { meters | stamina = 5 + persona.fitness }
             , Effect.none
             )
 
         Rest ->
-            ( alterMeters
+            ( 
+            alterMeters
                 (\meters ->
                     { meters
-                        | arousal = 1
+                        | arousal = 0
                         , sensitivity = 0
+                        , intensity = 0
                     }
                 )
             , Effect.batch
@@ -1084,9 +1098,11 @@ initPlayerModel persona =
         , satiation = 0
         , stamina = 0
         , intensity = 0
+        , stimulation = 0
         }
     , selectedMove = Nothing
     , selectedTemperament = Nothing
+    , selectedOrgasm = Nothing
     , valiantModifier = 0
     , fitnessCheck = Nothing
     , graceCheck = Nothing
@@ -1275,7 +1291,9 @@ viewTurn : PlayerModel -> List (Element PlayerMsg)
 viewTurn player =
     [ viewMeters player
     , viewNotes player
+    , viewOrgasmButtons player
     , viewOrgasm player
+    , viewStimulationResolve player
     , viewTemperaments player
     , viewStatusChecks player
     , viewMoves player
@@ -1299,6 +1317,7 @@ viewMeters { persona, meters } =
         |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         |> Ui.map UpdateMeters
     ]
+
 
 
 restParagraph : Element PlayerMsg
@@ -1421,7 +1440,7 @@ viewOrgasm player =
         isOrgasm =
             meters.arousal > orgasmThreshold
     in
-    [ el [ Font.bold ] (text "Orgasm")
+    [ el [ Font.bold ] (text "Orgasm Check - At the START of your turn, check if you are Having an Orgasm")
     , if isOrgasm then
         paragraph
             [ Theme.padding
@@ -1505,6 +1524,97 @@ viewOrgasm player =
         Ui.none
     ]
 
+viewStimulationResolve : PlayerModel -> List (Element PlayerMsg)
+viewStimulationResolve player =
+    let
+        meters : Meters
+        meters =
+            player.meters
+
+        persona = player.persona
+
+        modifiers : Int
+        modifiers = persona.ardor
+
+        orgasmThreshold : Int
+        orgasmThreshold =
+            meters.sensitivity + meters.satiation + modifiers
+
+        isOrgasm : Bool
+        isOrgasm =
+            case Maybe.withDefault No player.selectedOrgasm of
+                Yes -> True 
+                No -> False
+        
+        isArdorRolled : Bool 
+        isArdorRolled =
+            if player.ardorCheck == Nothing then False else True
+            
+        ardorCheckFlat : Int 
+        ardorCheckFlat = Maybe.withDefault 0 player.ardorCheck
+            
+        intensityAmount : Int 
+        intensityAmount = 
+            if meters.stimulation <= persona.ardor then 1
+            else if meters.stimulation <= ardorCheckFlat then 3
+            else if meters.stimulation <= (10 + persona.ardor) then 5
+            else 7
+    in
+    [
+    el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
+    , [ statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue }
+      ]
+        |> List.concat
+        |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
+        |> Ui.map UpdateMeters
+    , if isOrgasm then
+        paragraph
+            [ Theme.padding
+            , Ui.border 1
+            ]
+                [ text (
+                "You are Having an Orgasm, so for this amount of Stimulation: "
+                ++ String.fromInt meters.stimulation
+                ++ ", you should adjust the following meters: (Satiation +"
+                ++ String.fromInt meters.stimulation
+                ++ ") (Sensitivity +"
+                ++ String.fromInt (meters.stimulation // 2)
+                ++ ")."
+            )
+        ]
+      else
+        paragraph
+            [ Theme.padding
+            , Ui.border 1
+            ]
+            [ text (
+                "You are not Having an Orgasm, so for this amount of Stimulation: "
+                ++ String.fromInt meters.stimulation
+                ++ ", you should adjust the following meters: (Arousal +"
+                ++ String.fromInt meters.stimulation
+                ++ "). Make sure to check for Overstimulation and Understimulation!"
+            )
+        ], if isArdorRolled 
+        then paragraph
+            [ Theme.padding
+            , Ui.border 1
+            ]
+            [ text (
+                "Your Ardor is "
+                ++ String.fromInt persona.ardor
+                ++ " and the result of your Ardor check was "
+                ++ String.fromInt ardorCheckFlat
+                ++ ", compared to a Stimulation of "
+                ++ String.fromInt meters.stimulation
+                ++", so you should adjust (Intensity) by "
+                ++ String.fromInt intensityAmount
+                ++". Make sure to re-roll the Ardor check for each new source of Stimulation!"
+            ) ]
+        else  paragraph
+            [ Theme.padding
+            , Ui.border 1
+            ][ text ("To calculate Intensity, roll an Ardor check with the Status Checks dice below.") ]
+    ]
 
 viewStatusChecks : PlayerModel -> List (Element PlayerMsg)
 viewStatusChecks player =
@@ -1556,7 +1666,47 @@ viewStatusChecks player =
         )
     ]
 
+viewOrgasmButtons : PlayerModel -> List (Element PlayerMsg)
+viewOrgasmButtons model =
+    [ el [ Font.bold, Ui.widthMin 300 ] (text "Am I Having an Orgasm? (Update at the START of your turn)")
+    , [ ( Yes, "When receiving Stimulation: Add Stimulation to Satiation. Add 1/2 Stimulation rounded down to Sensitivity. Check for Overstimulation and increase Sensitivity if applicable. Do NOT apply Understimulation rules. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal, and +3 Sensitivity. If Craving > Satiation, -1 Satiation, +1 Arousal, +3 Sensitivity. If Craving = Satiation, +3 Sensitivity.")
+      , ( No, "When receiving Stimulation: Add Stimulation to Arousal. Check for Understimulation and increase Craving if applicable (unless it's reciprocal Stimulation). Check for Overstimulation and increase Sensitivity if applicable. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal. If Craving > Satiation, -1 Satiation, +1 Arousal. If Craving = Satiation, do nothing.")
+      ]
+        |> List.map (viewOrgasmButton model)
+        |> Theme.row [ Ui.wrap ]
+    ]
 
+viewOrgasmButton : PlayerModel -> ( Orgasm, String, String ) -> Element PlayerMsg
+viewOrgasmButton model ( name, description, consequence ) =
+    let
+        selected : Bool
+        selected =
+            model.selectedOrgasm == Just name
+    in
+    Theme.selectableButton
+        [ Ui.widthMin 400
+        , height fill
+        , width fill
+        , Font.alignLeft
+        ]
+        { selected = selected
+        , onPress =
+            if selected then
+                Just (SelectOrgasm Nothing)
+
+            else
+                Just (SelectOrgasm (Just name))
+        , label =
+            Theme.column [ alignTop ]
+                (paragraph []
+                    [ el [ Font.bold ] (text (orgasmToString name))
+                    , text " "
+                    , text description
+                    ]
+                    :: Theme.viewMarkdown consequence
+                )
+        }
+        
 viewTemperaments : PlayerModel -> List (Element PlayerMsg)
 viewTemperaments model =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Temperaments (optional)")
@@ -1616,6 +1766,15 @@ temperamentToString temperament =
 
         Perverse ->
             "Perverse"
+
+orgasmToString : Orgasm -> String
+orgasmToString orgasm =
+    case orgasm of
+        Yes ->
+            "Having an Orgasm"
+
+        No ->
+            "Not Having an Orgasm"
 
 
 viewMoves : PlayerModel -> List (Element PlayerMsg)

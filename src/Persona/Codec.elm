@@ -736,15 +736,11 @@ organParser =
                 withAppendages partial =
                     { partial
                         | appendages =
-                            case appendages partial of
-                                Just [] ->
-                                    partial.appendages
+                            if List.isEmpty (appendages partial) then
+                                partial.appendages
 
-                                Just list ->
-                                    list
-
-                                Nothing ->
-                                    []
+                            else
+                                appendages partial
                     }
             in
             organTypeToReference type_ name
@@ -795,7 +791,7 @@ organParser =
             , "Ensheathe"
             ]
         |= Parser.oneOf
-            [ Parser.succeed (\_ -> Nothing)
+            [ Parser.succeed (\_ -> [])
                 |. Parser.backtrackable (Parser.symbol "-")
                 |. Parser.backtrackable Parser.spaces
                 |. Parser.keyword "No"
@@ -816,7 +812,6 @@ organParser =
                         List.map
                             (\a -> a partial)
                             list
-                            |> Just
                     )
             ]
         |. Parser.spaces
@@ -926,16 +921,22 @@ feature =
 partialGendertrope : Codec e PartialGendertrope
 partialGendertrope =
     Codec.custom
-        (\fCustom fButterfly fFlower fVixen fBuck fFiend fDoll value ->
+        (\fCustom fButterfly fSeedStalker fFlower fHousepet fVixen fBuck fFiend fDoll value ->
             case value of
                 PartialCustom name ->
                     fCustom name
 
                 PartialButterfly ->
                     fButterfly
+                    
+                PartialSeedStalker ->
+                    fSeedStalker
 
                 PartialFlower ->
                     fFlower
+                    
+                PartialHousepet ->
+                    fHousepet
 
                 PartialVixen ->
                     fVixen
@@ -951,7 +952,9 @@ partialGendertrope =
         )
         |> Codec.variant1 PartialCustom Codec.string
         |> Codec.variant0 PartialButterfly
+        |> Codec.variant0 PartialSeedStalker
         |> Codec.variant0 PartialFlower
+        |> Codec.variant0 PartialHousepet
         |> Codec.variant0 PartialVixen
         |> Codec.variant0 PartialBuck
         |> Codec.variant0 PartialFiend

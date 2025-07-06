@@ -2,7 +2,7 @@ module Icons exposing
     ( flip, download, upload, minus, plus, remove, reset, delete, hide, show, rearrange
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
-    , buck, butterfly, custom, doll, fiend, flower, vixen
+    , buck, butterfly, seedstalker, custom, doll, fiend, flower, housepet, vixen
     , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
     , toElement, toElementFlippable
     )
@@ -144,12 +144,18 @@ ensheatheable =
 butterfly : IconVariant
 butterfly =
     Phosphor.butterfly Phosphor.Duotone
-
+    
+seedstalker : IconVariant
+seedstalker =
+    Phosphor.acorn Phosphor.Duotone
 
 flower : IconVariant
 flower =
     Phosphor.flower Phosphor.Duotone
 
+housepet : IconVariant
+housepet =
+    Phosphor.cat Phosphor.Duotone
 
 vixen : IconVariant
 vixen =
