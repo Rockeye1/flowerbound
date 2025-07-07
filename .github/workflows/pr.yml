@@ -44,6 +44,11 @@ jobs:
               if: steps.cache-elm.outputs.cache-hit != 'true'
               run: yarn build
 
+            # If we don't need to build, then at least run `gen`
+            - name: Build project
+              if: steps.cache-elm.outputs.cache-hit == 'true'
+              run: yarn elm-pages gen
+
             - name: Add elm-review, elm and elm-format to path
               run: yarn bin >> $GITHUB_PATH
 
