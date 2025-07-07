@@ -1742,25 +1742,19 @@ viewStimulationResolve player =
         [ Theme.padding
         ]
         [ let
-            content : String
-            content =
-                let
-                    idealStimulation : Int
-                    idealStimulation =
-                        player.persona.ardor + meters.erogeny
+            idealStimulation : Int
+            idealStimulation =
+                player.persona.ardor + meters.erogeny
 
-                    overstimulation : Int
-                    overstimulation =
-                        if meters.stimulation <= idealStimulation then
-                            0
+            overstimulation : Int
+            overstimulation =
+                if meters.stimulation <= idealStimulation then
+                    0
 
-                        else
-                            max 0 (meters.stimulation - idealStimulation - meters.contour)
-                in
-                "Sensitivity: +"
-                    ++ String.fromInt overstimulation
+                else
+                    max 0 (meters.stimulation - idealStimulation - meters.contour)
           in
-          text content
+          text ("Sensitivity: +" ++ String.fromInt overstimulation)
         ]
     , paragraph
         [ Theme.padding
