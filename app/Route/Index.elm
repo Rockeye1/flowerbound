@@ -1682,12 +1682,7 @@ viewStimulationResolve player =
     , paragraph
         [ Theme.padding
         ]
-        [ let
-            content : String
-            content =
-                "Total Stat Changes: "
-          in
-          text content
+        [ text "Total Stat Changes: "
         ]
     , paragraph
         [ Theme.padding
