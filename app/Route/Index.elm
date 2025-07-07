@@ -160,6 +160,8 @@ type alias Meters =
     , stamina : Int
     , intensity : Int
     , stimulation : Int
+    , erogeny : Int
+    , contour : Int
     }
 
 
@@ -1098,6 +1100,8 @@ initPlayerModel persona =
         , stamina = 0
         , intensity = 0
         , stimulation = 0
+        , erogeny = 0
+        , contour = 0
         }
     , selectedMove = Nothing
     , selectedTemperament = Nothing
@@ -1290,11 +1294,11 @@ viewTurn : PlayerModel -> List (Element PlayerMsg)
 viewTurn player =
     [ viewMeters player
     , viewNotes player
+    , viewStatusChecks player
     , viewOrgasmButtons player
     , viewOrgasm player
     , viewStimulationResolve player
     , viewTemperaments player
-    , viewStatusChecks player
     , viewMoves player
     , viewStimulationTable player
     ]
@@ -1531,7 +1535,11 @@ viewStimulationResolve player =
             player.meters
     in
     [ el [ Font.bold ] (text "Stimulation Helper - Quick Reference on how to resolve (Positive) Stimulation")
-    , (statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue })
+    , [ statusMeter "Stimulation" meters.stimulation 30 <| \newValue -> { meters | stimulation = newValue }
+      , statusMeter "Receiving Organ's Erogeny" meters.erogeny 30 <| \newValue -> { meters | erogeny = newValue }
+      , statusMeter "Acting Organ's Contour" meters.contour 30 <| \newValue -> { meters | contour = newValue }
+      ]
+        |> List.concat
         |> Layout.rowWithConstraints [ Layout.byContent, Layout.fill ] []
         |> Ui.map UpdateMeters
     , paragraph
@@ -1544,18 +1552,91 @@ viewStimulationResolve player =
                 if Maybe.withDefault False player.selectedOrgasm then
                     "You are Having an Orgasm, so for this amount of Stimulation: "
                         ++ String.fromInt meters.stimulation
-                        ++ ", you should adjust the following meters: (Satiation +"
+                        ++ ", you should adjust the following meters: Satiation +"
                         ++ String.fromInt meters.stimulation
-                        ++ ") (Sensitivity +"
+                        ++ ", Sensitivity +"
                         ++ String.fromInt (meters.stimulation // 2)
-                        ++ ")."
+                        ++ "."
 
                 else
+                    let
+                        idealStimulation : Int
+                        idealStimulation =
+                            player.persona.ardor + meters.erogeny
+                    in
                     "You are not Having an Orgasm, so for this amount of Stimulation: "
                         ++ String.fromInt meters.stimulation
-                        ++ ", you should adjust the following meters: (Arousal +"
+                        ++ ", you should adjust the following meters: Arousal +"
+                        ++ String.fromInt (min idealStimulation meters.stimulation)
+                        ++ "."
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        , Ui.border 1
+        ]
+        [ let
+            content : String
+            content =
+                if Maybe.withDefault False player.selectedOrgasm then
+                    "You are Having an Orgasm, so Understimulation does not apply."
+
+                else
+                    let
+                        idealStimulation : Int
+                        idealStimulation =
+                            player.persona.ardor + meters.erogeny
+
+                        understimulation : Int
+                        understimulation =
+                            if (meters.stimulation < player.persona.ardor) || (meters.stimulation > idealStimulation) then
+                                0
+
+                            else
+                                idealStimulation - meters.stimulation
+                    in
+                    "Your Ideal Stimulation is "
+                        ++ String.fromInt idealStimulation
+                        ++ " and your Ardor is "
+                        ++ String.fromInt player.persona.ardor
+                        ++ ", compared to a Stimulation of "
                         ++ String.fromInt meters.stimulation
-                        ++ "). Make sure to check for Overstimulation and Understimulation!"
+                        ++ ", so you are Understimulated by "
+                        ++ String.fromInt understimulation
+                        ++ ". Note: Understimualtion is always 0 for Reciprocal Stimulation."
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        , Ui.border 1
+        ]
+        [ let
+            content : String
+            content =
+                let
+                    idealStimulation : Int
+                    idealStimulation =
+                        player.persona.ardor + meters.erogeny
+
+                    overstimulation : Int
+                    overstimulation =
+                        if meters.stimulation <= idealStimulation then
+                            0
+
+                        else
+                            max 0 (meters.stimulation - idealStimulation - meters.contour)
+                in
+                "Your Ideal Stimulation is "
+                    ++ String.fromInt idealStimulation
+                    ++ " and the acting Organ's contour is "
+                    ++ String.fromInt meters.contour
+                    ++ ", compared to a Stimulation of "
+                    ++ String.fromInt meters.stimulation
+                    ++ ", so you are Overstimulated by "
+                    ++ String.fromInt overstimulation
+                    ++ ". Note: Overstimulation is always the full amount for negative stimulation/pain."
           in
           text content
         ]
@@ -1572,16 +1653,16 @@ viewStimulationResolve player =
                             intensityAmount : Int
                             intensityAmount =
                                 if meters.stimulation <= player.persona.ardor then
-                                    1
+                                    Persona.levelBonus player.persona
 
                                 else if meters.stimulation <= ardorCheckFlat then
-                                    3
+                                    Persona.levelBonus player.persona + 2
 
                                 else if meters.stimulation <= (10 + player.persona.ardor) then
-                                    5
+                                    Persona.levelBonus player.persona + 4
 
                                 else
-                                    7
+                                    Persona.levelBonus player.persona + 6
                         in
                         "Your Ardor is "
                             ++ String.fromInt player.persona.ardor
@@ -1589,12 +1670,131 @@ viewStimulationResolve player =
                             ++ String.fromInt ardorCheckFlat
                             ++ ", compared to a Stimulation of "
                             ++ String.fromInt meters.stimulation
-                            ++ ", so you should adjust (Intensity) by "
+                            ++ ", so you should adjust Intensity by +"
                             ++ String.fromInt intensityAmount
                             ++ ". Make sure to re-roll the Ardor check for each new source of Stimulation!"
 
                     Nothing ->
                         "To calculate Intensity, roll an Ardor check with the Status Checks dice below."
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        ]
+        [ let
+            content : String
+            content =
+                "Total Stat Changes: "
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        ]
+        [ let
+            content : String
+            content =
+                if Maybe.withDefault False player.selectedOrgasm then
+                    "Satiation +"
+                        ++ String.fromInt meters.stimulation
+                        ++ ". Sensitivity +"
+                        ++ String.fromInt (meters.stimulation // 2)
+                        ++ ". "
+
+                else
+                    let
+                        idealStimulation : Int
+                        idealStimulation =
+                            player.persona.ardor + meters.erogeny
+                    in
+                    "Arousal +"
+                        ++ String.fromInt (min idealStimulation meters.stimulation)
+                        ++ ". "
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        ]
+        [ let
+            content : String
+            content =
+                if Maybe.withDefault False player.selectedOrgasm then
+                    "Craving: +0"
+
+                else
+                    let
+                        idealStimulation : Int
+                        idealStimulation =
+                            player.persona.ardor + meters.erogeny
+
+                        understimulation : Int
+                        understimulation =
+                            if (meters.stimulation < player.persona.ardor) || (meters.stimulation > idealStimulation) then
+                                0
+
+                            else
+                                idealStimulation - meters.stimulation
+                    in
+                    "Craving: +"
+                        ++ String.fromInt understimulation
+                        ++ " (Or +0 for reciprocal stimulation)"
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        ]
+        [ let
+            content : String
+            content =
+                let
+                    idealStimulation : Int
+                    idealStimulation =
+                        player.persona.ardor + meters.erogeny
+
+                    overstimulation : Int
+                    overstimulation =
+                        if meters.stimulation <= idealStimulation then
+                            0
+
+                        else
+                            max 0 (meters.stimulation - idealStimulation - meters.contour)
+                in
+                "Sensitivity: +"
+                    ++ String.fromInt overstimulation
+          in
+          text content
+        ]
+    , paragraph
+        [ Theme.padding
+        ]
+        [ let
+            content : String
+            content =
+                case player.ardorCheck of
+                    Just ardorCheckFlat ->
+                        let
+                            intensityAmount : Int
+                            intensityAmount =
+                                if meters.stimulation <= player.persona.ardor then
+                                    Persona.levelBonus player.persona
+
+                                else if meters.stimulation <= ardorCheckFlat then
+                                    Persona.levelBonus player.persona + 2
+
+                                else if meters.stimulation <= (10 + player.persona.ardor) then
+                                    Persona.levelBonus player.persona + 4
+
+                                else
+                                    Persona.levelBonus player.persona + 6
+                        in
+                        "Intensity: +"
+                            ++ String.fromInt intensityAmount
+
+                    Nothing ->
+                        "Intensity: ??. To calculate Intensity, roll an Ardor check with the Status Checks dice below."
           in
           text content
         ]
@@ -1655,8 +1855,34 @@ viewStatusChecks player =
 viewOrgasmButtons : PlayerModel -> List (Element PlayerMsg)
 viewOrgasmButtons model =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Am I Having an Orgasm? (Update at the START of your turn)")
-    , [ ( True, "When receiving Stimulation: Add Stimulation to Satiation. Add 1/2 Stimulation rounded down to Sensitivity. Check for Overstimulation and increase Sensitivity if applicable. Do NOT apply Understimulation rules. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal, and +3 Sensitivity. If Craving > Satiation, -1 Satiation, +1 Arousal, +3 Sensitivity. If Craving = Satiation, +3 Sensitivity." )
-      , ( False, "When receiving Stimulation: Add Stimulation to Arousal. Check for Understimulation and increase Craving if applicable (unless it's reciprocal Stimulation). Check for Overstimulation and increase Sensitivity if applicable. Roll an Ardor check against the Stimulation and increase your Intensity according to the result.", "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -1 Craving, -1 Arousal. If Craving > Satiation, -1 Satiation, +1 Arousal. If Craving = Satiation, do nothing." )
+    , [ ( True
+        , ""
+        , "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Craving, -"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Arousal, and +"
+            ++ String.fromInt (Persona.levelBonus model.persona + 2)
+            ++ " Sensitivity. If Craving > Satiation, -"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Satiation, +"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Arousal, +3 Sensitivity. If Craving = Satiation, +"
+            ++ String.fromInt (Persona.levelBonus model.persona + 2)
+            ++ " Sensitivity."
+        )
+      , ( False
+        , ""
+        , "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Craving, -"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Arousal. If Craving > Satiation, -"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Satiation, +"
+            ++ String.fromInt (Persona.levelBonus model.persona)
+            ++ " Arousal. If Craving = Satiation, do nothing."
+        )
       ]
         |> List.map (viewOrgasmButton model)
         |> Theme.row [ Ui.wrap ]
