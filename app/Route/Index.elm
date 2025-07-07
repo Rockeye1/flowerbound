@@ -1845,7 +1845,6 @@ viewOrgasmButtons : PlayerModel -> List (Element PlayerMsg)
 viewOrgasmButtons model =
     [ el [ Font.bold, Ui.widthMin 300 ] (text "Am I Having an Orgasm? (Update at the START of your turn)")
     , [ ( True
-        , ""
         , "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -"
             ++ String.fromInt (Persona.levelBonus model.persona)
             ++ " Craving, -"
@@ -1861,7 +1860,6 @@ viewOrgasmButtons model =
             ++ " Sensitivity."
         )
       , ( False
-        , ""
         , "At the end of your turn, apply any Periodic effects. Then compare Satiation and Craving. If Satiation > Craving, -"
             ++ String.fromInt (Persona.levelBonus model.persona)
             ++ " Craving, -"
@@ -1878,8 +1876,8 @@ viewOrgasmButtons model =
     ]
 
 
-viewOrgasmButton : PlayerModel -> ( Orgasm, String, String ) -> Element PlayerMsg
-viewOrgasmButton model ( name, description, consequence ) =
+viewOrgasmButton : PlayerModel -> ( Orgasm, String ) -> Element PlayerMsg
+viewOrgasmButton model ( name, consequence ) =
     let
         selected : Bool
         selected =
@@ -1900,11 +1898,8 @@ viewOrgasmButton model ( name, description, consequence ) =
                 Just (SelectOrgasm (Just name))
         , label =
             Theme.column [ alignTop ]
-                (paragraph []
-                    [ el [ Font.bold ] (text (orgasmToString name))
-                    , text " "
-                    , text description
-                    ]
+                (paragraph [ Font.bold ]
+                    [ text (orgasmToString name) ]
                     :: Theme.viewMarkdown consequence
                 )
         }
