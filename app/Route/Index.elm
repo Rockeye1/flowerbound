@@ -1675,7 +1675,7 @@ viewStimulationResolve player =
                             ++ ". Make sure to re-roll the Ardor check for each new source of Stimulation!"
 
                     Nothing ->
-                        "To calculate Intensity, roll an Ardor check with the Status Checks dice below."
+                        "To calculate Intensity, roll an Ardor check with the Status Checks dice."
           in
           text content
         ]
