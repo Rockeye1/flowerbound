@@ -1,5 +1,18 @@
 Unofficial [Flowerbound](https://www.glowfic.com/posts/11392) playing helper.
 
+# Running the project
+
+## Install dependencies
+You only need to do this once after cloning.
+```sh
+yarn
+```
+
+## Run the project
+```sh
+yarn start
+```
+
 # Credits
 
 - `Ephemeral` for Flowerbound itself
