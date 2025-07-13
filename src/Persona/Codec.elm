@@ -954,16 +954,16 @@ partialGendertrope =
 
                 PartialHousepet ->
                     fHousepet
-                    
+
                 PartialJunglePrince ->
                     fJunglePrince
-                    
+
                 PartialFirecracker ->
                     fFirecracker
-                    
+
                 PartialDemonQueen ->
                     fDemonQueen
-                    
+
                 PartialEldritch ->
                     fEldritch
         )
@@ -981,6 +981,7 @@ partialGendertrope =
         |> Codec.variant0 PartialDemonQueen
         |> Codec.variant0 PartialEldritch
         |> Codec.buildCustom
+
 
 gendertropeRecord : Codec e GendertropeRecord
 gendertropeRecord =

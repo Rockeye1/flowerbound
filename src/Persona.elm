@@ -185,7 +185,7 @@ partialGendertropeToGendertrope gendertrope maybeGendertrope =
 
         PartialDoll ->
             Doll
-            
+
         PartialJunglePrince ->
             JunglePrince
 
@@ -259,10 +259,10 @@ gendertropeToPartial gendertrope =
 
         Doll ->
             PartialDoll
-            
+
         JunglePrince ->
-            PartialJunglePrince 
-            
+            PartialJunglePrince
+
         Firecracker ->
             PartialFirecracker
 

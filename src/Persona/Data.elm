@@ -53,7 +53,7 @@ gendertropeIcon gendertrope =
 
         Eldritch ->
             Icons.eldritch
-            
+
         Custom { name, icon } ->
             case icon of
                 Just { semitransparent, opaque } ->
@@ -1356,6 +1356,8 @@ primalScent =
 
 In addition, at the end of your turn, if a partner's **Arousal** is greater than your **Arousal**, you gain **Arousal** equal to your **Level Bonus**."""
     }
+
+
 nobleSavage : Feature
 nobleSavage =
     { name = "Noble Savage"
@@ -1388,6 +1390,8 @@ You also permanently gain access to these three **Moves**:
 > - If the result is less than the Arousal of the target of this Move, you gain the **Heartburst** effect.
 > - If the result and the target's Arousal are equal, both of you gain the **Heartburst** effect."""
     }
+
+
 naturalTalent : Feature
 naturalTalent =
     { name = "Natural Talent"
@@ -1397,6 +1401,8 @@ During that turn, whenever you use a **Move** through an **Organ** that is in yo
 
 If you and your partner are both __feeling Innocent__ at the end of your turn, you and they may each add __your__ Grace Score to the results of each of your **Temperament Moxie Checks** in the moments before your own Temperament lapses. This bonus does not persist beyond the end of your turn."""
     }
+
+
 carnalClarity : Feature
 carnalClarity =
     { name = "Carnal Clarity"
@@ -1430,6 +1436,8 @@ You also gain access to these two Moves:
 > 
 > At the beginning of your turn, if your **Intensity Points** are greater than your **Craving**, remove this effect."""
     }
+
+
 arborealAcrobat : Feature
 arborealAcrobat =
     { name = "Arboreal Acrobat"
@@ -1439,7 +1447,7 @@ In addition, you have __advantage__ on all mobility-related **Ability Checks** b
 
 During an Encounter, you may use that __combined sum__ in place of your **Prowess Score**. However, if you do so, your remaining **Stamina** drains to **0** immediately after completing the action you used it for."""
     }
-   
+
 
 firecracker : GendertropeRecord
 firecracker =
@@ -1457,15 +1465,15 @@ firecracker =
         [ mouth "Pretty Princess Pout"
         , hands "Clever Flexible Fingers"
         , { emptyOrgan
-        | name = "Tasty Little Titties"
-        , type_ = Breasts
-        , contour = 5
-        , erogeny = 4
-        , canSquish = True
-        , isSquishable = True
-        , isGrippable = True
-    }
-        |> bilateral
+            | name = "Tasty Little Titties"
+            , type_ = Breasts
+            , contour = 5
+            , erogeny = 4
+            , canSquish = True
+            , isSquishable = True
+            , isGrippable = True
+          }
+            |> bilateral
         , hips "Bitable Little Butt"
         , yonic "Tight Love Tunnel"
         , legs "Quick Springy Legs" "Tight"
@@ -1473,11 +1481,14 @@ firecracker =
     , icon = Nothing
     }
 
+
 defiantThrill : Feature
 defiantThrill =
     { name = "Defiant Thrill"
     , description = """If you choose to __resist__ a partner's attempt to Pair one of their Organs to one of your Organs, and then __fail__ the resulting **contested Maneuver** such that the Pairing succeeds, you drain the result of your failed Grace Check from your **Satiation**."""
     }
+
+
 invitingBlush : Feature
 invitingBlush =
     { name = "Inviting Blush"
@@ -1502,6 +1513,8 @@ When you use a **Move**, if you have the **Fascination** effect that matches the
 
 This does not allow you to attempt Stimulation of greater values than you have the Stamina to afford in the first place."""
     }
+
+
 terrificTightness : Feature
 terrificTightness =
     { name = "Terrific Tightness"
@@ -1509,6 +1522,8 @@ terrificTightness =
 
 After the effect is applied, you may know that partner's **Arousal**. If their **Arousal** is greater than your own **Arousal**, you acquire the **Shiver** effect on yourself."""
     }
+
+
 breathlessBrat : Feature
 breathlessBrat =
     { name = "Breathless Brat"
@@ -1521,6 +1536,8 @@ You also gain access to this Move:
 > 
 > If you have the **Fascination (Thrust)** effect, it is consumed and you must double the **Intensity Points** you inflict on yourself with this Move."""
     }
+
+
 blazeDancer : Feature
 blazeDancer =
     { name = "Blaze Dancer"
@@ -1553,8 +1570,7 @@ You also gain access to this Move:
 > Roll a **Prowess Chec**k. The Difficulty Class is **30** minus the **Fitness Score** of the target of this Move.
 > 
 > If you fail the Prowess Check, the **Stimulation** dealt by this Move is __negative__ regardless of your intention."""
-    }   
-    
+    }
 
 
 demonqueen : GendertropeRecord
@@ -1580,6 +1596,7 @@ demonqueen =
     , icon = Nothing
     }
 
+
 empoweredDevotion : Feature
 empoweredDevotion =
     { name = "Empowered Devotion"
@@ -1588,6 +1605,8 @@ You gain a +1 Bonus to your Prowess for every 10 Craving you have.
 
 You gain a +1 Bonus to your Grace for every 10 Arousal you have."""
     }
+
+
 captureConnoisseur : Feature
 captureConnoisseur =
     { name = "Capture Connoisseur"
@@ -1614,6 +1633,8 @@ You also permanently gain access to these three Moves:
 > 
 > The target of this Move drains an amount of Stamina equal to half of their Arousal, rounded up."""
     }
+
+
 dildonicPuppeteer : Feature
 dildonicPuppeteer =
     { name = "Dildonic Puppeteer"
@@ -1623,6 +1644,8 @@ If the Toy you wish to Animate is being wielded conventionally by someone other 
 
 Note that if you are the one bound by a Toy, you can, by Animating that Toy, cause that Toy to Unpair itself from you, bypassing it's Bondage Rating entirely."""
     }
+
+
 salivatingSuccubus : Feature
 salivatingSuccubus =
     { name = "Salivating Succubus"
@@ -1641,6 +1664,8 @@ Indulgent
 
 If this Move neither Overstimulates you nor Understimulates you, you gain the Perfectionism effect."""
     }
+
+
 amorousConjuration : Feature
 amorousConjuration =
     { name = "Amorous Conjuration"
@@ -1649,10 +1674,8 @@ amorousConjuration =
 Each of your primed minions may be conjured into existence, under your complete control, once. Also, you may only perform such a conjuration once per Encounter.
 
 Once conjured, your minion lasts until your next Full Recovery, until you dismiss it, or until it has no extant Organ Pairings. Even outside of an Encounter, your conjured minion must remain in contact, meaning it must maintain a Pairing with, someone other than itself, at all times, or the conjuration ends."""
-    }   
-    
-    
-    
+    }
+
 
 eldritch : GendertropeRecord
 eldritch =
@@ -1668,57 +1691,58 @@ eldritch =
             |> Dict.fromList
     , organs =
         [ { emptyOrgan
-        | name = "Birfurcated Bulbous Core"
-        , type_ = Hips
-        , contour = 1
-        , erogeny = 2
-        , canSquish = True
-        , isSquishable = True
-        }
+            | name = "Birfurcated Bulbous Core"
+            , type_ = Hips
+            , contour = 1
+            , erogeny = 2
+            , canSquish = True
+            , isSquishable = True
+          }
         , { emptyOrgan
-        | name = "Nimble Squirming Tendrils"
-        , type_ = Prehensile
-        , contour = 4
-        , erogeny = 2
-        , canGrip = True
-        }
+            | name = "Nimble Squirming Tendrils"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 2
+            , canGrip = True
+          }
         , { emptyOrgan
-        | name = "Diligent Serpentine Dicks"
-        , type_ = Prehensile
-        , contour = 4
-        , erogeny = 8
-        , canGrip = True
-        , canPenetrate = True
-        , isGrippable = True
-        }
+            | name = "Diligent Serpentine Dicks"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 8
+            , canGrip = True
+            , canPenetrate = True
+            , isGrippable = True
+          }
         , { emptyOrgan
-        | name = "Grabby Yonic Throats"
-        , type_ = Prehensile
-        , contour = 4
-        , erogeny = 6
-        , canGrip = True
-        , canEnsheathe = True
-        }
+            | name = "Grabby Yonic Throats"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 6
+            , canGrip = True
+            , canEnsheathe = True
+          }
         , { emptyOrgan
-        | name = "Meaty Nub Pads"
-        , type_ = Prehensile
-        , contour = 4
-        , erogeny = 2
-        , canSquish = True
-        , canGrip = True
-        }
+            | name = "Meaty Nub Pads"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 2
+            , canSquish = True
+            , canGrip = True
+          }
         , { emptyOrgan
-        | name = "Engulfing Flesh Pockets"
-        , type_ = Prehensile
-        , contour = 4
-        , erogeny = 2
-        , canSquish = True
-        , canEnsheathe = True
-        , isSquishable = True
-        }
+            | name = "Engulfing Flesh Pockets"
+            , type_ = Prehensile
+            , contour = 4
+            , erogeny = 2
+            , canSquish = True
+            , canEnsheathe = True
+            , isSquishable = True
+          }
         ]
     , icon = Nothing
     }
+
 
 omnidextrousMutability : Feature
 omnidextrousMutability =
@@ -1734,6 +1758,8 @@ All Moves used by your "Prehensile" Organs gain the ability to inflict a stack o
 - The target of the Move already has an amount of Intensity Points that is greater than their base Sanity Score.
 - Your Level Bonus is not less than the number of Ahegao stacks the target already has. (Additional-stack infliction limit is equal to your Level Bonus.)"""
     }
+
+
 writhingMorphology : Feature
 writhingMorphology =
     { name = "Writhing Morphology"
@@ -1755,6 +1781,8 @@ Molesting Cling (Grind) [Squishes] | CT: 5 |
 
 Drain an amount of Satiation from the target of this Move equal to the total number of Appendages through which this Move is being used on that target."""
     }
+
+
 mirrorOfTsul : Feature
 mirrorOfTsul =
     { name = "Mirror of Tsul"
@@ -1769,6 +1797,8 @@ If you roll and fail an Ability Check, take the difference between the Difficult
 
 This effect is removed at the end of your turn."""
     }
+
+
 liquidHeart : Feature
 liquidHeart =
     { name = "Liquid Hea(r)t"
@@ -1785,6 +1815,8 @@ If the total number of Pairings through which this Move is being used is equal t
 - Both you and the target drain an amount of Sensitivity equal to your Level Bonus.
 - The target gains Stamina equal to half, rounded down, of the Stamina you spend on this Move."""
     }
+
+
 madRevelation : Feature
 madRevelation =
     { name = "Mad Revelation"
@@ -1797,9 +1829,9 @@ Outside of an Encounter, you may at any time expend LB Craving to speak aloud on
 - If that sentence is an objectively-true statement, all who hear it will know it to be true.
 - If that sentence is an objectively-false statement, all who hear it know it to be false and will also become mentally Injured if it does not become true or is not made true within the following six seconds.
 - If that sentence is none of the above, it is simply heard like normal speech."""
-    }   
-    
-    
+    }
+
+
 gendertropeFromName : String -> Maybe Gendertrope
 gendertropeFromName name =
     case name of
@@ -1826,13 +1858,13 @@ gendertropeFromName name =
 
         "The Jungle Prince" ->
             Just JunglePrince
-            
+
         "The Firecracker" ->
             Just Firecracker
-            
+
         "The Demon Queen" ->
             Just DemonQueen
-            
+
         "The Eldritch" ->
             Just Eldritch
 
