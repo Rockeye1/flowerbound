@@ -1567,7 +1567,7 @@ You also gain access to this Move:
 > 
 > You may not use this Move if you do not have an active volume of flame under your control.
 > 
-> Roll a **Prowess Chec**k. The Difficulty Class is **30** minus the **Fitness Score** of the target of this Move.
+> Roll a **Prowess Check**. The Difficulty Class is **30** minus the **Fitness Score** of the target of this Move.
 > 
 > If you fail the Prowess Check, the **Stimulation** dealt by this Move is __negative__ regardless of your intention."""
     }
@@ -1682,7 +1682,7 @@ eldritch =
     { name = "The Eldritch"
     , description = "It is phallic sexual aggression distilled into its purest essence. Its amorphous form is an unending manifestation of slippery penetrative seduction, insidious and encompassing. But it is a generous and proud lover, always eager to share, adore, and uplift."
     , features =
-        [ ( 1, omnidextrousMutability )
+        [ ( 1, omnidexterousMutability )
         , ( 2, writhingMorphology )
         , ( 3, mirrorOfTsul )
         , ( 4, liquidHeart )
@@ -1691,7 +1691,7 @@ eldritch =
             |> Dict.fromList
     , organs =
         [ { emptyOrgan
-            | name = "Birfurcated Bulbous Core"
+            | name = "Bifurcated Bulbous Core"
             , type_ = Hips
             , contour = 1
             , erogeny = 2
@@ -1744,8 +1744,8 @@ eldritch =
     }
 
 
-omnidextrousMutability : Feature
-omnidextrousMutability =
+omnidexterousMutability : Feature
+omnidexterousMutability =
     { name = "Omnidexterous Mutability"
     , description = """You have a Morph Capacity equal to 5 plus your Level Bonus.
 
