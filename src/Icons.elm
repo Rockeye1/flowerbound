@@ -2,7 +2,7 @@ module Icons exposing
     ( flip, download, upload, minus, plus, remove, reset, delete, hide, show, rearrange
     , beginEncounter, rest, roll
     , ensheathe, ensheatheable, grip, grippable, penetrable, penetrate, squish, squishable
-    , buck, butterfly, custom, doll, fiend, flower, vixen, seedstalker, housepet
+    , buck, butterfly, custom, doll, fiend, flower, vixen, seedstalker, housepet, junglePrince, firecracker, demonQueen, eldritch
     , breasts, hands, hips, legs, mouth, other, phallic, prehensile, yonic
     , toElement, toElementFlippable
     )
@@ -27,7 +27,7 @@ module Icons exposing
 
 ## Gendertropes
 
-@docs buck, butterfly, custom, doll, fiend, flower, vixen, seedstalker, housepet
+@docs buck, butterfly, custom, doll, fiend, flower, vixen, seedstalker, housepet, junglePrince, firecracker, demonQueen, eldritch
 
 
 ## Organ types
@@ -179,6 +179,26 @@ fiend =
 doll : IconVariant
 doll =
     Phosphor.legoSmiley Phosphor.Duotone
+
+
+junglePrince : IconVariant
+junglePrince =
+    Phosphor.leaf Phosphor.Duotone
+
+
+firecracker : IconVariant
+firecracker =
+    Phosphor.bomb Phosphor.Duotone
+
+
+demonQueen : IconVariant
+demonQueen =
+    Phosphor.crown Phosphor.Duotone
+
+
+eldritch : IconVariant
+eldritch =
+    Phosphor.handEye Phosphor.Duotone
 
 
 custom : IconVariant

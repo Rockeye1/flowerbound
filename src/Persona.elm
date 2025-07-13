@@ -186,6 +186,18 @@ partialGendertropeToGendertrope gendertrope maybeGendertrope =
         PartialDoll ->
             Doll
 
+        PartialJunglePrince ->
+            JunglePrince
+
+        PartialFirecracker ->
+            Firecracker
+
+        PartialDemonQueen ->
+            DemonQueen
+
+        PartialEldritch ->
+            Eldritch
+
         PartialCustom name ->
             maybeGendertrope
                 |> Maybe.withDefault
@@ -247,6 +259,18 @@ gendertropeToPartial gendertrope =
 
         Doll ->
             PartialDoll
+
+        JunglePrince ->
+            PartialJunglePrince
+
+        Firecracker ->
+            PartialFirecracker
+
+        DemonQueen ->
+            PartialDemonQueen
+
+        Eldritch ->
+            PartialEldritch
 
         Custom { name } ->
             PartialCustom name

@@ -59,6 +59,10 @@ type Gendertrope
     | Buck
     | Fiend
     | Doll
+    | JunglePrince
+    | Firecracker
+    | DemonQueen
+    | Eldritch
     | Custom GendertropeRecord
 
 
@@ -71,19 +75,27 @@ type PartialGendertrope
     | PartialBuck
     | PartialFiend
     | PartialDoll
+    | PartialJunglePrince
+    | PartialFirecracker
+    | PartialDemonQueen
+    | PartialEldritch
     | PartialCustom String
 
 
 standardGendertropes : List Gendertrope
 standardGendertropes =
     [ Butterfly
-    , SeedStalker
     , Flower
-    , Housepet
     , Vixen
     , Buck
     , Fiend
     , Doll
+    , SeedStalker
+    , Housepet
+    , JunglePrince
+    , Firecracker
+    , DemonQueen
+    , Eldritch
     ]
 
 
