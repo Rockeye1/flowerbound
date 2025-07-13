@@ -370,7 +370,7 @@ viewGendertrope ({ gendertrope } as persona) =
                     [ Ui.border 1
                     , Theme.padding
                     , Font.center
-                    , Ui.widthMin 160
+                    , Ui.widthMin 200
                     , Input.button (UpdateGendertrope option)
                     ]
             in
