@@ -1856,6 +1856,9 @@ gendertropeFromName name =
         "The Fiend" ->
             Just Fiend
 
+        "The Doll" ->
+            Just Doll
+
         "The Jungle Prince" ->
             Just JunglePrince
 
