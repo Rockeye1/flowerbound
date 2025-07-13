@@ -43,13 +43,13 @@ gendertropeIcon gendertrope =
             Icons.doll
 
         JunglePrince ->
-            Icons.jungleprince
+            Icons.junglePrince
 
         Firecracker ->
             Icons.firecracker
 
         DemonQueen ->
-            Icons.demonqueen
+            Icons.demonQueen
 
         Eldritch ->
             Icons.eldritch
@@ -113,13 +113,13 @@ gendertropeToRecord gendertrope =
             doll
 
         JunglePrince ->
-            jungleprince
+            junglePrince
 
         Firecracker ->
             firecracker
 
         DemonQueen ->
-            demonqueen
+            demonQueen
 
         Eldritch ->
             eldritch
@@ -1325,8 +1325,8 @@ If you do _not_ at the time have the **Subspace** effect, you may spend **1 Icho
     }
 
 
-jungleprince : GendertropeRecord
-jungleprince =
+junglePrince : GendertropeRecord
+junglePrince =
     { name = "The Jungle Prince"
     , description = "He is an innocent beast, wild and free. His nurtured simplicity defines both his unhesitating integrity as well as his profound lack of inhibition. But though he thinks like an animal, his bestial nature is one of curious gentleness and loyal protectiveness."
     , features =
@@ -1573,8 +1573,8 @@ You also gain access to this Move:
     }
 
 
-demonqueen : GendertropeRecord
-demonqueen =
+demonQueen : GendertropeRecord
+demonQueen =
     { name = "The Demon Queen"
     , description = "She is an exemplar of devoted obsession, her gleeful sadism in perfect balance with her enduring delight in the victory of her victims. She torments out of love, becoming both one's greatest fan and greatest foe. She is satisfied with no less. But ultimately, her wish to see those she torments flourish is her sincere and driving core."
     , features =
