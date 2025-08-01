@@ -889,7 +889,7 @@ milkMommy =
     { name = "Milk Mommy"
     , description = """You lactate during your orgasms.
 
-If an Organ in the "**Mouth**" Category is Paired with either or both of your _Mamerous Milk Melons_ at the start of a turn in which you are **Having An Orgasm**, the owner of that Organ imbibes the __ejaculate__d milk and is afflicted by the **Swoon** effect.
+If an Organ in the "**Mouth**" Category is Paired with either or both of your _Mamerous Milk Melons_ at the start of a turn in which you are **Having An Orgasm**, the owner of that Organ imbibes the ejaculated milk and is afflicted by the **Swoon** effect.
 
 > **Swoon**
 > _Trigger_
