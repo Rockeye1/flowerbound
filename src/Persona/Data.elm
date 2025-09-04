@@ -545,9 +545,11 @@ You also permanently gain access to these three **Moves**:
 > 
 > If this Move causes any **Overstimulation** to its target, the final **Sensitivity** gain from that Overstimulation is doubled.
 
-> **Plundering Plunge** (Thrust) [Penetrates] | CT **0** |
+> **Malevolent Milking** (Thrust) [Ensheathes] | CT **0** |
 >
-> If the Organ using this Move is your _Sinuous Tentacle Tongue_, add **+1** to this Move's attempted Stimulation, and also gain **(LB) Craving**.
+> If the Organ this Move is targeting is in the "**Phallic Genital**" Category, you gain an amount of **Craving** equal to the number of **Intensity Points** inflicted by this Move.
+> 
+> If, in addition to the above, your **Prowess Roll** for this Move falls within your zero zone, and the target of this Move is already **Having An Orgasm**, they gain the **Subspace** effect.
 
 (If you did not replace your _Veiny Futa Phallus_, you may assign this Feature to your _Serpentine Thirsting Tailthroat_ instead. If you also did not replace your _Sinuous Tentacle Tongue_, the capacity for your **Breeding Points** is locked to **0**.)
 
@@ -583,7 +585,7 @@ You also permanently gain access to these two Moves:
 >
 > If the target of this move has the **Eager Release** effect, gain as much **Craving** as the **Stamina** you spend on this contested Move.
 
-> **Slithering Snuggle** (Grind) [Squishes] | CT **10** |
+> **Slithering Snuggle** (Grind) [Squishes] | CT: **10** |
 > _Indulgent_
 >
 > If you have at least 4 Breeding Points, drain 1d4 Sensitivity from yourself.
@@ -782,8 +784,8 @@ snuggleSavant =
 > **Cozy Clench** (Thrust) [Grips/Ensheathes] | CT: **5** |
 >
 > If you have the **Eager Release** effect:
-- Add **+1** to this Move's attempted Stimulation.
-- Drain **Craving** from yourself equal to the **Stamina** spent on this Move, then also drain __the amount of drained Craving__ from your **Satiation**.
+> - Add **+1** to this Move's attempted Stimulation.
+> - Drain **Craving** from yourself equal to the **Stamina** spent on this Move, then also drain __the amount of drained Craving__ from your **Satiation**.
 
 > **Eager Undulation** (Grind) [Penetrates/Ensheathes] | CT: **0** |
 >
@@ -1137,7 +1139,7 @@ devilishDominator =
 >
 > You may immediately view the state of all **Status Meters** on the owner, as well as all information on the **Organ Card** of, the Organ this Move is targeting. You may do this _before_ deciding how much attempted Stimulation this Move will deal.
 
-> **Pernicious Pump** (Thrust) [Penetrates] | CT : **5** |
+> **Pernicious Pump** (Thrust) [Penetrates] | CT: **5** |
 >
 > You have advantage on the **Prowess Roll** for this Move if this Move is used to inflict pain (negative Stimulation).
 >
@@ -1655,14 +1657,13 @@ salivatingSuccubus =
 
 You also gain access to these Moves:
 
-Dominant Fervor (Tease) [Grips/Penetrates/Ensheathes] | CT: 10 |
-Reaction
+> Dominant Fervor (Tease) [Grips/Penetrates/Ensheathes] | CT: 10 | Reaction
+> 
+> An amount of your Intensity Points that is equal to the Stamina you expend on this Move is converted back into Stamina, which you then gain. This cannot give you more Stamina than you have Intensity Points to convert.
 
-An amount of your Intensity Points that is equal to the Stamina you expend on this Move is converted back into Stamina, which you then gain. This cannot give you more Stamina than you have Intensity Points to convert.
-Grinning Grope (Grind) [Squishes/Grips] | CT: 0 |
-Indulgent
-
-If this Move neither Overstimulates you nor Understimulates you, you gain the Perfectionism effect."""
+> Grinning Grope (Grind) [Squishes/Grips] | CT: 0 | Indulgent
+> 
+> If this Move neither Overstimulates you nor Understimulates you, you gain the Perfectionism effect."""
     }
 
 
@@ -1769,17 +1770,17 @@ Your Engulfing Flesh Pockets may Pair with any Organ, and subsequently use Moves
 
 You also permanently gain access to these three Moves:
 
-Coiling Fondle (Tease) [Grips] | CT: 10 |
+> Coiling Fondle (Tease) [Grips] | CT: 10 |
+> 
+> Drain an amount of Stamina from the target of this Move equal to the total number of Appendages through which this Move is being used on that target.
 
-Drain an amount of Stamina from the target of this Move equal to the total number of Appendages through which this Move is being used on that target.
+> Vigorous Violation (Thrust) [Penetrates] | CT: 5 |
+> 
+> Drain an amount of Sensitivity from the target of this Move equal to the total number of Appendages through which this Move is being used on that target.
 
-Vigorous Violation (Thrust) [Penetrates] | CT: 5 |
-
-Drain an amount of Sensitivity from the target of this Move equal to the total number of Appendages through which this Move is being used on that target.
-
-Molesting Cling (Grind) [Squishes] | CT: 5 |
-
-Drain an amount of Satiation from the target of this Move equal to the total number of Appendages through which this Move is being used on that target."""
+> Molesting Cling (Grind) [Squishes] | CT: 5 |
+> 
+> Drain an amount of Satiation from the target of this Move equal to the total number of Appendages through which this Move is being used on that target."""
     }
 
 
@@ -1806,14 +1807,14 @@ liquidHeart =
 
 You also gain access to this Move:
 
-Decadent Flesh Cocoon (Grind) [Squishes/Ensheathes] | CT: 15 |
-Indulgent
-
-If the total number of Pairings through which this Move is being used is equal to or greater than the total number of Organs possessed by the target of this Move:
-- If the target is Injured, they immediately cease to be Injured.
-- You gain additional Arousal equal to the number of stacks of Ahegao on the target.
-- Both you and the target drain an amount of Sensitivity equal to your Level Bonus.
-- The target gains Stamina equal to half, rounded down, of the Stamina you spend on this Move."""
+> Decadent Flesh Cocoon (Grind) [Squishes/Ensheathes] | CT: 15 |
+> Indulgent
+> 
+> If the total number of Pairings through which this Move is being used is equal to or greater than the total number of Organs possessed by the target of this Move:
+> - If the target is Injured, they immediately cease to be Injured.
+> - You gain additional Arousal equal to the number of stacks of Ahegao on the target.
+> - Both you and the target drain an amount of Sensitivity equal to your Level Bonus.
+> - The target gains Stamina equal to half, rounded down, of the Stamina you spend on this Move."""
     }
 
 
